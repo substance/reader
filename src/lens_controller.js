@@ -5,8 +5,7 @@ var util = require("substance-util");
 var Controller = require("substance-application").Controller;
 var LensView = require("./lens_view");
 var ReaderController = require("lens-reader").Controller;
-var Article = require("lens-article");
-var Converter = require("lens-converter");
+var Article = require("substance-article");
 
 // Lens.Controller
 // -----------------
@@ -20,9 +19,6 @@ var LensController = function(config) {
 
   // Main controls
   this.on('open:reader', this.openReader);
-  this.on('open:library', this.openLibrary);
-  this.on('open:login', this.openLogin);
-  this.on('open:test_center', this.openTestCenter);
 };
 
 LensController.Prototype = function() {
@@ -34,17 +30,6 @@ LensController.Prototype = function() {
     var view = new LensView(this);
     this.view = view;
     return view;
-  };
-
-  // After a file gets drag and dropped it will be remembered in Local Storage
-  // ---------
-
-  this.importXML = function(xml) {
-    var importer = new Converter.Importer();
-    var doc = importer.import(xml);
-    this.createReader(doc, {
-      context: 'toc'
-    });
   };
 
   // Update URL Fragment
@@ -109,19 +94,8 @@ LensController.Prototype = function() {
     $.get(this.config.document_url)
     .done(function(data) {
       var doc, err;
-
-      // Determine type of resource
-      var xml = $.isXMLDoc(data);
-
-      // Process XML file
-      if(xml) {
-        var importer = new Converter.Importer();
-        doc = importer.import(data);
-        // Process JSON file
-      } else {
-        if(typeof data == 'string') data = $.parseJSON(data);
-        doc = Article.fromSnapshot(data);
-      }
+      if(typeof data == 'string') data = $.parseJSON(data);
+      doc = Article.fromSnapshot(data);
       that.createReader(doc, state);
     })
     .fail(function(err) {

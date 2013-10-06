@@ -53,7 +53,6 @@ var Lens = function(config) {
   this.controller = new LensController(config);
 };
 
-Lens.Article = require("lens-article");
 Lens.Reader = require("lens-reader");
 Lens.Outline = require("lens-outline");
 

@@ -1,0 +1,59 @@
+{
+  "id": "",
+  "schema": [
+    "substance-article",
+    "0.1.0"
+  ],
+  "nodes": {
+    "document": {
+      "type": "document",
+      "id": "document",
+      "views": [
+        "content"
+      ],
+      "guid": "",
+      "creator": "",
+      "title": "",
+      "abstract": "",
+      "published_on": "2013-10-04T21:23:14.838Z",
+      "meta": {}
+    },
+    "content": {
+      "type": "view",
+      "id": "content",
+      "nodes": [
+        "header_1",
+        "header_2",
+        "text_1",
+        "header_3"
+      ]
+    },
+    "header_1": {
+      "type": "heading",
+      "id": "header_1",
+      "source_id": "intro",
+      "content": "Intro",
+      "level": 1
+    },
+    "header_2": {
+      "type": "heading",
+      "id": "header_2",
+      "source_id": "main",
+      "content": "Main",
+      "level": 1
+    },
+    "text_1": {
+      "type": "text",
+      "id": "text_1",
+      "source_id": null,
+      "content": "hello"
+    },
+    "header_3": {
+      "type": "heading",
+      "id": "header_3",
+      "source_id": "outro",
+      "content": "Outro",
+      "level": 1
+    }
+  }
+}
