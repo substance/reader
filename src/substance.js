@@ -2,8 +2,8 @@
 
 var _ = require("underscore");
 var Application = require("substance-application");
-var LensController = require("./lens_controller");
-var LensView = require("./lens_view");
+var SubstanceController = require("./substance_controller");
+var SubstanceView = require("./substance_view");
 var util = require("substance-util");
 var html = util.html;
 
@@ -41,23 +41,24 @@ var ROUTES = [
   }
 ];
 
-// The Lens Application
+
+// The Substance Reader Application
 // ========
 //
 
-var Lens = function(config) {
+var Substance = function(config) {
   config = config || {};
   config.routes = ROUTES;
   Application.call(this, config);
 
-  this.controller = new LensController(config);
+  this.controller = new SubstanceController(config);
 };
 
-Lens.Reader = require("lens-reader");
-Lens.Outline = require("lens-outline");
+Substance.Reader = require("lens-reader");
+Substance.Outline = require("lens-outline");
 
 
-Lens.Prototype = function() {
+Substance.Prototype = function() {
 
   // Start listening to routes
   // --------
@@ -69,19 +70,9 @@ Lens.Prototype = function() {
 };
 
 
-Lens.Prototype.prototype = Application.prototype;
-Lens.prototype = new Lens.Prototype();
-Lens.prototype.constructor = Lens;
+Substance.Prototype.prototype = Application.prototype;
+Substance.prototype = new Substance.Prototype();
+Substance.prototype.constructor = Substance;
 
-var Substance = {
-  util: require("substance-util"),
-  Application: require("substance-application"),
-  Document: require("substance-document"),
-  Operator: require("substance-operator"),
-  Chronicle: require("substance-chronicle"),
-  Data: require("substance-data"),
-  Surface: require("substance-surface")
-};
 
-Lens.Substance = Substance;
-module.exports = Lens;
+module.exports = Substance;

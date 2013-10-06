@@ -7,11 +7,11 @@ var View = require("substance-application").View;
 var $$ = require("substance-application").$$;
 
 
-// Lens.View Constructor
+// Substance.View Constructor
 // ========
 // 
 
-var LensView = function(controller) {
+var SubstanceView = function(controller) {
   View.call(this);
 
   this.controller = controller;
@@ -23,30 +23,13 @@ var LensView = function(controller) {
   this.listenTo(this.controller, 'state-changed', this.onStateChanged);
   this.listenTo(this.controller, 'loading:started', this.displayLoadingIndicator);
 
-  $(document).on('dragover', function () { return false; });
-  $(document).on('ondragend', function () { return false; });
-  $(document).on('drop', this.handleDroppedFile.bind(this));
 };
 
-LensView.Prototype = function() {
+SubstanceView.Prototype = function() {
 
   this.displayLoadingIndicator = function(msg) {
     this.$('#main').empty();
     this.$('.loading').html(msg).show();
-  };
-
-  this.handleDroppedFile = function(e) {
-    var ctrl = this.controller;
-    var files = event.dataTransfer.files;
-    var file = files[0];
-    var reader = new FileReader();
-
-    reader.onload = function(e) {
-      ctrl.importXML(e.target.result);
-    };
-
-    reader.readAsText(file);
-    return false;
   };
 
   // Session Event handlers
@@ -62,7 +45,6 @@ LensView.Prototype = function() {
     }
   };
 
-
   // Open the reader view
   // ----------
   //
@@ -72,17 +54,9 @@ LensView.Prototype = function() {
     this.replaceMainView('reader', view);
 
     var doc = this.controller.reader.__document;
-    var publicationInfo = doc.get('publication_info');
     
     // Hide loading indicator
     this.$('.loading').hide();
-
-    if (publicationInfo) {
-      // Update URL
-      this.$('.go-back').attr({
-        href: publicationInfo.doi
-      });
-    }
   };
 
   // Rendering
@@ -111,20 +85,13 @@ LensView.Prototype = function() {
       style: "display: none;"
     }));
 
-    this.el.appendChild($$('a.go-back', {
-      href: "#",
-      html: '<i class="icon-chevron-left"></i>',
-      title: "Back to original article"
-    }));
-
-
-    // About Lens
+    // About Substance
     // ------------
 
-    this.el.appendChild($$('a.about-lens', {
-      href: "http://lens.substance.io",
-      html: 'Lens 0.2.0'
-    }));
+    // this.el.appendChild($$('a.about-substance', {
+    //   href: "http://substance.io",
+    //   html: 'Substance 0.5.0'
+    // }));
 
     // Loading indicator
     // ------------
@@ -150,7 +117,7 @@ LensView.Prototype = function() {
 // Export
 // --------
 
-LensView.Prototype.prototype = View.prototype;
-LensView.prototype = new LensView.Prototype();
+SubstanceView.Prototype.prototype = View.prototype;
+SubstanceView.prototype = new SubstanceView.Prototype();
 
-module.exports = LensView;
+module.exports = SubstanceView;

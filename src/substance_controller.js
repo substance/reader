@@ -3,16 +3,17 @@
 var _ = require("underscore");
 var util = require("substance-util");
 var Controller = require("substance-application").Controller;
-var LensView = require("./lens_view");
+var SubstanceView = require("./substance_view");
 var ReaderController = require("lens-reader").Controller;
 var Article = require("substance-article");
 
-// Lens.Controller
+
+// Substance.Controller
 // -----------------
 //
-// Main Application Controller
+// Main Application Controller for the Substance reading environment
 
-var LensController = function(config) {
+var SubstanceController = function(config) {
   Controller.call(this);
 
   this.config = config;
@@ -21,13 +22,13 @@ var LensController = function(config) {
   this.on('open:reader', this.openReader);
 };
 
-LensController.Prototype = function() {
+SubstanceController.Prototype = function() {
 
   // Initial view creation
   // ===================================
 
   this.createView = function() {
-    var view = new LensView(this);
+    var view = new SubstanceView(this);
     this.view = view;
     return view;
   };
@@ -109,7 +110,7 @@ LensController.Prototype = function() {
   //
 
   this.getActiveControllers = function() {
-    var result = [["lens", this]];
+    var result = [["substance", this]];
     result.push(["reader", this.reader]);
     return result;
   };
@@ -119,8 +120,8 @@ LensController.Prototype = function() {
 // Exports
 // --------
 
-LensController.Prototype.prototype = Controller.prototype;
-LensController.prototype = new LensController.Prototype();
-_.extend(LensController.prototype, util.Events);
+SubstanceController.Prototype.prototype = Controller.prototype;
+SubstanceController.prototype = new SubstanceController.Prototype();
+_.extend(SubstanceController.prototype, util.Events);
 
-module.exports = LensController;
+module.exports = SubstanceController;

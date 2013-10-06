@@ -102,7 +102,6 @@
     "styles/reader.css": "node_modules/lens-reader/reader.css",
     
     "styles/toc.css": "node_modules/substance-toc/toc.css",
-    "styles/library.css": "node_modules/substance-library/library.css",
     "styles/lens.css":  "styles/lens.css"
 
   },
