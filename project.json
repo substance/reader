@@ -92,6 +92,7 @@
 
     "styles/nodes/cover.css": "node_modules/substance-article/nodes/cover/cover.css",
     "styles/nodes/text.css": "node_modules/substance-article/nodes/text/text.css",
+    "styles/nodes/figure.css": "node_modules/substance-article/nodes/figure/figure.css",
     "styles/nodes/paragraph.css": "node_modules/substance-article/nodes/paragraph/paragraph.css",
     "styles/nodes/heading.css": "node_modules/substance-article/nodes/heading/heading.css",
     "styles/nodes/list.css": "node_modules/substance-article/nodes/list/list.css",

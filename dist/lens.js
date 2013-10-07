@@ -1,4832 +1,13 @@
 ;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-window.Lens = require("./src/lens");
-},{"./src/lens":148}],2:[function(require,module,exports){
-"use strict";
-
-var _ = require("underscore");
-var util = require("substance-util");
-var Document = require("substance-document");
-
-// Lens.Article
-// -----------------
-
-var Article = function(options) {
-  options = options || {};
-
-  // Check if format is compatible
-
-  // Extend Schema
-  // --------
-
-  options.schema = util.deepclone(Document.schema);
-
-  options.schema.id = "lens-article";
-  options.schema.version = "0.1.0";
-
-  // Merge in custom types
-  _.each(Article.types, function(type, key) {
-    options.schema.types[key] = type;
-  });
-
-  // Register annotation types
-  _.each(Article.annotations, function(aType, key) {
-    options.schema.types[key] = aType;
-  });
-
-
-  // Merge in node types
-  _.each(Article.nodeTypes, function(nodeSpec, key) {
-    options.schema.types[key] = nodeSpec.Model.type;
-  });
-
-  // Merge in custom indexes
-  _.each(Article.indexes, function(index, key) {
-    options.schema.indexes[key] = index;
-  });
-
-  // Call parent constructor
-  // --------
-
-  Document.call(this, options);
-
-  // Index for easy mapping from NLM sourceIds to generated nodeIds
-  // Needed for resolving figrefs / citationrefs etc.
-  this.bySourceId = this.addIndex("by_source_id", {
-    types: ["content"],
-    property: "source_id"
-  });
-
-  this.nodeTypes = Article.nodeTypes;
-
-  // Seed the doc
-  // --------
-
-  if (options.seed === undefined) {
-    this.create({
-      id: "document",
-      type: "document",
-      guid: options.id, // external global document id
-      creator: options.creator,
-      created_at: options.created_at,
-      views: ["content"], // is views really needed on the instance level
-      title: "",
-      abstract: ""
-    });
-
-    // Create views on the doc
-    _.each(Article.views, function(view) {
-      this.create({
-        id: view,
-        "type": "view",
-        nodes: []
-      });
-    }, this);
-  }
-};
-
-
-// Renders an article
-// --------
-//
-
-Article.Renderer = function(docCtrl, options) {
-  this.docCtrl = docCtrl;
-
-  this.nodeTypes = Article.nodeTypes;
-
-  this.options = options || {};
-
-  // Collect all node views
-  this.nodes = {};
-
-  // Build views
-  _.each(this.docCtrl.getNodes(), function(node) {
-    this.nodes[node.id] = this.createView(node);
-  }, this);
-
-};
-
-Article.Renderer.Prototype = function() {
-
-  // Create a node view
-  // --------
-  //
-  // Experimental: using a factory which creates a view for a given node type
-  // As we want to be able to reuse views
-  // However, as the matter is still under discussion consider the solution here only as provisional.
-  // We should create views, not only elements, as we need more, e.g., event listening stuff
-  // which needs to be disposed later.
-
-  this.createView = function(node) {
-    var NodeView = this.nodeTypes[node.type].View;
-
-    if (!NodeView) {
-      throw new Error('Node type "'+node.type+'" not supported');
-    }
-
-    // Note: passing the factory to the node views
-    // to allow creation of nested views
-    var nodeView = new NodeView(node, this);
-
-    // we connect the listener here to avoid to pass the document itself into the nodeView
-    nodeView.listenTo(this.docCtrl, "operation:applied", nodeView.onGraphUpdate);
-    return nodeView;
-  };
-
-  // Render it
-  // --------
-  //
-
-  this.render = function() {
-    _.each(this.nodes, function(nodeView) {
-      nodeView.dispose();
-    });
-
-    var frag = document.createDocumentFragment();
-
-    var docNodes = this.docCtrl.container.getTopLevelNodes();
-    _.each(docNodes, function(n) {
-      this.renderNode(n, frag);
-    }, this);
-    
-    return frag;
-  };
-
-
-  this.renderNode = function(n, frag) {
-    var view = this.createView(n);
-    frag.appendChild(view.render().el);
-    // Lets you customize the resulting DOM sticking on the el element
-    // Example: Lens focus controls
-    if (this.options.afterRender) this.options.afterRender(this.docCtrl, view);
-  };
-
-};
-
-Article.Renderer.prototype = new Article.Renderer.Prototype();
-
-
-Article.Prototype = function() {
-  this.fromSnapshot = function(data, options) {
-    return Article.fromSnapshot(data, options);
-  };
-
-  // For a given NLM source id, returns the corresponding node in the document graph
-  // --------
-
-  this.getNodeBySourceId = function(sourceId) {
-    var nodes = this.bySourceId.get(sourceId);
-    var nodeId = Object.keys(nodes)[0];
-    var node = nodes[nodeId];
-    return node;
-  };
-};
-
-// Factory method
-// --------
-//
-// TODO: Ensure the snapshot doesn't get chronicled
-
-Article.fromSnapshot = function(data, options) {
-  options = options || {};
-  options.seed = data;
-  return new Article(options);
-};
-
-
-// Define available views
-// --------
-
-Article.views = ["content", "figures", "citations", "info"];
-
-
-// Register node types
-// --------
-
-Article.nodeTypes = require("./nodes");
-
-
-// Define annotation types
-// --------
-
-Article.annotations = {
-
-  "strong": {
-    "parent": "annotation",
-    "properties": {
-    }
-  },
-
-  "emphasis": {
-    "properties": {
-    },
-    "parent": "annotation"
-  },
-
-  "subscript": {
-    "properties": {
-    },
-    "parent": "annotation"
-  },
-
-  "superscript": {
-    "properties": {
-    },
-    "parent": "annotation"
-  },
-
-  "underline": {
-    "properties": {
-    },
-    "parent": "annotation"
-  },
-
-  "code": {
-    "parent": "annotation",
-    "properties": {
-    }
-  },
-
-  "link": {
-    "parent": "annotation",
-    "properties": {
-      "url": "string"
-    }
-  },
-
-  "idea": {
-    "parent": "annotation",
-    "properties": {
-    }
-  },
-
-  "error": {
-    "parent": "annotation",
-    "properties": {
-    }
-  },
-
-  "question": {
-    "parent": "annotation",
-    "properties": {
-    }
-  },
-
-  // Dark blueish person references in the cover
-  // They should work everywhere else too
-
-  "person_reference": {
-    "parent": "annotation",
-    "properties": {
-      "target": "person"
-    }
-  },
-
-  // Greenish figure references in the text
-
-  "figure_reference": {
-    "parent": "annotation",
-    "properties": {
-      "target": "figure"
-    }
-  },
-
-  // Blueish citation references in the text
-
-  "citation_reference": {
-    "parent": "annotation",
-    "properties": {
-      "target": "content"
-    }
-  },
-
-  "cross_reference": {
-    "parent": "annotation",
-    "properties": {
-      "target": "content"
-    }
-  },
-
-  "formula_reference": {
-    "parent": "annotation",
-    "properties": {
-      "target": "content"
-    }
-  }
-
-};
-
-// Custom type definitions
-// --------
-//
-// Holds comments
-
-Article.types = {
-
-  // Abstarct Annotation Node
-  // --------
-
-  "annotation": {
-    "properties": {
-      "path": ["array", "string"], // -> e.g. ["text_1", "content"]
-      "range": "object"
-    }
-  },
-
-  // Abstract Figure Type
-  // --------
-
-  "figure": {
-    "properties": {
-    }
-  },
-
-  // "file": {
-  //   "properties": {
-  //   }
-  // },
-
-  "institution": {
-    "properties": {
-    }
-  },
-
-  "email": {
-    "properties": {
-    }
-  },
-
-  "funding": {
-    "properties": {
-    }
-  },
-
-  "caption": {
-    "properties": {
-    }
-  },
-
-  // Abstract Citation Type
-  // --------
-
-  "citation": {
-    "properties": {
-    }
-  },
-
-  // Document
-  // --------
-
-  "document": {
-    "properties": {
-      "views": ["array", "view"],
-      "guid": "string",
-      "creator": "string",
-      "title": "string",
-      "authors": ["array", "person"],
-      "abstract": "string"
-    }
-  },
-
-  // Comments
-  // --------
-
-  "comment": {
-    "properties": {
-      "content": "string",
-      "created_at": "string", // should be date
-      "creator": "string", // should be date
-      "node": "node" // references either a content node or annotation
-    }
-  }
-};
-
-// From article definitions generate a nice reference document
-// --------
-//
-
-
-var ARTICLE_DOC_SEED = {
-  "id": "lens_article",
-  "nodes": {
-    "document": {
-      "type": "document",
-      "id": "document",
-      "views": [
-        "content"
-      ],
-      "title": "The Anatomy of a Lens Article",
-      "authors": ["person_1", "person_2", "person_3"],
-      "guid": "lens_article"
-    },
-
-
-    "content": {
-      "type": "view",
-      "id": "content",
-      "nodes": [
-        "cover",
-      ]
-    },
-
-    "cover": {
-      "id": "cover",
-      "type": "cover"
-    },
-
-    "person_1": {
-      "id": "person_1",
-      "type": "person",
-      "name": "Michael Aufreiter"
-    },
-
-    "person_2": {
-      "id": "person_2",
-      "type": "person",
-      "name": "Ivan Grubisic"
-    },
-
-    "person_3": {
-      "id": "person_3",
-      "type": "person",
-      "name": "Rebecca Close"
-    }
-  }
-};
-
-Article.describe = function() {
-  var doc = new Article({seed: ARTICLE_DOC_SEED});
-
-  var id = 0;
-
-  _.each(Article.nodeTypes, function(nodeType) {
-    nodeType = nodeType.Model;
-    console.log('NAME', nodeType.description.name, nodeType.type.id);
-
-    // Create a heading for each node type
-    var headingId = "heading_"+nodeType.type.id;
-
-    doc.create({
-      id: headingId,
-      type: "heading",
-      content: nodeType.description.name,
-      level: 1
-    });
-
-    // Turn remarks and description into an introduction paragraph
-    var introText = nodeType.description.remarks.join(' ');
-    var introId = "text_"+nodeType.type.id+"_intro";
-
-    doc.create({
-      id: introId,
-      type: "text",
-      content: introText,
-    });
-
-
-    // Show it in the content view
-    doc.show("content", [headingId, introId], -1);
-
-
-    // Include property description
-    // --------
-    //
-
-    doc.create({
-      id: headingId+"_properties",
-      type: "text",
-      content: nodeType.description.name+ " uses the following properties:"
-    });
-
-    doc.show("content", [headingId+"_properties"], -1);
-
-    var items = [];
-
-    _.each(nodeType.description.properties, function(propertyDescr, key) {
-
-      var listItemId = "text_" + (++id);
-      doc.create({
-        id: listItemId,
-        type: "text",
-        content: key +": " + propertyDescr
-      });
-
-      // Create code annotation for the propertyName
-      doc.create({
-        "id": id+"_annotation",
-        "type": "code",
-        "path": [listItemId, "content"],
-        "range":[0, key.length]
-      });
-
-      items.push(listItemId);
-    });
-
-    // Create list
-    doc.create({
-      id: headingId+"_property_list",
-      type: "list",
-      items: items,
-      ordered: false
-    });
-
-    // And show it
-    doc.show("content", [headingId+"_property_list"], -1);
-
-    // Include example
-    // --------
-    //
-
-    doc.create({
-      id: headingId+"_example",
-      type: "text",
-      content: "Here's an example:"
-    });
-
-    doc.create({
-      id: headingId+"_example_codeblock",
-      type: "codeblock",
-      content: JSON.stringify(nodeType.example, null, '  '),
-    });
-
-    doc.show("content", [headingId+"_example", headingId+"_example_codeblock"], -1);
-
-  });
-
-  return doc;
-};
-
-
-Article.Prototype.prototype = Document.prototype;
-Article.prototype = new Article.Prototype();
-Article.prototype.constructor = Article;
-
-
-// Add convenience accessors for builtin document attributes
-Object.defineProperties(Article.prototype, {
-  id: {
-    get: function () {
-      return this.get("document").guid;
-    },
-    set: function(id) {
-      this.get("document").guid = id;
-    }
-  },
-  creator: {
-    get: function () {
-      return this.get("document").creator;
-    },
-    set: function(creator) {
-      this.get("document").creator = creator;
-    }
-  },
-  created_at: {
-    get: function () {
-      return this.get("document").created_at;
-    },
-    set: function(created_at) {
-      this.get("document").created_at = created_at;
-    }
-  },
-  title: {
-    get: function () {
-
-      return this.get("document").title;
-    },
-    set: function(title) {
-      this.get("document").title = title;
-    }
-  },
-  abstract: {
-    get: function () {
-      return this.get("document").abstract;
-    },
-    set: function(abstract) {
-      this.get("document").abstract = abstract;
-    }
-  },
-  authors: {
-    get: function () {
-      var docNode = this.get("document");
-      if (docNode.authors) {
-        return _.map(docNode.authors, function(personId) {
-          return this.get(personId);
-        }, this);
-      } else {
-        return "";
-      }
-    },
-    set: function(val) {
-      var docNode = this.get("document");
-      docNode.authors = _.clone(val);
-    }
-  },
-  views: {
-    get: function () {
-      // Note: returing a copy to avoid inadvertent changes
-      return this.get("document").views.slice(0);
-    }
-  },
-});
-
-module.exports = Article;
-
-},{"./nodes":26,"substance-document":84,"substance-util":142,"underscore":147}],3:[function(require,module,exports){
-"use strict";
-
-var Article = require("./article");
-
-module.exports = Article;
-},{"./article":2}],4:[function(require,module,exports){
-"use strict";
-
-var Node = require("substance-document").Node;
-var _ = require("underscore");
-
-var Affiliation = function(node, doc) {
-  Node.call(this, node, doc);
-};
-
-Affiliation.type = {
-  "id": "affiliation",
-  "parent": "content",
-  "properties": {
-    "source_id": "string",
-    "city": "string",
-    "country": "string",
-    "department": "string",
-    "institution": "string",
-    "label": "string"
-  }
-};
-
-
-Affiliation.description = {
-  "name": "Affiliation",
-  "description": "Person affiliation",
-  "remarks": [
-    "Name of a institution or organization, such as a university or corporation, that is the affiliation for a contributor such as an author or an editor."
-  ],
-  "properties": {
-    "coming": "soon"
-  }
-};
-
-
-Affiliation.example = {
-  "id": "affiliation_1",
-  "source_id": "aff1",
-  "city": "Jena",
-  "country": "Germany",
-  "department": "Department of Molecular Ecology",
-  "institution": "Max Planck Institute for Chemical Ecology",
-  "label": "1",
-  "type": "affiliation"
-};
-
-Affiliation.Prototype = function() {
-
-};
-
-Affiliation.Prototype.prototype = Node.prototype;
-Affiliation.prototype = new Affiliation.Prototype();
-Affiliation.prototype.constructor = Affiliation;
-
-
-// Generate getters
-// --------
-
-var getters = {};
-
-_.each(Affiliation.type.properties, function(prop, key) {
-  getters[key] = {
-    get: function() {
-      return this.properties[key];
-    }
-  };
-});
-
-Object.defineProperties(Affiliation.prototype, getters);
-
-module.exports = Affiliation;
-},{"substance-document":84,"underscore":147}],5:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-  Model: require("./affiliation")
-};
-
-},{"./affiliation":4}],6:[function(require,module,exports){
-var _ = require('underscore');
-var Node = require('substance-document').Node;
-
-// Lens.Box
-// -----------------
-//
-
-var Box = function(node, doc) {
-  Node.call(this, node, doc);
-};
-
-
-// Type definition
-// -----------------
-//
-
-Box.type = {
-  "id": "box",
-  "parent": "content",
-  "properties": {
-    "source_id": "string",
-    "label": "string",
-    "children": ["array", "paragraph"]
-  }
-};
-
-// This is used for the auto-generated docs
-// -----------------
-//
-
-Box.description = {
-  "name": "Box",
-  "remarks": [
-    "A box type.",
-  ],
-  "properties": {
-    "label": "string",
-    "children": "0..n Paragraph nodes",
-  }
-};
-
-
-// Example Box
-// -----------------
-//
-
-Box.example = {
-  "id": "box_1",
-  "type": "box",
-  "label": "Box 1",
-  "children": ["paragraph_1", "paragraph_2"]
-};
-
-Box.Prototype = function() {
-
-};
-
-Box.Prototype.prototype = Node.prototype;
-Box.prototype = new Box.Prototype();
-Box.prototype.constructor = Box;
-
-
-// Generate getters
-// --------
-
-var getters = {};
-
-var getters = {
-  header: {
-    get: function() {
-      return this.properties.label;
-    }
-  }
-};
-
-_.each(Box.type.properties, function(prop, key) {
-  getters[key] = {
-    get: function() {
-      return this.properties[key];
-    }
-  };
-});
-
-
-Object.defineProperties(Box.prototype, getters);
-
-module.exports = Box;
-
-},{"substance-document":84,"underscore":147}],7:[function(require,module,exports){
-"use strict";
-
-var _ = require("underscore");
-var util = require("substance-util");
-var html = util.html;
-var NodeView = require("../node").View;
-var $$ = require("substance-application").$$;
-
-
-// Lens.Box.View
-// ==========================================================================
-
-var BoxView = function(node, viewFactory) {
-  NodeView.call(this, node, viewFactory);
-
-  this.$el.attr({id: node.id});
-  this.$el.addClass("content-node box");
-};
-
-BoxView.Prototype = function() {
-
-  // Render it
-  // --------
-  //
-
-  this.render = function() {
-    NodeView.prototype.render.call(this);
-
-    // Create children views
-    // --------
-    // 
-
-    var children = this.node.children;
-
-    _.each(children, function(nodeId) {
-      var child = this.node.document.get(nodeId);
-      var childView = this.viewFactory.createView(child);
-      var childViewEl = childView.render().el;
-      this.content.appendChild(childViewEl);
-    }, this);
-
-    this.el.appendChild(this.content);
-
-    return this;
-  };
-};
-
-BoxView.Prototype.prototype = NodeView.prototype;
-BoxView.prototype = new BoxView.Prototype();
-
-module.exports = BoxView;
-
-},{"../node":28,"substance-application":59,"substance-util":142,"underscore":147}],8:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-  Model: require('./box'),
-  View: require('./box_view')
-};
-
-},{"./box":6,"./box_view":7}],9:[function(require,module,exports){
-"use strict";
-
-var Document = require("substance-document");
-
-var Caption = function(node, document) {
-  Document.Composite.call(this, node, document);
-};
-
-Caption.type = {
-  "id": "caption",
-  "parent": "content",
-  "properties": {
-    "source_id": "string",
-    "title": "paragraph",
-    "children": ["array", "paragraph"]
-  }
-};
-
-// This is used for the auto-generated docs
-// -----------------
-//
-
-Caption.description = {
-  "name": "Caption",
-  "remarks": [
-    "Container element for the textual description that is associated with a Figure, Table, Video node etc.",
-    "This is the title for the figure or the description of the figure that prints or displays with the figure."
-  ],
-  "properties": {
-    "title": "Caption title (optional)",
-    "children": "0..n Paragraph nodes",
-  }
-};
-
-
-// Example File
-// -----------------
-//
-
-Caption.example = {
-  "no_example": "yet"
-};
-
-Caption.Prototype = function() {
-
-  this.hasTitle = function() {
-    return (!!this.properties.title);
-  };
-
-  // The nodes the composite should spit out
-  this.getNodes = function() {
-    var nodes = [];
-
-    if (this.properties.children) {
-      nodes = nodes.concat(this.properties.children);
-    }
-    return nodes;
-  };
-
-  this.getTitle = function() {
-    if (this.properties.title) return this.document.get(this.properties.title);
-  };
-
-  // this.getCaption = function() {
-  //   if (this.properties.caption) return this.document.get(this.properties.caption);
-  // };
-};
-
-Caption.Prototype.prototype = Document.Composite.prototype;
-Caption.prototype = new Caption.Prototype();
-Caption.prototype.constructor = Caption;
-
-Document.Node.defineProperties(Caption.prototype, ["title", "children"]);
-
-module.exports = Caption;
-
-},{"substance-document":84}],10:[function(require,module,exports){
-"use strict";
-
-var CompositeView = require("../composite").View;
-var List = require("substance-document").List;
-var $$ = require("substance-application").$$;
-
-// Lens.Caption.View
-// ==========================================================================
-
-var CaptionView = function(node, viewFactory) {
-  CompositeView.call(this, node, viewFactory);
-};
-
-
-CaptionView.Prototype = function() {
-
-  // Rendering
-  // =============================
-  //
-
-  this.render = function() {
-    this.content = $$('div.content');
-
-    var i;
-
-    // dispose existing children views if called multiple times
-    for (i = 0; i < this.childrenViews.length; i++) {
-      this.childrenViews[i].dispose();
-    }
-
-    // Add title paragraph
-    var titleNode = this.node.getTitle();
-    if (titleNode) {
-      var titleView = this.viewFactory.createView(titleNode);
-      var titleEl = titleView.render().el;
-      titleEl.classList.add('caption-title');
-      this.content.appendChild(titleEl);
-    }
-
-    // create children views
-    var children = this.node.getNodes();
-    for (i = 0; i < children.length; i++) {
-      var child = this.node.document.get(children[i]);
-      var childView = this.viewFactory.createView(child);
-      var childViewEl = childView.render().el;
-      this.content.appendChild(childViewEl);
-      this.childrenViews.push(childView);
-    }
-
-    this.el.appendChild(this.content);
-    return this;
-  };
-
-  this.onNodeUpdate = function(op) {
-    if (op.path[0] === this.node.id && op.path[1] === "items") {
-      this.render();
-    }
-  };
-
-};
-
-CaptionView.Prototype.prototype = CompositeView.prototype;
-CaptionView.prototype = new CaptionView.Prototype();
-
-module.exports = CaptionView;
-
-},{"../composite":16,"substance-application":59,"substance-document":84}],11:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-  Model: require("./caption"),
-  View: require("./caption_view")
-};
-
-},{"./caption":9,"./caption_view":10}],12:[function(require,module,exports){
-var _ = require('underscore');
-var Node = require('substance-document').Node;
-
-// Lens.Citation
-// -----------------
-//
-
-var Citation = function(node) {
-  Node.call(this, node);
-};
-
-// Type definition
-// -----------------
-//
-
-Citation.type = {
-  "id": "article_citation", // type name
-  "parent": "content",
-  "properties": {
-    "source_id": "string",
-    "title": "string",
-    "label": "string",
-    "authors": ["array", "string"],
-    "doi": "string",
-    "source": "string",
-    "volume": "string",
-    "fpage": "string",
-    "lpage": "string",
-    "year": "string",
-    "citation_urls": ["array", "string"]
-  }
-};
-
-// This is used for the auto-generated docs
-// -----------------
-//
-
-Citation.description = {
-  "name": "Citation",
-  "remarks": [
-    "A journal citation.",
-    "This element can be used to describe all kinds of citations."
-  ],
-  "properties": {
-    "title": "The article's title",
-    "label": "Optional label (could be a number for instance)",
-    "doi": "DOI reference",
-    "source": "Usually the journal name",
-    "volume": "Issue number",
-    "fpage": "First page",
-    "lpage": "Last page",
-    "year": "The year of publication",
-    "citation_urls": "A list of links for accessing the article on the web"
-  }
-};
-
-
-// Example Citation
-// -----------------
-//
-
-Citation.example = {
-  "id": "article_nature08160",
-  "type": "article_citation",
-  "label": "5",
-  "title": "The genome of the blood fluke Schistosoma mansoni",
-  "authors": [
-    "M Berriman",
-    "BJ Haas",
-    "PT LoVerde"
-  ],
-  "doi": "http://dx.doi.org/10.1038/nature08160",
-  "source": "Nature",
-  "volume": "460",
-  "fpage": "352",
-  "lpage": "8",
-  "year": "1984",
-  "citation_urls": [
-    "http://www.ncbi.nlm.nih.gov/pubmed/19606141"
-  ]
-};
-
-
-Citation.Prototype = function() {
-  // Returns the citation URLs if available
-  // Falls back to the DOI url
-  // Always returns an array;
-  this.urls = function() {
-    return this.properties.citation_urls.length > 0 ? this.properties.citation_urls
-                                                    : [this.properties.doi];
-  };
-};
-
-Citation.Prototype.prototype = Node.prototype;
-Citation.prototype = new Citation.Prototype();
-Citation.prototype.constructor = Citation;
-
-
-// Generate getters
-// --------
-
-var getters = {
-  header: {
-    get: function() {
-      return this.properties.title;
-    }
-  }
-};
-
-_.each(Citation.type.properties, function(prop, key) {
-  getters[key] = {
-    get: function() {
-      return this.properties[key];
-    }
-  };
-});
-
-Object.defineProperties(Citation.prototype, getters);
-
-module.exports = Citation;
-
-},{"substance-document":84,"underscore":147}],13:[function(require,module,exports){
-"use strict";
-
-var _ = require('underscore');
-var util = require('substance-util');
-var html = util.html;
-var NodeView = require("../node").View;
-
-var $$ = require("substance-application").$$;
-
-var Renderer = function(view) {
-    var frag = document.createDocumentFragment(),
-        node = view.node;
-
-
-    // Add Authors
-    // -------
-
-    frag.appendChild($$('.authors', {
-      html: node.authors.join(', ')
-    }));
-
-    // Add Source
-    // -------
-
-    frag.appendChild($$('.source', {
-      html: [
-        [node.source, node.volume].join(', ')+": ",
-        [node.fpage, node.lpage].join('-')+", ",
-        node.year
-      ].join('')
-    }));
-
-    // Add DOI (if available)
-    // -------
-
-    if (node.doi) {
-      frag.appendChild($$('.doi', {
-        children: [
-          $$('b', {text: "DOI: "}),
-          $$('a', {
-            href: node.doi,
-            target: "_new",
-            text: node.doi
-          })
-        ]
-      }));
-    }
-
-    // TODO: Add display citations urls
-    // -------
-
-    return frag;
-};
-
-
-// Lens.Citation.View
-// ==========================================================================
-
-
-var CitationView = function(node) {
-  NodeView.call(this, node);
-
-  this.$el.attr({id: node.id});
-  this.$el.addClass('citation');
-};
-
-
-CitationView.Prototype = function() {
-
-  this.render = function() {
-    NodeView.prototype.render.call(this);
-    this.content.appendChild(new Renderer(this));
-    return this;
-  };
-
-};
-
-CitationView.Prototype.prototype = NodeView.prototype;
-CitationView.prototype = new CitationView.Prototype();
-CitationView.prototype.constructor = CitationView;
-
-module.exports = CitationView;
-
-},{"../node":28,"substance-application":59,"substance-util":142,"underscore":147}],14:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-  Model: require('./citation'),
-  View: require('./citation_view')
-};
-
-},{"./citation":12,"./citation_view":13}],15:[function(require,module,exports){
-"use strict";
-
-var SubstanceNodes = require("substance-nodes");
-
-module.exports = SubstanceNodes["codeblock"];
-
-},{"substance-nodes":95}],16:[function(require,module,exports){
-"use strict";
-
-var SubstanceNodes = require("substance-nodes");
-
-module.exports = SubstanceNodes["composite"];
-
-},{"substance-nodes":95}],17:[function(require,module,exports){
-var _ = require('underscore');
-var Node = require('substance-document').Node;
-
-// Lens.Cover
-// -----------------
-//
-
-var Cover = function(node, doc) {
-  Node.call(this, node, doc);
-};
-
-// Type definition
-// -----------------
-//
-
-Cover.type = {
-  "id": "cover",
-  "parent": "content",
-  "properties": {
-    "source_id": "string",
-    "authors": ["array", "paragraph"]
-    // No properties as they are all derived from the document node
-  }
-};
-
-
-// This is used for the auto-generated docs
-// -----------------
-//
-
-Cover.description = {
-  "name": "Cover",
-  "remarks": [
-    "Virtual view on the title and authors of the paper."
-  ],
-  "properties": {
-    "authors": "A paragraph that has the authors names plus references to the person cards"
-  }
-};
-
-// Example Cover
-// -----------------
-//
-
-Cover.example = {
-  "id": "cover",
-  "type": "cover"
-};
-
-Cover.Prototype = function() {
-
-  this.getAuthors = function() {
-    return _.map(this.properties.authors, function(paragraphId) {
-      return this.document.get(paragraphId);
-    }, this);
-  };
-
-};
-
-Cover.Prototype.prototype = Node.prototype;
-Cover.prototype = new Cover.Prototype();
-Cover.prototype.constructor = Cover;
-
-// Generate getters
-// --------
-
-var getters = {};
-
-
-Object.defineProperties(Cover.prototype, {
-  title: {
-    get: function() {
-      return this.document.title;
-    }
-  },
-  authors: {
-    // Expand author id's to corresponding person nodes
-    get: function() {
-      return this.document.authors;
-    }
-  }
-});
-
-module.exports = Cover;
-
-},{"substance-document":84,"underscore":147}],18:[function(require,module,exports){
-"use strict";
-
-var _ = require("underscore");
-var util = require("substance-util");
-var html = util.html;
-var NodeView = require("../node").View;
-var $$ = require("substance-application").$$;
-
-// Lens.Cover.View
-// ==========================================================================
-
-var CoverView = function(node, viewFactory) {
-  NodeView.call(this, node, viewFactory);
-
-  this.$el.attr({id: node.id});
-  this.$el.addClass("content-node cover");
-};
-
-
-CoverView.Prototype = function() {
-
-  // Render it
-  // --------
-  //
-  // .content
-  //   video
-  //     source
-  //   .title
-  //   .caption
-  //   .doi
-
-  this.render = function() {
-    NodeView.prototype.render.call(this);
-    var node = this.node;
-
-    this.content.appendChild($$('.title', {text: node.title }));
-
-    // <span id="citation_reference_13" class="annotation citation_reference">Manz et al., 2011</span>
-    // Add title paragraph
-    // var titleNode = this.node.getTitle();
-
-    var authors = $$('.authors', {
-      children: _.map(node.getAuthors(), function(authorPara) {
-        var paraView = this.viewFactory.createView(authorPara);
-        var paraEl = paraView.render().el;
-        this.content.appendChild(paraEl);
-        return paraEl;
-      }, this)
-    });
-
-    this.content.appendChild(authors);
-    return this;
-  }
-};
-
-CoverView.Prototype.prototype = NodeView.prototype;
-CoverView.prototype = new CoverView.Prototype();
-
-module.exports = CoverView;
-
-},{"../node":28,"substance-application":59,"substance-util":142,"underscore":147}],19:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-  Model: require('./cover'),
-  View: require('./cover_view')
-};
-
-},{"./cover":17,"./cover_view":18}],20:[function(require,module,exports){
-"use strict";
-
-var Document = require("substance-document");
-
-var Figure = function(node, document) {
-  Document.Composite.call(this, node, document);
-};
-
-
-Figure.type = {
-  "parent": "content",
-  "properties": {
-    "source_id": "string",
-    "label": "string",
-    "url": "string",
-    "caption": "caption",
-    "attrib": "string"
-  }
-};
-
-Figure.config = {
-  "zoomable": true
-};
-
-// This is used for the auto-generated docs
-// -----------------
-//
-
-Figure.description = {
-  "name": "Figure",
-  "remarks": [
-    "A figure is a figure is figure.",
-  ],
-  "properties": {
-    "label": "Label used as header for the figure cards",
-    "url": "Image url",
-    "caption": "A reference to a caption node that describes the figure",
-    "attrib": "Figure attribution"
-  }
-};
-
-// Example File
-// -----------------
-//
-
-Figure.example = {
-  "no_example": "yet"
-};
-
-Figure.Prototype = function() {
-
-  this.hasCaption = function() {
-    return (!!this.properties.caption);
-  };
-
-  this.getNodes = function() {
-    var nodes = [];
-    if (this.properties.caption) {
-      nodes.push(this.properties.caption);
-    }
-    return nodes;
-  };
-
-  this.getCaption = function() {
-    if (this.properties.caption) return this.document.get(this.properties.caption);
-  };
-};
-
-Figure.Prototype.prototype = Document.Composite.prototype;
-Figure.prototype = new Figure.Prototype();
-Figure.prototype.constructor = Figure;
-
-Document.Node.defineProperties(Figure.prototype, ["source_id", "label", "url", "caption", "attrib"]);
-
-Object.defineProperties(Figure.prototype, {
-  // Used as a resource header
-  header: {
-    get: function() { return this.properties.label; }
-  }
-});
-
-module.exports = Figure;
-
-},{"substance-document":84}],21:[function(require,module,exports){
-"use strict";
-
-var CompositeView = require("../composite").View;
-var $$ = require ("substance-application").$$;
-
-// Substance.Figure.View
-// ==========================================================================
-
-var FigureView = function(node, viewFactory) {
-  CompositeView.call(this, node, viewFactory);
-};
-
-FigureView.Prototype = function() {
-
-  // Rendering
-  // =============================
-  //
-
-  this.render = function() {
-
-    this.el.innerHTML = "";
-    this.content = $$('div.content');
-
-    // Add graphic (img element)
-    var imgEl = $$('.image-wrapper', {
-      children: [ $$("img", {src: this.node.url}) ]
-    });
-
-    this.content.appendChild(imgEl);
-
-
-    var caption = this.node.getCaption();
-    if (caption) {
-      var captionView = this.viewFactory.createView(caption);
-      var captionEl = captionView.render().el;
-      this.content.appendChild(captionEl);
-      this.childrenViews.push(captionView);
-    }
-
-    // Attrib
-    if (this.node.attrib) {
-      console.log('ATTRIB!!');
-      this.content.appendChild($$('.figure-attribution', {text: this.node.attrib}));
-    }
-
-    this.el.appendChild(this.content);
-    return this;
-  };
-};
-
-FigureView.Prototype.prototype = CompositeView.prototype;
-FigureView.prototype = new FigureView.Prototype();
-
-module.exports = FigureView;
-
-},{"../composite":16,"substance-application":59}],22:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-  Model: require('./figure'),
-  View: require('./figure_view')
-};
-
-},{"./figure":20,"./figure_view":21}],23:[function(require,module,exports){
-"use strict";
-
-var SubstanceNodes = require("substance-nodes");
-
-module.exports = SubstanceNodes["formula"];
-
-},{"substance-nodes":95}],24:[function(require,module,exports){
-"use strict";
-var SubstanceNodes = require("substance-nodes");
-
-module.exports = SubstanceNodes["heading"];
-
-},{"substance-nodes":95}],25:[function(require,module,exports){
-"use strict";
-
-var SubstanceNodes = require("substance-nodes");
-module.exports = SubstanceNodes["image"];
-},{"substance-nodes":95}],26:[function(require,module,exports){
-"use strict";
-module.exports = {
-  "publication_info": require("./publication_info"),
-  "affiliation": require("./affiliation"),
-  "box": require("./box"),
-  "cover": require("./cover"),
-  "text": require("./text"),
-  "paragraph": require("./paragraph"),
-  "heading": require("./heading"),
-  "figure": require("./figure"),
-  "caption": require("./caption"),
-  "image": require("./image"),
-  "webresource": require("./web_resource"),
-  "table": require("./table"),
-  "supplement": require("./supplement"),
-  "video": require("./video"),
-  "person": require("./person"),
-  "citation": require("./citation"),
-  "formula": require('./formula'),
-  "list": require("./list"),
-  "codeblock": require("./codeblock")
-};
-
-},{"./affiliation":5,"./box":8,"./caption":11,"./citation":14,"./codeblock":15,"./cover":19,"./figure":22,"./formula":23,"./heading":24,"./image":25,"./list":27,"./paragraph":29,"./person":30,"./publication_info":33,"./supplement":36,"./table":39,"./text":42,"./video":43,"./web_resource":46}],27:[function(require,module,exports){
-"use strict";
-
-var SubstanceNodes = require("substance-nodes");
-
-module.exports = SubstanceNodes["list"];
-
-},{"substance-nodes":95}],28:[function(require,module,exports){
-"use strict";
-
-var SubstanceNodes = require("substance-nodes");
-
-module.exports = SubstanceNodes["node"];
-
-},{"substance-nodes":95}],29:[function(require,module,exports){
-"use strict";
-
-var SubstanceNodes = require("substance-nodes");
-
-module.exports = SubstanceNodes["paragraph"];
-
-},{"substance-nodes":95}],30:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-  Model: require('./person'),
-  View: require('./person_view')
-};
-
-},{"./person":31,"./person_view":32}],31:[function(require,module,exports){
-var _ = require('underscore');
-var Node = require('substance-document').Node;
-
-// Lens.Person
-// -----------------
-//
-
-var Person = function(node, doc) {
-  Node.call(this, node, doc);
-};
-
-
-// Type definition
-// -----------------
-//
-
-Person.type = {
-  "id": "person",
-  "parent": "content",
-  "properties": {
-    "source_id": "string",
-    "name": "string", // full author name
-    "role": "string",
-    "affiliations": ["array", "affiliation"],
-    "fundings": ["array", "string"],
-    "image": "string", // optional
-    "emails": ["array", "string"],
-    "contribution": "string",
-    "equal_contrib": ["array", "string"]
-  }
-};
-
-// This is used for the auto-generated docs
-// -----------------
-//
-
-Person.description = {
-  "name": "Person",
-  "remarks": [
-    "A person entity.",
-  ],
-  "properties": {
-    "name": "Full name.",
-  }
-};
-
-
-// Example Video
-// -----------------
-//
-
-Person.example = {
-  "id": "person_1",
-  "type": "person",
-  "name": "John Doe",
-  "affiliations": ["affiliation_1", "affiliation_2"],
-  "role": "Author",
-  "fundings": ["Funding Organisation 1"],
-  "emails": ["a@b.com"],
-  "contribution": "Revising the article, data cleanup",
-  "equal_contrib": ["John Doe", "Jane Doe"]
-};
-
-
-Person.Prototype = function() {
-  this.getAffiliations = function() {
-    return _.map(this.properties.affiliations, function(affId) {
-      return this.document.get(affId);
-    }, this);
-  }
-};
-
-Person.Prototype.prototype = Node.prototype;
-Person.prototype = new Person.Prototype();
-Person.prototype.constructor = Person;
-
-
-// Generate getters
-// --------
-
-var getters = {};
-
-var getters = {
-  header: {
-    get: function() {
-      return this.properties.name;
-    }
-  }
-};
-
-_.each(Person.type.properties, function(prop, key) {
-  getters[key] = {
-    get: function() {
-      return this.properties[key];
-    }
-  };
-});
-
-
-
-
-Object.defineProperties(Person.prototype, getters);
-
-
-module.exports = Person;
-
-},{"substance-document":84,"underscore":147}],32:[function(require,module,exports){
-"use strict";
-
-var _ = require("underscore");
-var util = require("substance-util");
-var html = util.html;
-var NodeView = require("../node").View;
-var $$ = require("substance-application").$$;
-
-// Lens.Person.View
-// ==========================================================================
-
-var PersonView = function(node) {
-  NodeView.call(this, node);
-
-  this.$el.attr({id: node.id});
-  this.$el.addClass("content-node person");
-};
-
-PersonView.Prototype = function() {
-
-  // Render it
-  // --------
-  //
-
-  this.render = function() {
-    NodeView.prototype.render.call(this);
-
-    // Add Affiliations
-    // -------
-
-    this.content.appendChild($$('.affiliations', {
-      children: _.map(this.node.getAffiliations(), function(aff) {
-        
-        var affText = _.compact([
-          aff.department, 
-          aff.institution,
-          aff.city,
-          aff.country
-        ]).join(', ');
-
-        return $$('.affiliation', {text: affText});
-      })
-    }));
-
-    // Contribution
-    // -------
-
-    this.content.appendChild($$('.label', {text: 'Contribution'}));
-    this.content.appendChild($$('.contribution', {text: this.node.contribution}));
-
-    // Equal contribution
-    // -------
-
-    if (this.node.equal_contrib && this.node.equal_contrib.length > 0) {
-      this.content.appendChild($$('.label', {text: 'Contributed equally with'}));
-      this.content.appendChild($$('.equal-contribution', {text: this.node.equal_contrib}));
-    }
-
-    // Funding
-    // -------
-
-    if (this.node.fundings.length > 0) {
-      this.content.appendChild($$('.label', {text: 'Funding'}));
-      this.content.appendChild($$('.fundings', {
-        children: _.map(this.node.fundings, function(funding) {
-          return $$('.funding', {text: funding});
-        })
-      }));
-    }
-
-    if (this.node.emails.length > 0) {
-      this.content.appendChild($$('.label', {text: 'For correspondence'}));
-      this.content.appendChild($$('.label', {
-        children: _.map(this.node.emails, function(email) {
-          return $$('a', {href: "mailto:x@example.com", text: email});
-        })
-      }));
-    }
-
-    return this;
-  };
-
-};
-
-PersonView.Prototype.prototype = NodeView.prototype;
-PersonView.prototype = new PersonView.Prototype();
-
-module.exports = PersonView;
-
-},{"../node":28,"substance-application":59,"substance-util":142,"underscore":147}],33:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-  Model: require("./publication_info"),
-  View: require("./publication_info_view")
-};
-
-},{"./publication_info":34,"./publication_info_view":35}],34:[function(require,module,exports){
-"use strict";
-
-var Node = require("substance-document").Node;
-var _ = require("underscore");
-
-var PublicationInfo = function(node, doc) {
-  Node.call(this, node, doc);
-};
-
-PublicationInfo.type = {
-  "id": "publication_info",
-  "parent": "content",
-  "properties": {
-    "received_on": "string",
-    "accepted_on": "string",
-    "published_on": "string",
-    "journal": "string",
-    "article_type": "string",
-    "keywords": ["array", "string"],
-    "research_organisms": ["array", "string"],
-    "subjects": ["array", "string"],
-    "pdf_link": "string",
-    "xml_link": "string",
-    "json_link": "string",
-    "doi": "string"
-  }
-};
-
-
-PublicationInfo.description = {
-  "name": "PublicationInfo",
-  "description": "PublicationInfo Node",
-  "remarks": [
-    "Summarizes the article's meta information. Meant to be customized by publishers"
-  ],
-  "properties": {
-    "received_on": "Submission received",
-    "accepted_on": "Paper accepted on",
-    "published_on": "Paper published on",
-    "journal": "The Journal",
-    "article_type": "Research Article vs. Insight, vs. Correction etc.",
-    "keywords": "Article's keywords",
-    "research_organisms": "Research Organisms",
-    "subjects": "Article Subjects",
-    "pdf_link": "A link referencing the PDF version for print",
-    "xml_link": "A link referencing the original NLM XML file",
-    "json_link": "A link pointing to the JSON version of the article",
-    "doi": "Article DOI"
-  }
-};
-
-
-PublicationInfo.example = {
-  "id": "publication_info",
-  "received_on": "2012-06-20",
-  "accepted_on": "2012-09-05",
-  "published_on": "2012-11-13",
-  "journal": "eLife",
-  "article_type": "Research Article",
-  "keywords": [
-    "innate immunity",
-    "histones",
-    "lipid droplet",
-    "anti-bacterial"
-  ],
-  "research_organisms": [
-    "B. subtilis",
-    "D. melanogaster",
-    "E. coli",
-    "Mouse"
-  ],
-  "subjects": [
-    "Immunology",
-    "Microbiology and infectious disease"
-  ],
-  "pdf_link": "http://elife.elifesciences.org/content/1/e00003.full-text.pdf",
-  "xml_link": "https://s3.amazonaws.com/elife-cdn/elife-articles/00003/elife00003.xml",
-  "json_link": "http://cdn.elifesciences.org/documents/elife/00003.json",
-  "doi": "http://dx.doi.org/10.7554/eLife.00003"
-};
-
-
-PublicationInfo.Prototype = function() {
-};
-
-
-PublicationInfo.Prototype.prototype = Node.prototype;
-PublicationInfo.prototype = new PublicationInfo.Prototype();
-PublicationInfo.prototype.constructor = PublicationInfo;
-
-
-// Generate getters
-// --------
-
-var getters = {};
-
-_.each(PublicationInfo.type.properties, function(prop, key) {
-  getters[key] = {
-    get: function() {
-      return this.properties[key];
-    }
-  };
-});
-
-Object.defineProperties(PublicationInfo.prototype, getters);
-
-module.exports = PublicationInfo;
-},{"substance-document":84,"underscore":147}],35:[function(require,module,exports){
-"use strict";
-
-var NodeView = require("../node").View;
-var $$ = require("substance-application").$$;
-
-
-// Substance.Image.View
-// ==========================================================================
-
-var PublicationInfoView = function(node, viewFactory) {
-  NodeView.call(this, node, viewFactory);
-
-  this.$el.addClass('publication-info');
-  this.$el.attr('id', this.node.id);
-};
-
-PublicationInfoView.Prototype = function() {
-
-  // Rendering
-  // =============================
-  //
-
-
-  // Render Markup
-  // --------
-  //
-
-  this.render = function() {
-    NodeView.prototype.render.call(this);
-
-    var tableRows = [
-      $$('tr', {
-        children: [
-          $$('td', {
-            children: [
-              $$('div.label', {text: "Subject"}),
-              $$('div.value', {text: this.node.subjects.join(', ')})
-            ]
-          }),
-          $$('td', {
-            children: [
-              $$('div.label', {text: "Organism"}),
-              $$('div.value', {text: this.node.research_organisms.join(', ')})
-            ]
-          })
-        ]
-      }),
-      $$('tr', {
-        children: [
-          $$('td', {
-            colspan: 2,
-            children: [
-              $$('div.label', {text: "Keywords"}),
-              $$('div.value', {text: this.node.keywords.join(', ')})
-            ]
-          })
-        ]
-      })
-    ];
-    
-    var catTbl = $$('table.categorization', {
-      children: [ $$('tbody', { children: tableRows }) ]
-    });
-
-    this.content.appendChild(catTbl);
-    this.content.appendChild($$('.label.links', {text: "Links"}));
-      
-    // Prepare for download the JSON
-    var json = JSON.stringify(this.node.document.toJSON(), null, '  ');
-    var bb = new Blob([json], {type: "application/json"});
-
-    var links = $$('.links', {
-      children: [
-        $$('a.link pdf-link', {
-          href: this.node.pdf_link,
-          html: '<i class="icon-download-alt"></i> PDF'
-        }),
-        $$('a.link.json-link', {
-          href: window.URL.createObjectURL(bb),
-          html: '<i class="icon-download-alt"></i> JSON'
-        }),
-        $$('a.link.xml-link', {
-          href: this.node.xml_link,
-          html: '<i class="icon-download-alt"></i> XML'
-        }),
-        $$('a.link.doi-link', {
-          href: this.node.doi,
-          html: '<i class="icon-external-link-sign"></i> DOI'
-        })
-      ]
-    });
-
-    this.content.appendChild(links);
-
-    var dateRows = [
-      $$('tr', {
-        children: [
-          $$('td', {
-            children: [
-              $$('div.label', {text: "Received"}),
-              $$('div.value', {text: this.node.received_on})
-            ]
-          }),
-          $$('td', {
-            children: [
-              $$('div.label', {text: "Accepted"}),
-              $$('div.value', {text: this.node.accepted_on})
-            ]
-          }),
-          $$('td', {
-            children: [
-              $$('div.label', {text: "Published"}),
-              $$('div.value', {text: this.node.published_on})
-            ]
-          })
-        ]
-      })
-    ];
-    
-    var datesTbl = $$('table.dates', {
-      children: [ $$('tbody', { children: dateRows }) ]
-    });
-
-    this.content.appendChild(datesTbl);
-    return this;
-  };
-
-  this.dispose = function() {
-    NodeView.prototype.dispose.call(this);
-
-  };
-};
-
-PublicationInfoView.Prototype.prototype = NodeView.prototype;
-PublicationInfoView.prototype = new PublicationInfoView.Prototype();
-
-module.exports = PublicationInfoView;
-
-},{"../node":28,"substance-application":59}],36:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-  Model: require('./supplement'),
-  View: require('./supplement_view')
-};
-
-},{"./supplement":37,"./supplement_view":38}],37:[function(require,module,exports){
-var _ = require('underscore');
-
-var Document = require("substance-document");
-
-// Lens.Supplement
-// -----------------
-//
-
-var Supplement = function(node, doc) {
-  Document.Composite.call(this, node, doc);
-};
-
-// Type definition
-// -----------------
-//
-
-Supplement.type = {
-  "id": "supplement",
-  "parent": "content",
-  "properties": {
-    "source_id": "string",
-    "label": "string",
-    "url": "string",
-    "caption": "caption", // contains the doi
-  }
-};
-
-
-// This is used for the auto-generated docs
-// -----------------
-//
-
-Supplement.description = {
-  "name": "Supplement",
-  "remarks": [
-    "A Supplement entity.",
-  ],
-  "properties": {
-    "source_id": "Supplement id as it occurs in the source NLM file",
-    "label": "Supplement label",
-    "caption": "References a caption node, that has all the content",
-    "url": "URL of downloadable file"
-  }
-};
-
-// Example Supplement
-// -----------------
-//
-
-Supplement.example = {
-  "id": "supplement_1",
-  "source_id": "SD1-data",
-  "type": "supplement",
-  "label": "Supplementary file 1.",
-  "url": "http://myserver.com/myfile.pdf",
-  "caption": "caption_supplement_1"
-};
-
-
-Supplement.Prototype = function() {
-
-  this.getNodes = function() {
-    var nodes = [];
-    if (this.properties.caption) {
-      nodes.push(this.properties.caption);
-    }
-    return nodes;
-  };
-
-  this.getCaption = function() {
-    if (this.properties.caption) {
-      return this.document.get(this.properties.caption);
-    } else {
-      return null;
-    }
-  };
-};
-
-Supplement.Prototype.prototype = Document.Composite.prototype;
-Supplement.prototype = new Supplement.Prototype();
-Supplement.prototype.constructor = Supplement;
-
-// Generate getters
-// --------
-
-var getters = {};
-
-_.each(Supplement.type.properties, function(prop, key) {
-  getters[key] = {
-    get: function() {
-      return this.properties[key];
-    }
-  };
-});
-
-// Get the header for resource header display
-// --------
-
-getters["header"] = {
-  get: function() {
-    return this.properties.label;
-  }
-};
-
-
-Object.defineProperties(Supplement.prototype, getters);
-
-module.exports = Supplement;
-
-},{"substance-document":84,"underscore":147}],38:[function(require,module,exports){
-"use strict";
-
-var _ = require("underscore");
-var util = require("substance-util");
-var html = util.html;
-var CompositeView = require("../composite").View;
-var $$ = require("substance-application").$$;
-
-// Lens.Supplement.View
-// ==========================================================================
-
-var SupplementView = function(node, viewFactory) {
-  CompositeView.call(this, node, viewFactory);
-
-  this.$el.attr({id: node.id});
-  this.$el.addClass("content-node supplement");
-};
-
-SupplementView.Prototype = function() {
-
-  // Render it
-  // --------
-
-  this.render = function() {
-    var node = this.node;
-
-    this.content = $$('div.content');
-
-    var caption = node.getCaption();
-    if (caption) {
-      var captionView = this.viewFactory.createView(caption);
-      var captionEl = captionView.render().el;
-      this.content.appendChild(captionEl);
-      this.childrenViews.push(captionView);
-    }
-
-    var file = $$('div.file', {
-      children: [
-        $$('a', {href: node.url, html: '<i class="icon-download-alt"/> Download' })
-      ]
-    });
-
-    this.content.appendChild(file);
-    this.el.appendChild(this.content);
-
-    return this;
-  }
-};
-
-SupplementView.Prototype.prototype = CompositeView.prototype;
-SupplementView.prototype = new SupplementView.Prototype();
-SupplementView.prototype.constructor = SupplementView;
-
-module.exports = SupplementView;
-
-},{"../composite":16,"substance-application":59,"substance-util":142,"underscore":147}],39:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-  Model: require('./table'),
-  View: require('./table_view')
-};
-
-},{"./table":40,"./table_view":41}],40:[function(require,module,exports){
-var _ = require('underscore');
-var Node = require('substance-document').Node;
-
-// Lens.Table
-// -----------------
-//
-
-var Table = function(node, doc) {
-  Node.call(this, node, doc);
-};
-
-// Type definition
-// -----------------
-//
-
-Table.type = {
-  "id": "table",
-  "parent": "content",
-  "properties": {
-    "source_id": "string",
-    "label": "string",
-    "content": "string",
-    "footers": ["array", "string"],
-    "caption": "caption"
-  }
-};
-
-Table.config = {
-  "zoomable": true
-};
-
-
-// This is used for the auto-generated docs
-// -----------------
-//
-
-Table.description = {
-  "name": "Table",
-  "remarks": [
-    "A table figure which is expressed in HTML notation"
-  ],
-  "properties": {
-    "source_id": "string",
-    "label": "Label shown in the resource header.",
-    "title": "Full table title",
-    "content": "HTML data",
-    "footers": "Table footers expressed as an array strings",
-    "caption": "References a caption node, that has all the content"
-  }
-};
-
-
-// Example Table
-// -----------------
-//
-
-Table.example = {
-  "id": "table_1",
-  "type": "table",
-  "label": "Table 1.",
-  "title": "Lorem ipsum table",
-  "content": "<table>...</table>",
-  "footers": [],
-  "caption": "caption_1"
-};
-
-Table.Prototype = function() {
-  this.getCaption = function() {
-    if (this.properties.caption) return this.document.get(this.properties.caption);
-  };
-};
-
-Table.Prototype.prototype = Node.prototype;
-Table.prototype = new Table.Prototype();
-Table.prototype.constructor = Table;
-
-
-// Generate getters
-// --------
-
-var getters = {
-  header: {
-    get: function() {
-      return this.properties.label;
-    }
-  }
-};
-
-_.each(Table.type.properties, function(prop, key) {
-  getters[key] = {
-    get: function() {
-      return this.properties[key];
-    }
-  };
-});
-
-Object.defineProperties(Table.prototype, getters);
-
-module.exports = Table;
-
-},{"substance-document":84,"underscore":147}],41:[function(require,module,exports){
-"use strict";
-
-var _ = require("underscore");
-var util = require("substance-util");
-var html = util.html;
-var NodeView = require("../node").View;
-var $$ = require("substance-application").$$;
-
-// Substance.Paragraph.View
-// ==========================================================================
-
-var TableView = function(node, viewFactory) {
-  NodeView.call(this, node);
-  this.viewFactory = viewFactory;
-
-  this.$el.attr({id: node.id});
-  this.$el.addClass("content-node table");
-};
-
-TableView.Prototype = function() {
-
-  //   <% if (node.url) { %>
-  //     <div class="table-image">
-  //       <a href="<%= node.large_url %>" target="_new"><img class="thumbnail" src="<%= node.url %>"/></a>
-  //     </div>
-  //   <% } %>
-  //   <div class="table-wrapper">
-  //     <%= node.content %>
-  //   </div>
-  //   <div class="footers">
-  //     <% _.each(node.footers, function(f) { %>
-  //       <div class="footer"><b><%= annotate(f, 'label') %></b> <%= annotate(f, 'content') %></div>
-  //     <% }); %>
-  //   </div>
-  //   <div class="title"><%= annotate(node.caption, 'title') %></div>
-  //   <div class="descr"><%= annotate(node.caption, 'content') %></div>
-  //   <% if (node.doi) { %>
-  //     <div class="doi"><b>DOI:</b> <a href="<%= node.doi %>" target="_new"><%= node.doi %></a></div>
-  //   <% } %>
-  // </div>
-
-  // .content
-  //   .table-wrapper
-  //     <table>...
-  //   .footers
-  //   .title
-  //   .caption
-  //   .doi
-
-  this.render = function() {
-    var node = this.node;
-    NodeView.prototype.render.call(this);
-
-    // The actual content
-    // --------
-    //
-
-    var tableWrapper = $$('.table-wrapper', {
-      html: node.content // HTML table content
-    });
-
-    this.content.appendChild(tableWrapper);
-
-    // Display footers (optional)
-    // --------
-    //
-
-    var footers = $$('.footers', {
-      children: _.map(node.footers, function(footer) {
-        return $$('.footer', { html: "<b>"+footer.label+"</b> " + footer.content });
-      })
-    });
-
-    // Display caption
-
-
-    var caption = this.node.getCaption();
-    if (caption) {
-      var captionView = this.viewFactory.createView(caption);
-      var captionEl = captionView.render().el;
-      this.content.appendChild(captionEl);
-      // this.childrenViews.push(captionView);
-    }
-
-    this.content.appendChild(footers);
-
-
-    // this.content.appendChild($$('.not-yet-implemented', {text: "This node type has not yet been implemented. "}));
-    return this;
-  }
-};
-
-TableView.Prototype.prototype = NodeView.prototype;
-TableView.prototype = new TableView.Prototype();
-
-module.exports = TableView;
-
-},{"../node":28,"substance-application":59,"substance-util":142,"underscore":147}],42:[function(require,module,exports){
-"use strict";
-
-var SubstanceNodes = require("substance-nodes");
-
-module.exports = SubstanceNodes["text"];
-
-},{"substance-nodes":95}],43:[function(require,module,exports){
-"use strict";
-
-module.exports = {
-  Model: require('./video'),
-  View: require('./video_view')
-};
-
-},{"./video":44,"./video_view":45}],44:[function(require,module,exports){
-var _ = require('underscore');
-var Node = require('substance-document').Node;
-
-// Lens.Video
-// -----------------
-//
-
-var Video = function(node, doc) {
-  Node.call(this, node, doc);
-};
-
-// Type definition
-// -----------------
-//
-
-Video.type = {
-  "id": "video",
-
-  "parent": "content",
-  "properties": {
-    "source_id": "string",
-    "label": "string",
-    "url": "string",
-    "url_webm": "string",
-    "url_ogv": "string",
-    "caption": "caption",
-    "poster": "string"
-  }
-};
-
-
-Video.config = {
-  "zoomable": true
-};
-
-// This is used for the auto-generated docs
-// -----------------
-//
-
-Video.description = {
-  "name": "Video",
-  "remarks": [
-    "A video type intended to refer to video resources.",
-    "MP4, WebM and OGV formats are supported."
-  ],
-  "properties": {
-    "label": "Label shown in the resource header.",
-    "url": "URL to mp4 version of the video.",
-    "url_webm": "URL to WebM version of the video.",
-    "url_ogv": "URL to OGV version of the video.",
-    "poster": "Video poster image.",
-    "caption": "References a caption node, that has all the content"
-  }
-};
-
-// Example Video
-// -----------------
-//
-
-Video.example = {
-  "id": "video_1",
-  "type": "video",
-  "label": "Video 1.",
-  "url": "http://cdn.elifesciences.org/video/eLifeLensIntro2.mp4",
-  "url_webm": "http://cdn.elifesciences.org/video/eLifeLensIntro2.webm",
-  "url_ogv": "http://cdn.elifesciences.org/video/eLifeLensIntro2.ogv",
-  "poster": "http://cdn.elifesciences.org/video/eLifeLensIntro2.png",
-  // "doi": "http://dx.doi.org/10.7554/Fake.doi.003",
-  "caption": "caption_25"
-};
-
-Video.Prototype = function() {
-
-};
-
-Video.Prototype.prototype = Node.prototype;
-Video.prototype = new Video.Prototype();
-Video.prototype.constructor = Video;
-
-
-// Generate getters
-// --------
-
-var getters = {};
-
-_.each(Video.type.properties, function(prop, key) {
-  getters[key] = {
-    get: function() {
-      return this.properties[key];
-    }
-  };
-});
-
-
-Object.defineProperties(Video.prototype, _.extend(getters, {
-  header: {
-    get: function() {
-      return this.properties.label;
-    }
-  },
-  caption: {
-    get: function() {
-      // HACK: this is not yet a real solution
-      if (this.properties.caption) {
-        return this.document.get(this.properties.caption);
-      } else {
-        return "";
-      }
-    }
-  }
-}));
-
-module.exports = Video;
-
-},{"substance-document":84,"underscore":147}],45:[function(require,module,exports){
-"use strict";
-
-var _ = require("underscore");
-var util = require("substance-util");
-var html = util.html;
-var NodeView = require("../node").View;
-var $$ = require("substance-application").$$;
-
-// Lens.Video.View
-// ==========================================================================
-
-var VideoView = function(node, viewFactory) {
-  NodeView.call(this, node, viewFactory);
-
-  this.$el.attr({id: node.id});
-  this.$el.addClass("content-node video");
-};
-
-
-
-VideoView.Prototype = function() {
-
-  // Render it
-  // --------
-  //
-  // .content
-  //   video
-  //     source
-  //   .title
-  //   .caption
-  //   .doi
-
-  this.render = function() {
-    NodeView.prototype.render.call(this);
-
-    // Enrich with video content
-    // --------
-    //
-
-    var node = this.node;
-
-    // The actual video
-    // --------
-    //
-
-    var sources = [
-      $$('source', {
-        src: node.url,
-        type: "video/mp4; codecs=&quot;avc1.42E01E, mp4a.40.2&quot;",
-      })
-    ];
-
-    if (node.url_ogv) {
-      sources.push($$('source', {
-        src: node.url_ogv,
-        type: "video/ogg; codecs=&quot;theora, vorbis&quot;",
-      }));
-    }
-
-    if (node.url_webm) {
-      sources.push($$('source', {
-        src: node.url_webm,
-        type: "video/webm; codecs=&quot;vp8, vorbis%quot;",
-      }));
-    }
-
-    var video = $$('.video-wrapper', {
-      children: [
-        $$('video', {
-          controls: "controls",
-          poster: node.poster,
-          preload: "none",
-          // style: "background-color: black",
-          children: sources
-        })
-      ]
-    });
-
-    this.content.appendChild(video);
-
-    // The video title
-    // --------
-    //
-
-    if (node.title) {
-      this.content.appendChild($$('.title', {
-        text: node.title
-      }));
-    }
-
-    // Add caption if there is any
-    if (this.node.caption) {
-      var caption = this.viewFactory.createView(this.node.caption);
-      this.content.appendChild(caption.render().el);
-      this.captionView = caption;
-    }
-
-    // Add DOI link if available
-    // --------
-    //
-
-    if (node.doi) {
-      this.content.appendChild($$('.doi', {
-        children: [
-          $$('b', {text: "DOI: "}),
-          $$('a', {href: node.doi, target: "_new", text: node.doi})
-        ]
-      }));
-    }
-
-    return this;
-  }
-};
-
-VideoView.Prototype.prototype = NodeView.prototype;
-VideoView.prototype = new VideoView.Prototype();
-
-module.exports = VideoView;
-
-},{"../node":28,"substance-application":59,"substance-util":142,"underscore":147}],46:[function(require,module,exports){
-"use strict";
-var SubstanceNodes = require("substance-nodes");
-
-module.exports = SubstanceNodes["webresource"];
-
-},{"substance-nodes":95}],47:[function(require,module,exports){
-"use strict";
-
-var LensConverter = require("./src/lens_converter");
-
-module.exports = LensConverter;
-
-},{"./src/lens_converter":53}],48:[function(require,module,exports){
-
-var DefaultConfiguration = function() {
-
-};
-
-DefaultConfiguration.Prototype = function() {
-
-  this.enhanceSupplement = function(state, node, element) {
-    // Noop - override in your configuration
-  };
-
-  this.enhanceTable = function(state, node, element) {
-    // Noop - override in your configuration
-  };
-
-  this.enhanceVideo = function(state, node, element) {
-    // Noop - override in your configuration
-  };
-
-  this.enhanceFigure = function(state, node, element) {
-    // Noop - override in your configuration
-  };
-
-  this.enhanceArticle = function(converter, state, article) {
-    // Noop - override in your configuration
-  };
-
-  this.extractPublicationInfo = function() {
-    // Noop - override in your configuration
-  };
-
-  this.resolveURL = function(url) {
-    return url;
-  };
-};
-
-DefaultConfiguration.prototype = new DefaultConfiguration.Prototype();
-
-module.exports = DefaultConfiguration;
-
-},{}],49:[function(require,module,exports){
-"use strict";
-
-var util = require("substance-util");
-var _ = require("underscore");
-var DefaultConfiguration = require('./default');
-
-var ElifeConfiguration = function() {
-
-};
-
-ElifeConfiguration.Prototype = function() {
-
-  // Resolves figure url
-  // --------
-  //
-
-  this.enhanceFigure = function(state, node, element) {
-    var graphic = element.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
-
-    // Example url to SVG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.svg
-    // url = [
-    //   "http://cdn.elifesciences.org/elife-articles/",
-    //   state.doc.id,
-    //   "/svg/",
-    //   url,
-    //   ".svg"
-    // ].join('');
-
-    node.url = this.resolveURL(state, url);
-  };
-
-  this.enhanceVideo = function(state, node, element) {
-    var el = element.querySelector("media") || element;
-    var href = element.getAttribute("xlink:href").split(".");
-    var name = href[0];
-
-    node.url = "http://static.movie-usa.glencoesoftware.com/mp4/10.7554/"+name+".mp4";
-    node.url_ogv = "http://static.movie-usa.glencoesoftware.com/ogv/10.7554/"+name+".ogv";
-    node.url_webm = "http://static.movie-usa.glencoesoftware.com/webm/10.7554/"+name+".webm";
-    node.poster = "http://static.movie-usa.glencoesoftware.com/jpg/10.7554/"+name+".jpg";
-  };
-
-  // Example url to SVG: http://cdn.elifesciences.org/elife-articles/00768/svg/elife00768f001.svg
-  this.resolveURL = function(state, url) {
-    return [
-      "http://cdn.elifesciences.org/elife-articles/",
-      state.doc.id,
-      "/svg/",
-      url,
-      ".svg"
-    ].join('');
-  };
-
-  this.enhanceSupplement = function(state, node, element) {
-    node.url = [
-      "http://cdn.elifesciences.org/elife-articles/",
-      state.doc.id,
-      "/supplements/",
-      node.url
-    ].join('');
-  };
-
-  this.extractPublicationInfo = function(converter, state, article) {
-    var doc = state.doc;
-
-    var articleMeta = article.querySelector("article-meta");
-
-    function _extractDate(dateEl) {
-      if (!dateEl) return null;
-      var day = dateEl.querySelector("day").textContent;
-      var month = dateEl.querySelector("month").textContent;
-      var year = dateEl.querySelector("year").textContent;
-      return [year, month, day].join("-");
-    }
-
-    var pubDate = articleMeta.querySelector("pub-date");
-    var receivedDate = articleMeta.querySelector("date[date-type=received]");
-    var acceptedDate = articleMeta.querySelector("date[date-type=accepted]");
-
-    // Extract keywords
-    // ------------
-    //
-    // <kwd-group kwd-group-type="author-keywords">
-    // <title>Author keywords</title>
-    // <kwd>innate immunity</kwd>
-    // <kwd>histones</kwd>
-    // <kwd>lipid droplet</kwd>
-    // <kwd>anti-bacterial</kwd>
-    // </kwd-group>
-    var keyWords = articleMeta.querySelectorAll("kwd-group[kwd-group-type=author-keywords] kwd");
-
-    // Extract research organism
-    // ------------
-    //
-
-    // <kwd-group kwd-group-type="research-organism">
-    // <title>Research organism</title>
-    // <kwd>B. subtilis</kwd>
-    // <kwd>D. melanogaster</kwd>
-    // <kwd>E. coli</kwd>
-    // <kwd>Mouse</kwd>
-    // </kwd-group>
-    var organisms = articleMeta.querySelectorAll("kwd-group[kwd-group-type=research-organism] kwd");
-
-    // Extract subjects
-    // ------------
-    //
-    // <subj-group subj-group-type="heading">
-    // <subject>Immunology</subject>
-    // </subj-group>
-    // <subj-group subj-group-type="heading">
-    // <subject>Microbiology and infectious disease</subject>
-    // </subj-group>
-
-    var subjects = articleMeta.querySelectorAll("subj-group[subj-group-type=heading] subject");
-
-    // Extract article_type
-    // ---------------
-    //
-    // <subj-group subj-group-type="display-channel">
-    // <subject>Research article</subject>
-    // </subj-group>
-
-    var articleType = articleMeta.querySelector("subj-group[subj-group-type=display-channel] subject");
-
-    // Extract journal title
-    // ---------------
-    //
-
-    var journalTitle = article.querySelector("journal-title");
-
-    // <article-id pub-id-type="doi">10.7554/eLife.00003</article-id>
-    var articleDOI = article.querySelector("article-id[pub-id-type=doi]");
-
-
-    // Extract PDF link
-    // ---------------
-    //
-    // <self-uri content-type="pdf" xlink:href="elife00007.pdf"/>
-    
-    var pdfURI = article.querySelector("self-uri[content-type=pdf]");    
-
-    var pdfLink = [
-      "http://cdn.elifesciences.org/elife-articles/",
-      state.doc.id,
-      "/pdf/",
-      pdfURI ? pdfURI.getAttribute("xlink:href") : "#"
-    ].join('');
-
-    // Create PublicationInfo node
-    // ---------------
-    
-    var pubInfoNode = {
-      "id": "publication_info",
-      "type": "publication_info",
-      "published_on": _extractDate(pubDate),
-      "received_on": _extractDate(receivedDate),
-      "accepted_on": _extractDate(acceptedDate),
-      "keywords": _.pluck(keyWords, "textContent"),
-      "research_organisms": _.pluck(organisms, "textContent"),
-      "subjects": _.pluck(subjects, "textContent"),
-      "article_type": articleType ? articleType.textContent : "",
-      "journal": journalTitle ? journalTitle.textContent : "",
-      "pdf_link": pdfLink,
-      "xml_link": "https://s3.amazonaws.com/elife-cdn/elife-articles/"+state.doc.id+"/elife"+state.doc.id+".xml", // "http://mickey.com/mouse.xml",
-      "json_link": "http://mickey.com/mouse.json",
-      "doi": articleDOI ? ["http://dx.doi.org/", articleDOI.textContent].join("") : "",
-    };
-
-
-    doc.create(pubInfoNode);
-    doc.show("info", pubInfoNode.id, 0);
-  };
-
-
-  // Add additional information to the info view
-  // ---------
-  //
-  // Impact
-  // Major datasets
-  // Acknowledgements
-  // Copyright
-
-  this.enhanceInfo = function(converter, state, article) {
-    var doc = state.doc;
-
-    // Initialize the Article Info object
-    var articleInfo = {
-      "id": "articleinfo",
-      "type": "paragraph",
-      "children": []
-    };
-    var nodes = articleInfo.children;
-
-    // Get the author's impact statement
-    var meta = article.querySelectorAll("meta-value");
-    var impact = meta[1];
-    
-    var h1 = {
-      "type": "heading",
-      "id": state.nextId("heading"),
-      "level": 1,
-      "content": "Impact",
-    };
-    doc.create(h1);
-    nodes.push(h1.id);
-
-    if (impact) {
-      var par = converter.paragraphGroup(state, impact);
-      nodes.push(par[0].id);      
-    }
-
-
-    // Get conflict of interest
-
-    var conflict = article.querySelectorAll("fn");
-    for (var i = 0; i < conflict.length;i++) {
-      var indiv = conflict[i];
-      var type = indiv.getAttribute("fn-type");
-        if (type === 'conflict') {
-          var h1 = {
-          "type" : "heading",
-          "id" : state.nextId("heading"),
-          "level" : 1,
-          "content" : "Competing Interests"
-        };
-        doc.create(h1);
-        nodes.push(h1.id);
-        var par = converter.bodyNodes(state, util.dom.getChildren(indiv));
-        nodes.push(par[0].id);
-      }
-    }
-
-    // Get major datasets
-
-    var datasets = article.querySelectorAll('sec');
-
-    for (var i = 0;i <datasets.length;i++){
-      var data = datasets[i];
-      var type = data.getAttribute('sec-type');
-      if (type === 'datasets') {
-        var h1 = {
-          "type" : "heading",
-          "id" : state.nextId("heading"),
-          "level" : 1,
-          "content" : "Major Datasets"
-        };
-        doc.create(h1);
-        nodes.push(h1.id);
-        var ids = converter.datasets(state, util.dom.getChildren(data));
-        for (var j=0;j < ids.length;j++) {
-          if (ids[j]) {
-            nodes.push(ids[j]);
-          }
-        }
-      }
-    }
-
-    // Get acknowledgements
-
-    var ack = article.querySelector("ack");
-    if (ack) {
-      var h1 = {
-        "type" : "heading",
-        "id" : state.nextId("heading"),
-        "level" : 1,
-        "content" : "Acknowledgements"
-      };
-      doc.create(h1);
-      nodes.push(h1.id);
-      var par = converter.bodyNodes(state, util.dom.getChildren(ack));
-      nodes.push(par[0].id);
-    }
-    
-    // Get copyright and license information
-    var license = article.querySelector("permissions");
-    if (license) {
-      var h1 = {
-        "type" : "heading",
-        "id" : state.nextId("heading"),
-        "level" : 1,
-        "content" : "Copyright and License"
-      };
-      doc.create(h1);
-      nodes.push(h1.id);
-
-      var copyright = license.querySelector("copyright-statement");
-      if (copyright) {
-        var par = converter.paragraphGroup(state, copyright);
-        var textid = par[0].children[0];
-        doc.nodes[textid].content += ". ";
-        nodes.push(par[0].id);
-      }
-      var lic = license.querySelector("license");
-      var children = util.dom.getChildren(lic);
-      for (var i = 0;i < children.length;i++) {
-        var child = children[i];
-        var type = util.dom.getNodeType(child);
-        if (type === 'p' || type === 'license-p') {
-          var par = converter.paragraphGroup(state, child);
-          nodes.push(par[0].id)
-        }
-      }
-      
-    }
-    
-    doc.create(articleInfo);
-    doc.show("info", articleInfo.id);
-  };
-
-  // Add Decision letter and author response
-  // ---------
-
-  this.enhanceArticle = function(converter, state, article) {
-
-    var nodes = [];
-
-    // Decision letter (if available)
-    // -----------
-
-    var articleCommentary = article.querySelector("#SA1");
-    if (articleCommentary) {
-
-      var heading = {
-        id: state.nextId("heading"),
-        type: "heading",
-        level: 1,
-        content: "Article Commentary"
-      };
-      doc.create(heading);
-      nodes.push(heading);
-
-      var heading = {
-        id: state.nextId("heading"),
-        type: "heading",
-        level: 2,
-        content: "Decision letter"
-      };
-      doc.create(heading);
-      nodes.push(heading);
-
-      var body = articleCommentary.querySelector("body");
-      nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
-    }
-
-    // Author response
-    // -----------
-
-    var authorResponse = article.querySelector("#SA2");
-    if (authorResponse) {
-
-      var heading = {
-        id: state.nextId("heading"),
-        type: "heading",
-        level: 2,
-        content: "Author response"
-      };
-      doc.create(heading);
-      nodes.push(heading);
-
-      var body = authorResponse.querySelector("body");
-      nodes = nodes.concat(converter.bodyNodes(state, util.dom.getChildren(body)));
-    }
-
-    // Show them off
-    // ----------
-
-    if (nodes.length > 0) {
-      converter.show(state, nodes);
-    }
-
-    this.enhanceInfo(converter, state, article);
-  };
-};
-
-ElifeConfiguration.Prototype.prototype = DefaultConfiguration.prototype;
-ElifeConfiguration.prototype = new ElifeConfiguration.Prototype();
-ElifeConfiguration.prototype.constructor = ElifeConfiguration;
-
-module.exports = ElifeConfiguration;
-
-},{"./default":48,"substance-util":142,"underscore":147}],50:[function(require,module,exports){
-var DefaultConfiguration = require('./default');
-
-var LandesConfiguration = function() {
-
-};
-
-LandesConfiguration.Prototype = function() {
-
-  var mappings = {
-    "CC": "cc",
-    "INTV": "intravital",
-    "CIB": "cib"
-  };        
-
-  var __super__ = DefaultConfiguration.prototype;
-
-  // Provide proper url for supplement
-  // --------
-  // 
-
-  this.enhanceSupplement = function(state, node, element) {
-    var el = element.querySelector("graphic, media") || element;
-    var url = el.getAttribute("xlink:href");
-
-    var publisherId = state.xmlDoc.querySelector('journal-id').textContent;
-
-    var url = [
-      "https://www.landesbioscience.com/journals/",
-      mappings[publisherId],
-      "/",
-      url,
-    ].join('');
-
-    node.url = url;
-  };
-
-  // Yield proper video urls
-  // --------
-  // 
-
-  this.enhanceVideo = function(state, node, element) {
-    node.url = "provide_url_here";
-  };
-
-  // Customized labels
-  // -------
-
-  this.enhanceFigure = function(state, node, element) {
-    var graphic = element.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
-    var publisherId = state.xmlDoc.querySelector('journal-id').textContent;
-
-    var url = [
-      "https://www.landesbioscience.com/article_figure/journals/",
-      mappings[publisherId],
-      "/",
-      url,
-    ].join('');
-
-    node.url = url;
-
-    if(!node.label) {
-      var type = node.type;
-      node.label = type.charAt(0).toUpperCase() + type.slice(1);
-    }
-  };
-};
-
-
-LandesConfiguration.Prototype.prototype = DefaultConfiguration.prototype;
-LandesConfiguration.prototype = new LandesConfiguration.Prototype();
-LandesConfiguration.prototype.constructor = LandesConfiguration;
-
-module.exports = LandesConfiguration;
-
-},{"./default":48}],51:[function(require,module,exports){
-var DefaultConfiguration = require('./default');
-
-var PeerJConfiguration = function() {
-
-};
-
-PeerJConfiguration.Prototype = function() {
-
-  // Resolve figure urls
-  // --------
-  // 
-
-  this.enhanceFigure = function(state, node, element) {
-    var graphic = element.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
-
-    node.url = url;
-  };
-
-  // Assign video url
-  // --------
-  // 
-
-  this.enhanceVideo = function(state, node, element) {
-    node.url = "http://mickey.com/mouse.mp4";
-  };
-};
-
-
-PeerJConfiguration.Prototype.prototype = DefaultConfiguration.prototype;
-PeerJConfiguration.prototype = new PeerJConfiguration.Prototype();
-PeerJConfiguration.prototype.constructor = PeerJConfiguration;
-
-module.exports = PeerJConfiguration;
-
-},{"./default":48}],52:[function(require,module,exports){
-var DefaultConfiguration = require('./default');
-
-var PLOSConfiguration = function() {
-
-};
-
-PLOSConfiguration.Prototype = function() {
-
-  // Resolve figure urls
-  // --------
-  // 
-
-  this.enhanceFigure = function(state, node, element) {
-    var graphic = element.querySelector("graphic");
-    var url = graphic.getAttribute("xlink:href");
-
-    url = [
-      "http://www.plosone.org/article/fetchObject.action?uri=",
-      url,
-      "&representation=PNG_L"
-    ].join('');
-
-    node.url = url;
-  };
-
-  // Assign video url
-  // --------
-  // 
-
-  this.enhanceVideo = function(state, node, element) {
-    node.url = "http://mickey.com/mouse.mp4";
-  };
-};
-
-
-PLOSConfiguration.Prototype.prototype = DefaultConfiguration.prototype;
-PLOSConfiguration.prototype = new PLOSConfiguration.Prototype();
-PLOSConfiguration.prototype.constructor = PLOSConfiguration;
-
-module.exports = PLOSConfiguration;
-
-},{"./default":48}],53:[function(require,module,exports){
-"use strict";
-
-var _ = require("underscore");
-var util = require("substance-util");
-var errors = util.errors;
-var ImporterError = errors.define("ImporterError");
-
-// Available configurations
-// --------
-
-var ElifeConfiguration = require("./configurations/elife");
-var LandesConfiguration = require("./configurations/landes");
-var DefaultConfiguration = require("./configurations/default");
-var PLOSConfiguration = require("./configurations/plos");
-var PeerJConfiguration = require("./configurations/peerj");
-
-var LensImporter = function(options) {
-  this.options = options;
-};
-
-LensImporter.Prototype = function() {
-
-  // Helpers
-  // --------
-
-  var _getName = function(nameEl) {
-    var names = [];
-
-    var surnameEl = nameEl.querySelector("surname");
-    var givenNamesEl = nameEl.querySelector("given-names");
-
-    if (givenNamesEl) names.push(givenNamesEl.textContent);
-    if (surnameEl) names.push(surnameEl.textContent);
-
-    return names.join(" ");
-  };
-
-  var _toHtml = function(el) {
-    var tmp = document.createElement("DIV");
-    tmp.appendChild(el.cloneNode(true));
-    return tmp.innerHTML;
-  };
-
-  // ### The main entry point for starting an import
-
-  this.import = function(input, options) {
-    var xmlDoc;
-
-    // Note: when we are using jqueries get("<file>.xml") we
-    // magically get a parsed XML document already
-    if (_.isString(input)) {
-      var parser = new DOMParser();
-      xmlDoc = parser.parseFromString(input,"text/xml");
-    } else {
-      xmlDoc = input;
-    }
-
-    // Creating the output Document via factore, so that it is possible to
-    // create specialized NLMImporter later which would want to instantiate
-    // a specialized Document type
-    var doc = this.createDocument();
-
-    // For debug purposes
-    window.doc = doc;
-
-    // A deliverable state which makes this importer stateless
-    var state = new LensImporter.State(xmlDoc, doc, options);
-
-    // Note: all other methods are called corresponding
-    return this.document(state, xmlDoc);
-  };
-
-  // Overridden to create a Lens Article instance
-  this.createDocument = function() {
-    var Article = require("lens-article");
-    var doc = new Article();
-    return doc;
-  };
-
-  var _viewMapping = {
-    // "image": "figures",
-    "box": "content",
-    "supplement": "figures",
-    "figure": "figures",
-    "table": "figures",
-    "video": "figures"
-  };
-
-  this.show = function(state, nodes) {
-    var doc = state.doc;
-
-    _.each(nodes, function(n) {
-      var view = _viewMapping[n.type] || "content";
-      doc.show(view, n.id);
-    });
-  };
-
-
-  this.extractCover = function(state, article) {
-    var doc = state.doc;
-    var docNode = doc.get("document");
-    var cover = {
-      id: "cover",
-      type: "cover",
-      title: docNode.title,
-      authors: [], // docNode.authors,
-      abstract: docNode.abstract
-    };
-
-    // Create authors paragraph that has person_reference annotations
-    // to activate the author cards
-
-    _.each(docNode.authors, function(personId) {
-      var person = doc.get(personId);
-
-      var authorsPara = {
-        "id": "text_"+personId+"_reference",
-        "type": "text",
-        "content": person.name
-      };
-
-      doc.create(authorsPara);
-      cover.authors.push(authorsPara.id);
-
-      var anno = {
-        id: state.nextId("person_reference"),
-        type: "person_reference",
-        path: ["text_" + personId + "_reference", "content"],
-        range: [0, person.name.length],
-        target: personId
-      };
-
-      doc.create(anno);
-    }, this);
-
-    doc.create(cover);
-    doc.show("content", cover.id, 0);
-  };
-
-  // Note: Substance.Article supports only one author.
-  // We use the first author found in the contribGroup for the 'creator' property.
-  this.contribGroup = function(state, contribGroup) {
-    var i;
-    var affiliations = contribGroup.querySelectorAll("aff");
-    for (i = 0; i < affiliations.length; i++) {
-      this.affiliation(state, affiliations[i]);
-    }
-
-    // Extract equal contributors
-    var equalContribs = contribGroup.querySelectorAll("contrib[equal-contrib=yes]");
-
-    state.equalContribs = _.map(equalContribs, function(c) {
-      return _getName(c);
-    });
-
-
-    var contribs = contribGroup.querySelectorAll("contrib");
-    for (i = 0; i < contribs.length; i++) {
-      this.contributor(state, contribs[i]);
-    }
-  };
-
-  this.affiliation = function(state, aff) {
-    var doc = state.doc;
-
-    var institution = aff.querySelector("institution");
-    var country = aff.querySelector("country");
-    var label = aff.querySelector("label");
-    var department = aff.querySelector("addr-line named-content[content-type=department]");
-    var city = aff.querySelector("addr-line named-content[content-type=city]");
-
-    var affiliationNode = {
-      id: state.nextId("affiliation"),
-      type: "affiliation",
-      source_id: aff.getAttribute("id"),
-      label: label ? label.textContent : null,
-      department: department ? department.textContent : null,
-      city: city ? city.textContent : null,
-      institution: institution ? institution.textContent : null,
-      country: country ? country.textContent: null
-    };
-
-    doc.create(affiliationNode);
-  };
-
-
-
-  this.contributor = function(state, contrib) {
-    var doc = state.doc;
-
-    var id = state.nextId("person");
-    var personNode = {
-      id: id,
-      source_id: contrib.getAttribute("id"),
-      type: "person",
-      name: "",
-      affiliations: [],
-      fundings: [],
-      // Not yet supported... need examples
-      image: "",
-      emails: [],
-      contribution: ""
-    };
-
-
-    // Extracting equal contributions
-    var nameEl = contrib.querySelector("name");
-    personNode.name = _getName(nameEl);
-    if (_.include(state.equalContribs, personNode.name)) {
-      personNode.equal_contrib = _.without(state.equalContribs, personNode.name);
-    }
-
-    // extract affiliations stored as xrefs
-    var xrefs = contrib.querySelectorAll("xref");
-
-    _.each(xrefs, function(xref) {
-      if (xref.getAttribute("ref-type") === "aff") {
-        var affId = xref.getAttribute("rid");
-        var affNode = doc.getNodeBySourceId(affId);
-        if (affNode) {
-          personNode.affiliations.push(affNode.id);
-        }
-      } else if (xref.getAttribute("ref-type") === "other") {
-        var awardGroup = state.xmlDoc.getElementById(xref.getAttribute("rid"));
-        if (!awardGroup) return;
-        var fundingSource = awardGroup.querySelector("funding-source");
-        if (!fundingSource) return;
-        personNode.fundings.push(fundingSource.textContent);
-      } else if (xref.getAttribute("ref-type") === "corresp") {
-        var corresp = state.xmlDoc.getElementById(xref.getAttribute("rid"));
-        if (!corresp) return;
-        var email = corresp.querySelector("email");
-        if (!email) return;
-        personNode.emails.push(email.textContent);
-      } else if (xref.getAttribute("ref-type") === "fn") {
-        var elem = state.xmlDoc.getElementById(xref.getAttribute("rid"));
-
-        if (elem && elem.getAttribute("fn-type") === "con") {
-          personNode.contribution = elem.textContent;
-        } else {
-          // skipping...
-        }
-      }
-    });
-
-    if (contrib.getAttribute("contrib-type") === "author") {
-      doc.nodes.document.authors.push(id);
-    }
-
-
-    doc.create(personNode);
-    doc.show("info", personNode.id);
-  };
-
-  // Annotations
-  // --------
-
-  var _annotationTypes = {
-    "bold": "strong",
-    "italic": "emphasis",
-    "monospace": "code",
-    "sub": "subscript",
-    "sup": "superscript",
-    "underline": "underline",
-    "ext-link": "link",
-    "xref": ""
-  };
-
-  this.isAnnotation = function(type) {
-    return _annotationTypes[type] !== undefined;
-  };
-
-  this.createAnnotation = function(state, el, start, end) {
-    var type = el.tagName.toLowerCase();
-    var anno = {
-      path: _.last(state.stack).path,
-      range: [start, end],
-    };
-    if (type === "xref") {
-      var refType = el.getAttribute("ref-type");
-
-      var sourceId = el.getAttribute("rid");
-      if (refType === "bibr") {
-        anno.type = "citation_reference";
-      } else if (refType === "fig" || refType === "table" || refType === "supplementary-material" || refType === "other") {
-        anno.type = "figure_reference";
-      } else {
-        // Treat everything else as cross reference
-        anno.type = "cross_reference";
-        // console.log("Ignoring xref: ", refType, el);
-        // return;
-      }
-
-      if (sourceId) anno.target = sourceId.split(" ")[0];
-    }
-    // Common annotations (e.g., emphasis)
-    else if (_annotationTypes[type] !== undefined) {
-      anno.type = _annotationTypes[type];
-      if (type === "ext-link") {
-        anno.url = el.getAttribute("xlink:href");
-        if (el.getAttribute("ext-link-type") === "doi") {
-          anno.url = ["http://dx.doi.org/", anno.url].join("");
-        }
-      }
-    }
-    else {
-      console.log("Ignoring annotation: ", type, el);
-      return;
-    }
-
-    anno.id = state.nextId(anno.type);
-    state.annotations.push(anno);
-  };
-
-  this.annotatedText = function(state, iterator, charPos, nested) {
-    var plainText = "";
-
-    if (charPos === undefined) {
-      charPos = 0;
-    }
-
-    while(iterator.hasNext()) {
-      var el = iterator.next();
-      // Plain text nodes...
-      if (el.nodeType === Node.TEXT_NODE) {
-        plainText += el.textContent;
-        charPos += el.textContent.length;
-      }
-      // Annotations...
-      else {
-
-        var type = util.dom.getNodeType(el);
-        if (this.isAnnotation(type)) {
-          var start = charPos;
-          // recurse into the annotation element to collect nested annotations
-          // and the contained plain text
-          var childIterator = new util.dom.ChildNodeIterator(el);
-          var annotatedText = this.annotatedText(state, childIterator, charPos, "nested");
-          plainText += annotatedText;
-          charPos += annotatedText.length;
-          this.createAnnotation(state, el, start, charPos);
-        }
-
-        // Unsupported...
-        else {
-          if (nested) {
-            throw new ImporterError("Node not yet supported in annoted text: " + type);
-          }
-          else {
-            // on paragraph level other elements can break a text block
-            // we shift back the position and finish this call
-            iterator.back();
-            break;
-          }
-        }
-      }
-    }
-    return plainText;
-  };
-
-
-  // Parser
-  // --------
-  // These methods are used to process XML elements in
-  // using a recursive-descent approach.
-
-
-  // ### Top-Level function that takes a full NLM tree
-  // Note: a specialized converter can derive this method and
-  // add additional pre- or post-processing.
-
-  this.document = function(state, xmlDoc) {
-    // Setup configuration objects
-    var publisherName = xmlDoc.querySelector("publisher-name").textContent;
-    if (publisherName === "Landes Bioscience") {
-      state.config = new LandesConfiguration();
-    } else if (publisherName === "eLife Sciences Publications, Ltd") {
-      state.config = new ElifeConfiguration();
-    } else if (publisherName === "Public Library of Science") {
-      state.config = new PLOSConfiguration();
-    } else if (publisherName === 'PeerJ Inc.') {
-      state.config = new PeerJConfiguration();
-    } else {
-      state.config = new DefaultConfiguration();
-    }
-
-    var doc = state.doc;
-    var article = xmlDoc.querySelector("article");
-
-    if (!article) {
-      throw new ImporterError("Expected to find an 'article' element.");
-    }
-
-    // recursive-descent for the main body of the article
-    this.article(state, article);
-
-    // post-processing:
-
-    // Creating the annotations afterwards, to make sure
-    // that all referenced nodes are available
-    for (var i = 0; i < state.annotations.length; i++) {
-      var anno = state.annotations[i];
-      if (anno.target) {
-        var targetNode = state.doc.getNodeBySourceId(anno.target);
-        if (targetNode) anno.target = targetNode.id;
-      }
-
-      doc.create(state.annotations[i]);
-    }
-
-    // Rebuild views to ensure consistency
-    _.each(doc.views, function(view) {
-      doc.get(view).rebuild();
-    });
-
-    return doc;
-  };
-
-
-
-  this.extractContributors = function(state, article) {
-    // TODO: the spec says, that there may be any combination of
-    // 'contrib-group', 'aff', 'aff-alternatives', and 'x'
-    // However, in the articles seen so far, these were sub-elements of 'contrib-group', which itself was single
-    var contribGroup = article.querySelector("article-meta contrib-group");
-    if (contribGroup) {
-      this.contribGroup(state, contribGroup);
-    }
-  };
-
-
-  this.extractFigures = function(state, xmlDoc) {
-    // Globally query all figure-ish content, <fig>, <supplementary-material>, <table-wrap>, <media video>
-    // mimetype="video"
-    var figureElements = xmlDoc.querySelectorAll("fig, table-wrap, supplementary-material, media[mimetype=video]");
-    var figureNodes = [];
-    var node;
-
-    for (var i = 0; i < figureElements.length; i++) {
-      var figEl = figureElements[i];
-      var type = util.dom.getNodeType(figEl);
-
-      if (type === "fig") {
-        node = this.figure(state, figEl);
-        if (node) figureNodes.push(node);
-      }
-      else if (type === "table-wrap") {
-        node = this.tableWrap(state, figEl);
-        if (node) figureNodes.push(node);
-        // nodes = nodes.concat(this.section(state, child));
-      } else if (type === "media") {
-        node = this.video(state, figEl);
-        if (node) figureNodes.push(node);
-      } else if (type === "supplementary-material") {
-
-        node = this.supplement(state, figEl);
-        if (node) figureNodes.push(node);
-      }
-    }
-
-    // Show the figures
-    if (figureNodes.length > 0) {
-      this.show(state, figureNodes);
-    }
-  };
-
-
-
-  this.extractCitations = function(state, xmlDoc) {
-    var refList = xmlDoc.querySelector("ref-list");
-    if (refList) {
-      this.refList(state, refList);
-    }
-  };
-
-  // Handle <fig> element
-  // --------
-  //
-
-  this.figure = function(state, figure) {
-    var doc = state.doc;
-
-    var label = figure.querySelector("label");
-
-    // Top level figure node
-    var figureNode = {
-      "type": "figure",
-      "id": state.nextId("figure"),
-      "source_id": figure.getAttribute("id"),
-      "label": label ? label.textContent : "Figure",
-      "url": "http://images.wisegeek.com/young-calico-cat.jpg",
-      "caption": null
-    };
-
-    // Add a caption if available
-    var caption = figure.querySelector("caption");
-    if (caption) {
-      var captionNode = this.caption(state, caption);
-      if (captionNode) figureNode.caption = captionNode.id;
-    }
-
-    var attrib = figure.querySelector("attrib");
-    if (attrib) {
-      figureNode.attrib = attrib.textContent;
-    }
-
-    // Lets the configuration patch the figure node properties
-    state.config.enhanceFigure(state, figureNode, figure);
-    doc.create(figureNode);
-
-    return figureNode;
-  };
-
-  // Handle <supplementary-material> element
-  // --------
-  //
-  // eLife Example:
-  //
-  // <supplementary-material id="SD1-data">
-  //   <object-id pub-id-type="doi">10.7554/eLife.00299.013</object-id>
-  //   <label>Supplementary file 1.</label>
-  //   <caption>
-  //     <title>Compilation of the tables and figures (XLS).</title>
-  //     <p>This is a static version of the
-  //       <ext-link ext-link-type="uri" xlink:href="http://www.vaxgenomics.org/vaxgenomics/" xmlns:xlink="http://www.w3.org/1999/xlink">
-  //         Interactive Results Tool</ext-link>, which is also available to download from Zenodo (see major datasets).</p>
-  //     <p>
-  //       <bold>DOI:</bold>
-  //       <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00299.013">http://dx.doi.org/10.7554/eLife.00299.013</ext-link>
-  //     </p>
-  //   </caption>
-  //   <media mime-subtype="xlsx" mimetype="application" xlink:href="elife00299s001.xlsx"/>
-  // </supplementary-material>
-  //
-  // LB Example:
-  //
-  // <supplementary-material id="SUP1" xlink:href="2012INTRAVITAL024R-Sup.pdf">
-  //   <label>Additional material</label>
-  //   <media xlink:href="2012INTRAVITAL024R-Sup.pdf"/>
-  // </supplementary-material>
-
-  this.supplement = function(state, supplement) {
-    var doc = state.doc;
-
-    //get supplement info
-    var label = supplement.querySelector("label");
-
-    var url = "http://meh.com";
-    var mediaEl = supplement.querySelector("media");
-    var url = mediaEl ? mediaEl.getAttribute("xlink:href") : null;
-    var doi = supplement.querySelector("object-id[pub-id-type='doi']");
-    doi = doi ? "http://dx.doi.org/" + doi.textContent : "";
-
-    //create supplement node using file ids
-    var supplementNode = {
-      "id": state.nextId("supplement"),
-      "source_id": supplement.getAttribute("id"),
-      "type": "supplement",
-      "label": label ? label.textContent : "",
-      "url": url,
-      "caption": null
-    };
-
-    // Add a caption if available
-    var caption = supplement.querySelector("caption");
-
-    if (caption) {
-      var captionNode = this.caption(state, caption);
-      if (captionNode) supplementNode.caption = captionNode.id;
-    }
-
-    // Let config enhance the node
-    state.config.enhanceSupplement(state, supplementNode, supplement);
-    doc.create(supplementNode);
-    return supplementNode;
-    // doc.show("figures", id);
-  };
-
-
-  // Used by Figure, Table, Video, Supplement types.
-  // --------
-
-  this.caption = function(state, caption) {
-    var doc = state.doc;
-    var title = caption.querySelector("title");
-
-    // Only consider direct children
-    var paragraphs = _.select(caption.querySelectorAll("p"), function(p) {
-      return p.parentNode === caption;
-    });
-
-    if (paragraphs.length === 0) return null;
-
-    var captionNode = {
-      "id": state.nextId("caption"),
-      "source_id": caption.getAttribute("id"),
-      "type": "caption",
-      "title": "",
-      "children": []
-    };
-
-    // Titles can be annotated, thus delegate to paragraph
-    if (title) {
-      // Resolve title by delegating to the paragraph
-      var node = this.paragraph(state, title);
-      if (node) {
-        captionNode.title = node.id;
-      }
-    }
-
-
-    var children = [];
-    _.each(paragraphs, function(p) {
-      var node = this.paragraph(state, p);
-      if (node) {
-        children.push(node.id);
-      }
-    }, this);
-
-    captionNode.children = children;
-    doc.create(captionNode);
-
-    return captionNode;
-  };
-
-
-  // Example video element
-  //
-  // <media content-type="glencoe play-in-place height-250 width-310" id="movie1" mime-subtype="mov" mimetype="video" xlink:href="elife00005m001.mov">
-  //   <object-id pub-id-type="doi">
-  //     10.7554/eLife.00005.013</object-id>
-  //   <label>Movie 1.</label>
-  //   <caption>
-  //     <title>Movement of GFP tag.</title>
-  //     <p>
-  //       <bold>DOI:</bold>
-  //       <ext-link ext-link-type="doi" xlink:href="10.7554/eLife.00005.013">http://dx.doi.org/10.7554/eLife.00005.013</ext-link>
-  //     </p>
-  //   </caption>
-  // </media>
-
-  this.video = function(state, video) {
-    var doc = state.doc;
-
-    var label = video.querySelector("label").textContent;
-
-    var id = state.nextId("video");
-    var videoNode = {
-      "id": id,
-      "source_id": video.getAttribute("id"),
-      "type": "video",
-      "label": label,
-      "title": "",
-      "caption": null,
-      "poster": ""
-    };
-
-    // Add a caption if available
-    var caption = video.querySelector("caption");
-    if (caption) {
-      var captionNode = this.caption(state, caption);
-      if (captionNode) videoNode.caption = captionNode.id;
-    }
-
-    state.config.enhanceVideo(state, videoNode, video);
-    doc.create(videoNode);
-
-    return videoNode;
-  };
-
-  this.tableWrap = function(state, tableWrap) {
-    var doc = state.doc;
-    var label = tableWrap.querySelector("label");
-
-    var tableNode = {
-      "id": state.nextId("table"),
-      "source_id": tableWrap.getAttribute("id"),
-      "type": "table",
-      "title": "",
-      "label": label ? label.textContent : "Table",
-      "content": "",
-      "caption": null,
-      // Not supported yet ... need examples
-      footers: [],
-      // doi: "" needed?
-    };
-
-    // Note: using a DOM div element to create HTML
-    var table = tableWrap.querySelector("table");
-    tableNode.content = _toHtml(table);
-
-    // Add a caption if available
-    var caption = tableWrap.querySelector("caption");
-    if (caption) {
-      var captionNode = this.caption(state, caption);
-      if (captionNode) tableNode.caption = captionNode.id;
-    }
-
-    state.config.enhanceTable(state, tableNode, tableWrap);
-    doc.create(tableNode);
-    return tableNode;
-  };
-
-
-  // Article
-  // --------
-  // Does the actual conversion.
-  //
-  // Note: this is implemented as lazy as possible (ALAP) and will be extended as demands arise.
-  //
-  // If you need such an element supported:
-  //  - add a stub to this class (empty body),
-  //  - add code to call the method to the appropriate function,
-  //  - and implement the handler here if it can be done in general way
-  //    or in your specialized importer.
-
-  this.article = function(state, article) {
-    var doc = state.doc;
-
-    // Assign id
-    var articleId = article.querySelector("article-id");
-    // Note: Substance.Article does only support one id
-    if (articleId) {
-      doc.id = articleId.textContent;
-    } else {
-      // if no id was set we create a random one
-      doc.id = util.uuid();
-    }
-
-    // Extract authors etc.
-    this.extractContributors(state, article);
-
-    // Same for the citations, also globally
-    this.extractCitations(state, article);
-
-    // First extract all figure-ish content, using a global approach
-    this.extractFigures(state, article);
-
-    // Make up a cover node
-    this.extractCover(state, article);
-
-    // Extract ArticleMeta
-    this.extractArticleMeta(state, article);
-
-    var body = article.querySelector("body");
-    if (body) {
-      this.body(state, body);
-    }
-
-    // Give the config the chance to add stuff
-    state.config.enhanceArticle(this, state, article);
-
-  };
-
-
-  // #### Front.ArticleMeta
-  //
-
-  this.extractArticleMeta = function(state, article) {
-    // var doc = state.doc;
-
-    var articleMeta = article.querySelector("article-meta");
-    if (!articleMeta) {
-      throw new ImporterError("Expected element: 'article-meta'");
-    }
-
-    // <article-id> Article Identifier, zero or more
-    var articleIds = articleMeta.querySelectorAll("article-id");
-    this.articleIds(state, articleIds);
-
-    // <title-group> Title Group, zero or one
-    var titleGroup = articleMeta.querySelector("title-group");
-    if (titleGroup) {
-      this.titleGroup(state, titleGroup);
-    }
-
-    // <pub-date> Publication Date, zero or more
-    var pubDates = articleMeta.querySelectorAll("pub-date");
-    this.pubDates(state, pubDates);
-
-    // <abstract> Abstract, zero or more
-    var abstracts = articleMeta.querySelectorAll("abstract");
-
-    _.each(abstracts, function(abs) {
-      this.abstract(state, abs);
-    }, this);
-
-    // Populate Publication Info node
-    // ------------
-
-    state.config.extractPublicationInfo(this, state, article);
-
-    // Not supported yet:
-    // <trans-abstract> Translated Abstract, zero or more
-    // <kwd-group> Keyword Group, zero or more
-    // <conference> Conference Information, zero or more
-    // <counts> Counts, zero or one
-    // <custom-meta-group> Custom Metadata Group, zero or one
-  };
-
-
-
-  // articleIds: array of <article-id> elements
-  this.articleIds = function(state, articleIds) {
-    var doc = state.doc;
-
-    // Note: Substance.Article does only support one id
-    if (articleIds.length > 0) {
-      doc.id = articleIds[0].textContent;
-    } else {
-      // if no id was set we create a random one
-      doc.id = util.uuid();
-    }
-  };
-
-  this.titleGroup = function(state, titleGroup) {
-    var doc = state.doc;
-
-    var articleTitle = titleGroup.querySelector("article-title");
-    if (articleTitle) {
-      doc.title = articleTitle.textContent;
-    }
-
-    // Not yet supported:
-    // <subtitle> Document Subtitle, zero or one
-  };
-
-  // Note: Substance.Article supports no publications directly.
-  // We use the first pub-date for created_at
-  this.pubDates = function(state, pubDates) {
-    var doc = state.doc;
-    if (pubDates.length > 0) {
-      var converted = this.pubDate(state, pubDates[0]);
-      doc.created_at = converted.date;
-    }
-  };
-
-  // Note: this does not follow the spec but only takes the parts as it was necessary until now
-  // TODO: implement it thoroughly
-  this.pubDate = function(state, pubDate) {
-    var day = -1;
-    var month = -1;
-    var year = -1;
-    _.each(util.dom.getChildren(pubDate), function(el) {
-      var type = util.dom.getNodeType(el);
-
-      var value = el.textContent;
-      if (type === "day") {
-        day = parseInt(value, 10);
-      } else if (type === "month") {
-        month = parseInt(value, 10);
-      } else if (type === "year") {
-        year = parseInt(value, 10);
-      }
-    }, this);
-    var date = new Date(year, month, day);
-    return {
-      date: date
-    };
-  };
-
-  this.abstract = function(state, abs) {
-    var doc = state.doc;
-    var nodes = [];
-
-    var title = abs.querySelector("title");
-
-    var heading = {
-      id: state.nextId("heading"),
-      type: "heading",
-      level: 1,
-      content: title ? title.textContent : "Abstract"
-    };
-
-    doc.create(heading);
-    nodes.push(heading);
-
-    nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(abs)));
-    if (nodes.length > 0) {
-      this.show(state, nodes);
-    }
-  };
-
-  // ### Article.Body
-  //
-
-  this.body = function(state, body) {
-
-    var heading = {
-      id: state.nextId("heading"),
-      type: "heading",
-      level: 1,
-      content: "Main Text"
-    };
-    doc.create(heading);
-
-
-    var nodes = [heading].concat(this.bodyNodes(state, util.dom.getChildren(body)));
-
-    if (nodes.length > 0) {
-      this.show(state, nodes);
-    }
-  };
-
-  // Top-level elements as they can be found in the body or
-  // in a section
-  // NEW: Also used for boxed-text elements
-  this.bodyNodes = function(state, children, startIndex) {
-    var nodes = [];
-    var node;
-    startIndex = startIndex || 0;
-
-    for (var i = startIndex; i < children.length; i++) {
-      var child = children[i];
-      var type = util.dom.getNodeType(child);
-
-      if (type === "p") {
-        nodes = nodes.concat(this.paragraphGroup(state, child));
-      }
-      else if (type === "sec") {
-        nodes = nodes.concat(this.section(state, child));
-      }
-      else if (type === "list") {
-        node = this.list(state, child);
-        if (node) nodes.push(node);
-      }
-      else if (type === "disp-formula") {
-        node = this.formula(state, child);
-        if (node) nodes.push(node);
-      }
-      else if (type === "caption") {
-        node = this.caption(state, child);
-        if (node) nodes.push(node);
-      }
-      else if (type === "boxed-text") {
-        // Just treat as another container
-        var node = this.boxedText(state, child);
-        if (node) nodes.push(node);
-        // nodes = nodes.concat(this.bodyNodes(state, util.dom.getChildren(child)));
-      }
-      else if (type === "disp-quote") {
-        // Just treat as another container
-        var node = this.boxedText(state, child);
-        if (node) nodes.push(node);
-      }
-      // Note: here are some node types ignored which are
-      // processed in an extra pass (figures, tables, etc.)
-      else if (type === "comment") {
-        // Note: Maybe we could create a Substance.Comment?
-        // Keep it silent for now
-        // console.error("Ignoring comment");
-      } else {
-        // console.error("Node not yet supported as top-level node: " + type);
-      }
-    }
-    return nodes;
-  };
-
-
-  this.boxedText = function(state, box) {
-    var doc = state.doc;
-
-    // Assuming that there are no nested <boxed-text> elements
-    var childNodes = this.bodyNodes(state, util.dom.getChildren(box));
-
-    var label = box.querySelector("label");
-    var boxId = state.nextId("box");
-
-    var boxNode = {
-      "type": "box",
-      "id": boxId,
-      "source_id": box.getAttribute("id"),
-      "label": label ? label.textContent : boxId.replace("_", " "),
-      "children": _.pluck(childNodes, 'id')
-    };
-    doc.create(boxNode);
-
-    // Boxes go into the figures view if these conditions are met
-    // 1. box has a label (e.g. elife 00288) 
-    if (label) {
-      doc.show("figures", boxId, -1);
-      return null;
-    }
-    return boxNode;
-
-  };
-
-  this.datasets = function(state, datasets) {
-    var nodes = [];
-
-    for (var i=0;i<datasets.length;i++) {
-      var data = datasets[i];
-      var type = util.dom.getNodeType(data);
-      if (type === 'p') {
-        var obj = data.querySelector('related-object');
-        if (obj) {
-          nodes = nodes.concat(this.indivdata(state,obj));
-        }
-        else {
-          var par = this.paragraphGroup(state, data);
-          nodes.push(par[0].id);
-        }
-      }
-    }
-    return nodes;
-  };
-
-  this.indivdata = function(state,indivdata) {
-    var p1 = {
-      "type" : "paragraph",
-      "id" : state.nextId("paragraph"),
-      "children" : []
-    };
-    var text1 = {
-      "type" : "text",
-      "id" : state.nextId("text"),
-      "content" : ""
-    };
-    p1.children.push(text1.id);
-    var input = util.dom.getChildren(indivdata);
-    for (var i = 0;i<input.length;i++) {
-      var info = input[i];
-      var type = util.dom.getNodeType(info);
-      if (type === "name") {
-        var children = util.dom.getChildren(info);
-        for (var j = 0;j<children.length;j++) {
-          var name = children[j];
-          if (j === 0) {
-            var par = this.paragraphGroup(state,name);
-            p1.children.push(par[0].children[0]);
-          }
-          else {
-            var text2 = {
-              "type" : "text",
-              "id" : state.nextId("text"),
-              "content" : ", "
-            };
-            doc.create(text2)
-            p1.children.push(text2.id)
-            var par = this.paragraphGroup(state,name);
-            p1.children.push(par[0].children[0]);
-          }
-        }
-      }
-      else {
-        var par = this.paragraphGroup(state,info);
-        p1.children.push(par[0].children[0]);
-      }
-    }    
-    doc.create(p1);
-    doc.create(text1);
-    return p1.id;
-  };
-
-  this.section = function(state, section) {
-
-    // pushing the section level to track the level for nested sections
-    state.sectionLevel++;
-
-    var doc = state.doc;
-    var children = util.dom.getChildren(section);
-
-    // create a heading
-    // TODO: headings can contain annotations too
-    var title = children[0];
-    var heading = {
-      id: state.nextId("heading"),
-      source_id: section.getAttribute("id"),
-      type: "heading",
-      level: state.sectionLevel,
-      content: title.textContent
-    };
-    doc.create(heading);
-
-    // Recursive Descent: get all section body nodes
-    var nodes = this.bodyNodes(state, children, 1);
-    // add the heading at the front
-    nodes.unshift(heading);
-
-    // popping the section level
-    state.sectionLevel--;
-
-    return nodes;
-  };
-
-
-  this.ignoredParagraphElements = {
-    "comment": true,
-    "supplementary-material": true,
-    "fig": true,
-    "fig-group": true,
-    "table-wrap": true,
-    "media": true
-  };
-
-  this.acceptedParagraphElements = {
-    "boxed-text": {handler: "boxedText"},
-    "list": { handler: "list" },
-    "disp-formula": { handler: "formula" },
-  };
-
-  this.inlineParagraphElements = {
-    "inline-graphic": true,
-    "inline-formula": true
-  };
-
-  // Segments children elements of a NLM <p> element
-  // into blocks grouping according to following rules:
-  // - "text", "inline-graphic", "inline-formula", and annotations
-  // - ignore comments, supplementary-materials
-  // - others are treated as singles
-  this.segmentParagraphElements = function(paragraph) {
-    var blocks = [];
-    var lastType = "";
-    var iterator = new util.dom.ChildNodeIterator(paragraph);
-
-    // first fragment the childNodes into blocks
-    while (iterator.hasNext()) {
-      var child = iterator.next();
-      var type = util.dom.getNodeType(child);
-
-      // ignore some elements
-      if (this.ignoredParagraphElements[type]) continue;
-
-      // paragraph elements
-      if (type === "text" || this.isAnnotation(type) || this.inlineParagraphElements[type]) {
-        if (lastType !== "paragraph") {
-          blocks.push({ handler: "paragraph", nodes: [] });
-          lastType = "paragraph";
-        }
-        _.last(blocks).nodes.push(child);
-        continue;
-      }
-      // other elements are treated as single blocks
-      else if (this.acceptedParagraphElements[type]) {
-        blocks.push(_.extend({node: child}, this.acceptedParagraphElements[type]));
-      }
-      lastType = type;
-    }
-    return blocks;
-  };
-
-
-  // A 'paragraph' is given a '<p>' tag
-  // An NLM <p> can contain nested elements that are represented flattened in a Substance.Article
-  // Hence, this function returns an array of nodes
-  this.paragraphGroup = function(state, paragraph) {
-    var nodes = [];
-
-    // Note: there are some elements in the NLM paragraph allowed
-    // which are flattened here. To simplify further processing we
-    // segment the children of the paragraph elements in blocks
-    var blocks = this.segmentParagraphElements(paragraph);
-
-    for (var i = 0; i < blocks.length; i++) {
-      var block = blocks[i];
-      var node;
-      if (block.handler === "paragraph") {
-        node = this.paragraph(state, block.nodes);
-        if (node) node.source_id = paragraph.getAttribute("id");
-      } else {
-        node = this[block.handler](state, block.node);
-      }
-      if (node) nodes.push(node);
-    }
-
-    return nodes;
-  };
-
-  this.paragraph = function(state, children) {
-    var doc = state.doc;
-
-    var node = {
-      id: state.nextId("paragraph"),
-      type: "paragraph",
-      children: null
-    };
-    var nodes = [];
-
-
-    var iterator = new util.dom.ChildNodeIterator(children);
-    while (iterator.hasNext()) {
-      var child = iterator.next();
-      var type = util.dom.getNodeType(child);
-
-      // annotated text node
-      if (type === "text" || this.isAnnotation(type)) {
-        var textNode = {
-          id: state.nextId("text"),
-          type: "text",
-          content: null
-        };
-        // pushing information to the stack so that annotations can be created appropriately
-        state.stack.push({
-          node: textNode,
-          path: [textNode.id, "content"]
-        });
-        // Note: this will consume as many textish elements (text and annotations)
-        // but will return when hitting the first un-textish element.
-        // In that case, the iterator will still have more elements
-        // and the loop is continued
-        // Before descending, we reset the iterator to provide the current element again.
-        var annotatedText = this.annotatedText(state, iterator.back(), 0);
-
-        // Ignore empty paragraphs
-        if (annotatedText.length > 0) {
-          textNode.content = annotatedText;
-          doc.create(textNode);
-          nodes.push(textNode);
-        }
-
-        // popping the stack
-        state.stack.pop();
-      }
-
-      // inline image node
-      else if (type === "inline-graphic") {
-        var url = child.getAttribute("xlink:href");
-        var img = {
-          id: state.nextId("image"),
-          type: "image",
-          url: state.config.resolveURL(state, url)
-        };
-        doc.create(img);
-        nodes.push(img);
-      }
-      else if (type === "inline-formula") {
-        var formula = this.formula(state, child, "inline");
-        if (formula) {
-          nodes.push(formula);
-        }
-      }
-    }
-
-    // if there is only a single node, return do not create a paragraph around it
-    // if (nodes.length < 2) {
-    //   return nodes[0];
-    // } else {
-    if (nodes.length === 0) return null;
-
-    node.children = _.map(nodes, function(n) { return n.id; } );
-    doc.create(node);
-    return node;
-    // }
-  };
-
-  // List type
-  // --------
-
-  this.list = function(state, list) {
-    var doc = state.doc;
-
-    var listNode = {
-      "id": state.nextId("list"),
-      "source_id": list.getAttribute("id"),
-      "type": "list",
-      "items": [],
-      "ordered": false
-    };
-
-    // TODO: better detect ordererd list types (need examples)
-    if (list.getAttribute("list-type") === "ordered") {
-      listNode.ordered = true;
-    }
-
-    var listItems = list.querySelectorAll("list-item");
-    for (var i = 0; i < listItems.length; i++) {
-      var listItem = listItems[i];
-      // Note: we do not care much about what is served as items
-      // However, we do not have complex nodes on paragraph level
-      // They will be extract as sibling items
-      var nodes = this.bodyNodes(state, util.dom.getChildren(listItem), 0);
-      for (var j = 0; j < nodes.length; j++) {
-        listNode.items.push(nodes[j].id);
-      }
-    }
-
-    doc.create(listNode);
-    return listNode;
-  };
-
-  // Formula Node Type
-  // --------
-
-  var _getFormula = function(formulaElement, inline) {
-    var children = util.dom.getChildren(formulaElement);
-    for (var i = 0; i < children.length; i++) {
-      var child = children[i];
-      var type = util.dom.getNodeType(child);
-
-      if (type === "mml:math") {
-        // make sure that 'display' is set to 'block', otherwise
-        // there will be rendering issues.
-        // Although it is a rendering related issue it is easier
-        // to make this conform here
-        if (!inline) {
-          child.setAttribute("display", "block");
-        }
-        return {
-          format: "mathml",
-          data: _toHtml(child)
-        };
-      }
-      else if (type === "tex-math") {
-        return {
-          format: "latex",
-          data: child.textContent
-        };
-      }
-    }
-    return null;
-  };
-
-  this.formula = function(state, dispFormula, inline) {
-    var doc = state.doc;
-
-    var id = inline ? state.nextId("inline_formula") : state.nextId("formula");
-
-    var formulaNode = {
-      id: id,
-      source_id: dispFormula.getAttribute("id"),
-      type: "formula",
-      label: "",
-      data: "",
-      format: "",
-    };
-    if (inline) formulaNode.inline = true;
-
-    var label = dispFormula.querySelector("label");
-    if (label) formulaNode.label = label.textContent;
-
-    var formula = _getFormula(dispFormula, inline);
-    if (!formula) {
-      return null;
-    } else {
-      formulaNode.format = formula.format;
-      formulaNode.data = formula.data;
-    }
-    doc.create(formulaNode);
-    return formulaNode;
-  };
-
-  // Citations
-  // ---------
-
-  this.refList = function(state, refList) {
-    var refs = refList.querySelectorAll("ref");
-    for (var i = 0; i < refs.length; i++) {
-      this.ref(state, refs[i]);
-    }
-  };
-
-  this.ref = function(state, ref) {
-    var children = util.dom.getChildren(ref);
-    for (var i = 0; i < children.length; i++) {
-      var child = children[i];
-      var type = util.dom.getNodeType(child);
-
-      if (type === "mixed-citation" || type === "element-citation") {
-        this.citation(state, ref, child);
-      } else if (type === "label") {
-        // ignoring it here...
-      } else {
-        console.error("Not supported in 'ref': ", type);
-      }
-    }
-  };
-
-
-  // Citation
-  // ------------------
-  // NLM input example
-  //
-  // <element-citation publication-type="journal" publication-format="print">
-  // <name><surname>Llanos De La Torre Quiralte</surname>
-  // <given-names>M</given-names></name>
-  // <name><surname>Garijo Ayestaran</surname>
-  // <given-names>M</given-names></name>
-  // <name><surname>Poch Olive</surname>
-  // <given-names>ML</given-names></name>
-  // <article-title xml:lang="es">Evolucion de la mortalidad
-  // infantil de La Rioja (1980-1998)</article-title>
-  // <trans-title xml:lang="en">Evolution of the infant
-  // mortality rate in la Rioja in Spain
-  // (1980-1998)</trans-title>
-  // <source>An Esp Pediatr</source>
-  // <year>2001</year>
-  // <month>Nov</month>
-  // <volume>55</volume>
-  // <issue>5</issue>
-  // <fpage>413</fpage>
-  // <lpage>420</lpage>
-  // <comment>Figura 3, Tendencia de mortalidad infantil
-  // [Figure 3, Trends in infant mortality]; p. 418.
-  // Spanish</comment>
-  // </element-citation>
-
-  // TODO: is implemented naively, should be implemented considering the NLM spec
-  this.citation = function(state, ref, citation) {
-    var doc = state.doc;
-    var citationNode;
-    var i;
-
-    var id = state.nextId("article_citation");
-
-    // TODO: we should consider to have a more structured citation type
-    // and let the view decide how to render it instead of blobbing everything here.
-    var personGroup = citation.querySelector("person-group");
-
-    // HACK: we try to create a 'articleCitation' when there is structured
-    // content (ATM, when personGroup is present)
-    // Otherwise we create a mixed-citation taking the plain text content of the element
-    if (personGroup) {
-
-      citationNode = {
-        "id": id,
-        "source_id": ref.getAttribute("id"),
-        "type": "citation",
-        "title": "N/A",
-        "label": "",
-        "authors": [],
-        "doi": "",
-        "source": "",
-        "volume": "",
-        "fpage": "",
-        "lpage": "",
-        "citation_urls": []
-      };
-
-      var nameElements = personGroup.querySelectorAll("name");
-      for (i = 0; i < nameElements.length; i++) {
-        citationNode.authors.push(_getName(nameElements[i]));
-      }
-
-      var articleTitle = citation.querySelector("article-title");
-      if (articleTitle) {
-        citationNode.title = articleTitle.textContent;
-      } else {
-        console.error("FIXME: this citation has no title", citation);
-      }
-
-      var source = citation.querySelector("source");
-      if (source) citationNode.source = source.textContent;
-
-      var volume = citation.querySelector("volume");
-      if (volume) citationNode.volume = volume.textContent;
-
-      var fpage = citation.querySelector("fpage");
-      if (fpage) citationNode.fpage = fpage.textContent;
-
-      var lpage = citation.querySelector("lpage");
-      if (lpage) citationNode.lpage = lpage.textContent;
-
-      var year = citation.querySelector("year");
-      if (year) citationNode.year = year.textContent;
-
-      // Note: the label is child of 'ref'
-      var label = ref.querySelector("label");
-      if(label) citationNode.label = label.textContent;
-
-      var doi = citation.querySelector("pub-id[pub-id-type='doi'], ext-link[ext-link-type='doi']");
-      if(doi) citationNode.doi = "http://dx.doi.org/" + doi.textContent;
-    } else {
-      console.error("FIXME: there is one of those 'mixed-citation' without any structure. Skipping ...", citation);
-      return;
-      // citationNode = {
-      //   id: id,
-      //   type: "mixed_citation",
-      //   citation: citation.textContent,
-      //   doi: ""
-      // };
-    }
-
-    doc.create(citationNode);
-    doc.show("citations", id);
-  };
-
-  // Article.Back
-  // --------
-  // Contains things like references, notes, etc.
-
-  // this.back = function(state, back) {
-  //   // No processing at the moment
-  //   // citations are taken care of in a global handler.
-  // };
-};
-
-
-LensImporter.State = function(xmlDoc, doc, options) {
-  // the input xml document
-  this.xmlDoc = xmlDoc;
-
-  // the output substance document
-  this.doc = doc;
-
-  // keep track of the options
-  this.options = options || {};
-
-  // store annotations to be created here
-  // they will be added to the document when everything else is in place
-  this.annotations = [];
-
-  // when recursing into sub-nodes it is necessary to keep the stack
-  // of processed nodes to be able to associate other things (e.g., annotations) correctly.
-  this.stack = [];
-
-  this.sectionLevel = 1;
-
-  // an id generator for different types
-  var ids = {};
-  this.nextId = function(type) {
-    ids[type] = ids[type] || 0;
-    ids[type]++;
-    return type +"_"+ids[type];
-  };
-};
-
-// LensImporter.Prototype.prototype = NLMImporter.prototype;
-LensImporter.prototype = new LensImporter.Prototype();
-
-module.exports = {
-  Importer: LensImporter
-};
-
-},{"./configurations/default":48,"./configurations/elife":49,"./configurations/landes":50,"./configurations/peerj":51,"./configurations/plos":52,"lens-article":3,"substance-util":142,"underscore":147}],54:[function(require,module,exports){
+window.Lens = require("./src/substance");
+},{"./src/substance":109}],2:[function(require,module,exports){
 "use strict";
 
 var Outline = require('./outline');
 
 module.exports = Outline;
 
-},{"./outline":55}],55:[function(require,module,exports){
+},{"./outline":3}],3:[function(require,module,exports){
 "use strict";
 
 var View = require("substance-application").View;
@@ -5012,7 +193,7 @@ Outline.prototype = new Outline.Prototype();
 
 module.exports = Outline;
 
-},{"substance-application":59,"underscore":147}],56:[function(require,module,exports){
+},{"substance-application":7,"underscore":108}],4:[function(require,module,exports){
 "use strict";
 
 var Reader = {
@@ -5021,7 +202,7 @@ var Reader = {
 };
 
 module.exports = Reader;
-},{"./reader_controller":57,"./reader_view":58}],57:[function(require,module,exports){
+},{"./reader_controller":5,"./reader_view":6}],5:[function(require,module,exports){
 "use strict";
 
 var Document = require("substance-document");
@@ -5061,6 +242,7 @@ var ReaderController = function(doc, state) {
 
   // Current explicitly set context
   this.currentContext = "toc";
+
 };
 
 ReaderController.Prototype = function() {
@@ -5084,7 +266,6 @@ ReaderController.Prototype = function() {
   };
 
   this.modifyState = function(state) {
-    // console.log('patched modifystate');
     Controller.prototype.modifyState.call(this, state);
   };
 
@@ -5106,7 +287,7 @@ ReaderController.prototype = new ReaderController.Prototype();
 
 module.exports = ReaderController;
 
-},{"./reader_view":58,"substance-application":59,"substance-document":84,"substance-util":142}],58:[function(require,module,exports){
+},{"./reader_view":6,"substance-application":7,"substance-document":36,"substance-util":103}],6:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -5122,64 +303,19 @@ var $$ = require("substance-application").$$;
 
 var CORRECTION = -100; // Extra offset from the top
 
-
-var modes = {
-  "node": {
-    "icon": "icon-anchor"
-  },
-  "figure": {
-    "icon": "icon-camera"
-  },
-  "citation": {
-    "icon": "icon-link"
-  }
-};
-
-var modeAssignments = {
-  "formula": ["node"],
-  "heading": ["node"],
-  "paragraph": ["node"],
-  "text": ["node"],
-  "list": ["node"],
-  "box": ["node"]
-};
-
-
 var addFocusControls = function(doc, nodeView) {
-
   // The content node object
   var node = nodeView.node;
-
-  var modesForType = modeAssignments[node.type] || [];
-  if (modesForType.length === 0) return; // skip
 
   // Per mode
   var focusToggles = [];
 
-  _.each(modesForType, function(key) {
-    var mode = modes[key];
-
-    // TODO: this should move outside -> logic-less rendering, you know.
-    var refs = doc.getAnnotations({
-      node: node.id,
-      filter: function(a) {
-        return a.type === key+'_reference';
-      }
-    });
-
-    var refCount = Object.keys(refs).length;
-    if (refCount > 0 || key === "node") {
-      
-      var context = key === "node" ? "toc" : key+"s";
-
-      focusToggles.push($$('div', {
-        "sbs-click": 'toggleNode('+context+','+node.id+')',
-        class: "focus-mode "+ key,
-        html: '<div class="arrow"></div><i class="'+mode.icon+'"></i>'+ (refCount > 0 ? refCount : ""),
-        title: "Show relevant"+ key
-      }));
-    }
-  });
+  focusToggles.push($$('div', {
+    "sbs-click": 'toggleNode(toc,'+node.id+')',
+    class: "focus-mode node",
+    html: '<div class="arrow"></div><i class="icon-anchor"></i>',
+    title: 'Focus and share link'
+  }));
 
   var focus = $$('div.focus', {
     children: focusToggles
@@ -5196,7 +332,7 @@ var addResourceHeader = function(docCtrl, nodeView) {
   var typeDescr = node.constructor.description;
 
   // Don't render resource headers in info panel (except for person nodes)
-  if (docCtrl.view === "info" && node.type !== "person") {
+  if (docCtrl.view === "info" && node.type !== "person" && node.type !== "collaborator") {
     return;
   }
 
@@ -5205,9 +341,7 @@ var addResourceHeader = function(docCtrl, nodeView) {
       href: "#",
       text: node.header ,
       "sbs-click": "toggleResource("+node.id+")"
-    }),
-    // $$('.reference-count', {text: "cited x times"}),
-    // $$('.type.figure.publication', {text: typeDescr.name}),
+    })
   ];
 
   var config = node.constructor.config;
@@ -5254,12 +388,14 @@ var Renderer = function(reader) {
   // Prepare context toggles
   // --------
 
-  var children = [
-    $$('.context-toggle.toc', {
+  var children = [];
+
+  if (reader.tocView && reader.tocView.headings.length > 2) {
+    children.push($$('.context-toggle.toc', {
       'sbs-click': 'switchContext(toc)',
       'html': '<i class="icon-align-left"></i><span> Contents</span>'
-    })
-  ];
+    }));
+  }
 
   if (reader.figuresView) {
     children.push($$('.context-toggle.figures', {
@@ -5290,9 +426,7 @@ var Renderer = function(reader) {
   // --------
 
   var resourcesView = $$('.resources');
-  // if (contextToggles.children.length > 1) {
   resourcesView.appendChild(contextToggles);
-  // }
   
 
   // Add TOC
@@ -5331,7 +465,6 @@ var ReaderView = function(readerCtrl) {
   this.readerCtrl = readerCtrl;
 
   var doc = this.readerCtrl.content.__document;
-  // console.log('DOCUMENT', doc.schema.id);
 
   this.$el.addClass('article');
   this.$el.addClass(doc.schema.id); // Substance article or lens article?
@@ -5352,13 +485,35 @@ var ReaderView = function(readerCtrl) {
 
   // Table of Contents 
   // --------
-  // 
 
   this.tocView = new TOC(this.readerCtrl);
+
+  // Provisional Hack:
+  // -----------------
+  // 
+  // We sniff into the tocView to determine the default context based on how many 
+  // headings are in the document
+  // We show the TOC for headings.length > 2
+  // 
+  // Real solution: determine on the controller level wheter toc should be shown or not
+
+  if (this.tocView.headings.length <= 2) {
+    var newCtx;
+    if (doc.get('figures').nodes.length > 0) {
+      newCtx = "figures";
+    } else {
+      newCtx = "info";
+    }
+
+    this.readerCtrl.modifyState({
+      context: newCtx
+    });
+  }
+
   this.tocView.$el.addClass('resource-view');
 
   // A Surface for the figures view
-  if (this.readerCtrl.figures) {
+  if (this.readerCtrl.figures && this.readerCtrl.figures.get('figures').nodes.length) {
     this.figuresView = new Surface(this.readerCtrl.figures, {
       editable: false,
       renderer: new ArticleRenderer(this.readerCtrl.figures, {
@@ -5369,7 +524,7 @@ var ReaderView = function(readerCtrl) {
   }
 
   // A Surface for the citations view
-  if (this.readerCtrl.citations) {
+  if (this.readerCtrl.citations && this.readerCtrl.citations.get('citations').nodes.length) {
     this.citationsView = new Surface(this.readerCtrl.citations, {
       editable: false,
       renderer: new ArticleRenderer(this.readerCtrl.citations, {
@@ -5380,7 +535,7 @@ var ReaderView = function(readerCtrl) {
   }
 
   // A Surface for the info view
-  if (this.readerCtrl.info) {
+  if (this.readerCtrl.info && this.readerCtrl.info.get('info').nodes.length) {
     this.infoView = new Surface(this.readerCtrl.info, {
       editable: false,
       renderer: new ArticleRenderer(this.readerCtrl.info, {
@@ -5730,7 +885,7 @@ ReaderView.Prototype = function() {
     // Await next UI tick to update layout and outline
     _.delay(function() {
       // Render outline that sticks on this.surface
-      that.updateLayout();
+      // that.updateLayout();
       that.updateState();
       MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
     }, 1);
@@ -5743,7 +898,7 @@ ReaderView.Prototype = function() {
     }, 2000);
 
     var lazyOutline = _.debounce(function() {
-      that.updateLayout();
+      // that.updateLayout();
       that.updateOutline();
     }, 1);
 
@@ -5767,10 +922,11 @@ ReaderView.Prototype = function() {
   // 
   // This fixes some issues that can't be dealth with CSS
 
-  this.updateLayout = function() {
-    var docWidth = this.$('.document').width();
-    this.contentView.$('.nodes > .content-node').css('width', docWidth - 15 - 50 - 15);
-  },
+  // this.updateLayout = function() {
+  //   // var docWidth = this.$('.document').width();
+  //   // 15 = margin for arrows, 42 ?? WTF
+  //   // this.contentView.$('.nodes > .content-node').css('width', docWidth - 15 - 42);
+  // },
 
   // Free the memory.
   // --------
@@ -5791,7 +947,7 @@ ReaderView.prototype.constructor = ReaderView;
 
 module.exports = ReaderView;
 
-},{"lens-outline":54,"substance-application":59,"substance-data":77,"substance-surface":138,"substance-toc":140,"substance-util":142,"underscore":147}],59:[function(require,module,exports){
+},{"lens-outline":2,"substance-application":7,"substance-data":29,"substance-surface":99,"substance-toc":101,"substance-util":103,"underscore":108}],7:[function(require,module,exports){
 "use strict";
 
 var Application = require("./src/application");
@@ -5803,7 +959,7 @@ Application.$$ = Application.ElementRenderer.$$;
 
 module.exports = Application;
 
-},{"./src/application":60,"./src/controller":61,"./src/renderers/element_renderer":62,"./src/router":63,"./src/view":64}],60:[function(require,module,exports){
+},{"./src/application":8,"./src/controller":9,"./src/renderers/element_renderer":10,"./src/router":11,"./src/view":12}],8:[function(require,module,exports){
 "use strict";
 
 var View = require("./view");
@@ -5860,7 +1016,7 @@ Application.prototype = new Application.Prototype();
 
 module.exports = Application;
 
-},{"./router":63,"./view":64,"substance-util":142,"underscore":147}],61:[function(require,module,exports){
+},{"./router":11,"./view":12,"substance-util":103,"underscore":108}],9:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -5917,7 +1073,7 @@ Controller.Prototype.prototype = util.Events;
 Controller.prototype = new Controller.Prototype();
 
 module.exports = Controller;
-},{"substance-util":142,"underscore":147}],62:[function(require,module,exports){
+},{"substance-util":103,"underscore":108}],10:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -6028,7 +1184,7 @@ ElementRenderer.Prototype.prototype = util.Events;
 ElementRenderer.prototype = new ElementRenderer.Prototype();
 
 module.exports = ElementRenderer;
-},{"substance-regexp":136,"substance-util":142}],63:[function(require,module,exports){
+},{"substance-regexp":97,"substance-util":103}],11:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -6348,7 +1504,7 @@ Router.history = new History;
 
 
 module.exports = Router;
-},{"substance-util":142,"underscore":147}],64:[function(require,module,exports){
+},{"substance-util":103,"underscore":108}],12:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -6423,7 +1579,416 @@ View.prototype = new View.Prototype();
 
 module.exports = View;
 
-},{"substance-util":142}],65:[function(require,module,exports){
+},{"substance-util":103}],13:[function(require,module,exports){
+"use strict";
+
+var Article = require("./src/article");
+Article.Renderer = require("./src/renderer");
+
+module.exports = Article;
+},{"./src/article":15,"./src/renderer":16}],14:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+var nodes = {};
+
+_.each(require("substance-nodes"), function(spec, name) {
+  nodes[name] = _.clone(spec);
+});
+
+module.exports = nodes;
+
+},{"substance-nodes":47,"underscore":108}],15:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+var Document = require("substance-document");
+
+// Substance.Article
+// -----------------
+
+var Article = function(options) {
+  options = options || {};
+
+  // Check if format is compatible
+
+  // Extend Schema
+  // --------
+
+  options.schema = util.deepclone(Document.schema);
+
+  options.schema.id = "substance-article";
+  options.schema.version = "0.1.0";
+
+  // Merge in custom types
+  _.each(Article.types, function(type, key) {
+    options.schema.types[key] = type;
+  });
+
+  // Register annotation types
+  _.each(Article.annotations, function(aType, key) {
+    options.schema.types[key] = aType;
+  });
+
+
+  // Merge in node types
+  _.each(Article.nodeTypes, function(node, key) {
+    options.schema.types[key] = node.Model.type;
+  });
+
+  // Merge in custom indexes
+  _.each(Article.indexes, function(index, key) {
+    options.schema.indexes[key] = index;
+  });
+
+  // Call parent constructor
+  // --------
+
+  Document.call(this, options);
+
+  this.nodeTypes = Article.nodeTypes;
+
+  // Seed the doc
+  // --------
+
+  if (options.seed === undefined) {
+    this.create({
+      id: "document",
+      type: "document",
+      guid: options.id, // external global document id
+      creator: options.creator,
+      created_at: options.created_at,
+      views: ["content"], // is views really needed on the instance level
+      title: "",
+      abstract: "",
+    });
+
+    // Create views on the doc
+    _.each(Article.views, function(view) {
+      this.create({
+        id: view,
+        "type": "view",
+        nodes: []
+      });
+    }, this);
+  }
+};
+
+
+Article.Prototype = function() {
+
+  this.fromSnapshot = function(data, options) {
+    return Article.fromSnapshot(data, options);
+  };
+
+
+};
+
+// Factory method
+// --------
+//
+// TODO: Ensure the snapshot doesn't get chronicled
+
+Article.fromSnapshot = function(data, options) {
+  options = options || {};
+  options.seed = data;
+  return new Article(options);
+};
+
+
+// Define available views
+// --------
+
+Article.views = ["content"];
+
+
+// Register node types
+// --------
+
+
+Article.nodeTypes = require("../nodes");
+
+// Define annotation types
+// --------
+
+Article.annotations = {
+
+  "strong": {
+    "parent": "annotation",
+    "properties": {
+    }
+  },
+
+  "emphasis": {
+    "properties": {
+    },
+    "parent": "annotation"
+  },
+
+  "code": {
+    "parent": "annotation",
+    "properties": {
+    }
+  },
+
+  "link": {
+    "parent": "annotation",
+    "properties": {
+      "url": "string"
+    }
+  },
+
+  "idea": {
+    "parent": "annotation",
+    "properties": {
+    }
+  },
+
+  "error": {
+    "parent": "annotation",
+    "properties": {
+    }
+  },
+
+  "question": {
+    "parent": "annotation",
+    "properties": {
+    }
+  },
+
+  "person_reference": {
+    "parent": "annotation",
+    "properties": {
+      "target": "person"
+    }
+  },
+  "figure_reference": {
+    "parent": "annotation",
+    "properties": {
+      "target": "figure"
+    }
+  },
+  "citation_reference": {
+    "parent": "annotation",
+    "properties": {
+      "target": "content"
+    }
+  },
+  "cross_reference": {
+    "parent": "annotation",
+    "properties": {
+      "target": "content"
+    }
+  },
+  "formula_reference": {
+    "parent": "annotation",
+    "properties": {
+      "target": "content"
+    }
+  }
+
+};
+
+// Custom type definitions
+// --------
+//
+// Holds comments
+
+Article.types = {
+
+  // Abstarct Annotation Node
+  // --------
+
+  "annotation": {
+    "properties": {
+      "path": ["array", "string"], // -> e.g. ["text_1", "content"]
+      "range": "object"
+    }
+  },
+
+  // Document
+  // --------
+
+  "document": {
+    "properties": {
+      "views": ["array", "view"],
+      "guid": "string",
+      "creator": "string",
+      "title": "string",
+      "abstract": "string",
+      "published_on": "date", // should be part of the main type?
+      "meta": "object"
+    }
+  },
+
+  // Comments
+  // --------
+
+  "comment": {
+    "properties": {
+      "content": "string",
+      "created_at": "string", // should be date
+      "creator": "string", // should be date
+      "node": "node" // references either a content node or annotation
+    }
+  }
+};
+
+// Custom indexes
+// --------
+//
+
+Article.indexes = {
+  // All annotations are now indexed by node
+  // "annotations": {
+  //   "type": "annotation",
+  //   "properties": ["node"]
+  // },
+  // all comments are now indexed by node association
+  "comments": {
+    "type": "comment",
+    "properties": ["node"]
+  }
+};
+
+Article.Prototype.prototype = Document.prototype;
+Article.prototype = new Article.Prototype();
+Article.prototype.constructor = Article;
+
+// Add convenience accessors for builtin document attributes
+Object.defineProperties(Article.prototype, {
+  id: {
+    get: function () {
+      return this.get("document").guid;
+    },
+    set: function(id) {
+      this.get("document").guid = id;
+    }
+  },
+  creator: {
+    get: function () {
+      return this.get("document").creator;
+    },
+    set: function(creator) {
+      this.get("document").creator = creator;
+    }
+  },
+  created_at: {
+    get: function () {
+      return this.get("document").created_at;
+    },
+    set: function(created_at) {
+      this.get("document").created_at = created_at;
+    }
+  },
+  title: {
+    get: function () {
+      return this.get("document").title;
+    },
+    set: function(title) {
+      this.get("document").title = title;
+    }
+  },
+  abstract: {
+    get: function () {
+      return this.get("document").abstract;
+    },
+    set: function(abstract) {
+      this.get("document").abstract = abstract;
+    }
+  },
+  views: {
+    get: function () {
+      // Note: returing a copy to avoid inadvertent changes
+      return this.get("document").views.slice(0);
+    }
+  },
+});
+
+module.exports = Article;
+
+},{"../nodes":14,"substance-document":36,"substance-util":103,"underscore":108}],16:[function(require,module,exports){
+var Article = require('./article');
+var _ = require("underscore");
+
+// Renders an article
+// --------
+//
+
+var Renderer = function(docController, options) {
+  this.docController = docController;
+  // var that = this;
+  this.options = options || {};
+
+  // TODO: use reflection
+  this.nodeTypes = Article.nodeTypes;
+
+  // Collect all node views
+  this.nodes = {};
+};
+
+Renderer.Prototype = function() {
+  // Create a node view
+  // --------
+  //
+  // Experimental: using a factory which creates a view for a given node type
+  // As we want to be able to reuse views
+  // However, as the matter is still under discussion consider the solution here only as provisional.
+  // We should create views, not only elements, as we need more, e.g., event listening stuff
+  // which needs to be disposed later.
+
+  this.createView = function(node) {
+    var NodeView = this.nodeTypes[node.type].View;
+
+    if (!NodeView) {
+      throw new Error('Node type "'+node.type+'" not supported');
+    }
+
+    // Note: passing the renderer to the node views
+    // to allow creation of nested views
+    var nodeView = new NodeView(node, this);
+
+    // we connect the listener here to avoid to pass the document itself into the nodeView
+    nodeView.listenTo(this.docController, "operation:applied", nodeView.onGraphUpdate);
+
+    // register node view to be able to look up nested views later
+    this.nodes[node.id] = nodeView;
+
+    return nodeView;
+  };
+
+  // Render it
+  // --------
+  //
+
+  this.render = function() {
+    _.each(this.nodes, function(nodeView) {
+      nodeView.dispose();
+    });
+
+    var frag = document.createDocumentFragment();
+
+    var docNodes = this.docController.container.getTopLevelNodes();
+    _.each(docNodes, function(n) {
+      var view = this.createView(n);
+      frag.appendChild(view.render().el);
+      // Lets you customize the resulting DOM sticking on the el element
+      // Example: Lens focus controls
+      if (this.options.afterRender) this.options.afterRender(this.docController, view);
+    }, this);
+    
+    return frag;
+  };
+
+};
+
+Renderer.prototype = new Renderer.Prototype();
+
+module.exports = Renderer;
+
+},{"./article":15,"underscore":108}],17:[function(require,module,exports){
 "use strict";
 
 var Chronicle = require('./src/chronicle');
@@ -6442,7 +2007,7 @@ Chronicle.TextOperationAdapter = require('./src/text_adapter');
 
 module.exports = Chronicle;
 
-},{"./src/array_adapter":66,"./src/chronicle":67,"./src/chronicle_impl":68,"./src/diff_impl":69,"./src/index_impl":70,"./src/text_adapter":71,"./src/tmp_index":72}],66:[function(require,module,exports){
+},{"./src/array_adapter":18,"./src/chronicle":19,"./src/chronicle_impl":20,"./src/diff_impl":21,"./src/index_impl":22,"./src/text_adapter":23,"./src/tmp_index":24}],18:[function(require,module,exports){
 "use strict";
 
 var util = require('substance-util');
@@ -6484,7 +2049,7 @@ ArrayOperationAdapter.prototype = new ArrayOperationAdapter.Prototype();
 
 module.exports = ArrayOperationAdapter;
 
-},{"./chronicle":67,"substance-operator":129,"substance-util":142}],67:[function(require,module,exports){
+},{"./chronicle":19,"substance-operator":90,"substance-util":103}],19:[function(require,module,exports){
 "use strict";
 
 /*jshint unused: false*/ // deactivating this, as we define abstract interfaces here
@@ -7185,7 +2750,7 @@ Chronicle.mergeConflict = function(a, b) {
 
 module.exports = Chronicle;
 
-},{"substance-util":142,"underscore":147}],68:[function(require,module,exports){
+},{"substance-util":103,"underscore":108}],20:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -7831,7 +3396,7 @@ ChronicleImpl.create = function(options) {
 
 module.exports = ChronicleImpl;
 
-},{"./chronicle":67,"substance-util":142,"underscore":147}],69:[function(require,module,exports){
+},{"./chronicle":19,"substance-util":103,"underscore":108}],21:[function(require,module,exports){
 var _ = require("underscore");
 var Chronicle = require("./chronicle");
 
@@ -7901,7 +3466,7 @@ DiffImpl.create = function(id, reverts, applies) {
 
 module.exports = DiffImpl;
 
-},{"./chronicle":67,"underscore":147}],70:[function(require,module,exports){
+},{"./chronicle":19,"underscore":108}],22:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -8225,7 +3790,7 @@ IndexImpl.create = function(options) {
 
 module.exports = IndexImpl;
 
-},{"./chronicle":67,"substance-util":142,"underscore":147}],71:[function(require,module,exports){
+},{"./chronicle":19,"substance-util":103,"underscore":108}],23:[function(require,module,exports){
 "use strict";
 
 var util = require('substance-util');
@@ -8265,7 +3830,7 @@ TextOperationAdapter.prototype = new TextOperationAdapter.Prototype();
 
 module.exports = TextOperationAdapter;
 
-},{"./chronicle":67,"substance-operator":129,"substance-util":142}],72:[function(require,module,exports){
+},{"./chronicle":19,"substance-operator":90,"substance-util":103}],24:[function(require,module,exports){
 var _ = require("underscore");
 var util = require("substance-util");
 var errors = util.errors;
@@ -8347,7 +3912,7 @@ TmpIndex.prototype = new TmpIndex.Prototype();
 
 module.exports = TmpIndex;
 
-},{"./index_impl":70,"substance-util":142,"underscore":147}],73:[function(require,module,exports){
+},{"./index_impl":22,"substance-util":103,"underscore":108}],25:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -8355,7 +3920,7 @@ module.exports = {
   Mousetrap: require("./src/mousetrap")
 };
 
-},{"./src/keyboard":75,"./src/mousetrap":76}],74:[function(require,module,exports){
+},{"./src/keyboard":27,"./src/mousetrap":28}],26:[function(require,module,exports){
 /*global define:false */
 /**
  * Copyright 2013 Craig Campbell
@@ -9301,7 +4866,7 @@ module.exports = {
     }
 }) ();
 
-},{}],75:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 "use strict";
 
 require("../lib/mousetrap");
@@ -9507,7 +5072,7 @@ Keyboard.prototype = new Keyboard.Prototype();
 
 module.exports = Keyboard;
 
-},{"../lib/mousetrap":74}],76:[function(require,module,exports){
+},{"../lib/mousetrap":26}],28:[function(require,module,exports){
 "use strict";
 
 /**
@@ -10446,7 +6011,7 @@ Mousetrap.prototype = new Mousetrap.Prototype();
 
 module.exports = Mousetrap;
 
-},{}],77:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 "use strict";
 
 var Data = {};
@@ -10458,7 +6023,7 @@ Data.Graph = require('./src/graph');
 
 module.exports = Data;
 
-},{"./src/graph":79}],78:[function(require,module,exports){
+},{"./src/graph":31}],30:[function(require,module,exports){
 "use strict";
 
 var Chronicle = require('substance-chronicle');
@@ -10505,7 +6070,7 @@ ChronicleAdapter.prototype = new ChronicleAdapter.Prototype();
 
 module.exports = ChronicleAdapter;
 
-},{"substance-chronicle":65,"substance-operator":129}],79:[function(require,module,exports){
+},{"substance-chronicle":17,"substance-operator":90}],31:[function(require,module,exports){
 //     (c) 2013 Michael Aufreiter, Oliver Buchtala
 //     Data.js is freely distributable under the MIT license.
 //     Portions of Data.js are inspired or borrowed from Underscore.js,
@@ -11278,7 +6843,7 @@ Graph.Index = Index;
 
 module.exports = Graph;
 
-},{"./chronicle_adapter":78,"./graph_index":80,"./persistence_adapter":81,"./property":82,"./schema":83,"substance-chronicle":65,"substance-operator":129,"substance-util":142,"underscore":147}],80:[function(require,module,exports){
+},{"./chronicle_adapter":30,"./graph_index":32,"./persistence_adapter":33,"./property":34,"./schema":35,"substance-chronicle":17,"substance-operator":90,"substance-util":103,"underscore":108}],32:[function(require,module,exports){
 var _ = require("underscore");
 var util = require("substance-util");
 
@@ -11466,7 +7031,7 @@ Index.typeFilter = function(schema, types) {
 
 module.exports = Index;
 
-},{"substance-util":142,"underscore":147}],81:[function(require,module,exports){
+},{"substance-util":103,"underscore":108}],33:[function(require,module,exports){
 "use strict";
 
 var Operator = require('substance-operator');
@@ -11509,7 +7074,7 @@ PersistenceAdapter.prototype = new PersistenceAdapter.Prototype();
 
 module.exports = PersistenceAdapter;
 
-},{"substance-operator":129}],82:[function(require,module,exports){
+},{"substance-operator":90}],34:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -11612,7 +7177,7 @@ Object.defineProperties(Property.prototype, {
 
 module.exports = Property;
 
-},{"underscore":147}],83:[function(require,module,exports){
+},{"underscore":108}],35:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -11787,7 +7352,7 @@ Schema.prototype = new Schema.Prototype();
 
 module.exports = Schema;
 
-},{"substance-util":142,"underscore":147}],84:[function(require,module,exports){
+},{"substance-util":103,"underscore":108}],36:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -11812,7 +7377,7 @@ Document.Writer = require('./src/controller');
 
 module.exports = Document;
 
-},{"./src/annotator":85,"./src/composite":87,"./src/container":88,"./src/controller":89,"./src/cursor":90,"./src/document":91,"./src/node":92,"./src/selection":93,"./src/text_node":94,"underscore":147}],85:[function(require,module,exports){
+},{"./src/annotator":37,"./src/composite":39,"./src/container":40,"./src/controller":41,"./src/cursor":42,"./src/document":43,"./src/node":44,"./src/selection":45,"./src/text_node":46,"underscore":108}],37:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -12504,7 +8069,7 @@ Annotator.Fragmenter = Fragmenter;
 
 module.exports = Annotator;
 
-},{"./document":91,"./selection":93,"substance-data":77,"substance-operator":129,"substance-util":142,"underscore":147}],86:[function(require,module,exports){
+},{"./document":43,"./selection":45,"substance-data":29,"substance-operator":90,"substance-util":103,"underscore":108}],38:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -12549,7 +8114,7 @@ Clipboard.prototype = new Clipboard.Prototype();
 
 module.exports = Clipboard;
 
-},{"substance-util":142,"underscore":147}],87:[function(require,module,exports){
+},{"substance-util":103,"underscore":108}],39:[function(require,module,exports){
 var DocumentNode = require("./node");
 
 var Composite = function(node, doc) {
@@ -12652,7 +8217,7 @@ Composite.prototype = new Composite.Prototype();
 
 module.exports = Composite;
 
-},{"./node":92}],88:[function(require,module,exports){
+},{"./node":44}],40:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -12886,7 +8451,7 @@ Object.defineProperties(Container.prototype, {
 
 module.exports = Container;
 
-},{"./composite":87,"substance-util":142,"underscore":147}],89:[function(require,module,exports){
+},{"./composite":39,"substance-util":103,"underscore":108}],41:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -13486,7 +9051,7 @@ Controller.ManipulationSession = ManipulationSession;
 
 module.exports = Controller;
 
-},{"./annotator":85,"./clipboard":86,"./composite":87,"./selection":93,"substance-operator":129,"substance-util":142,"underscore":147}],90:[function(require,module,exports){
+},{"./annotator":37,"./clipboard":38,"./composite":39,"./selection":45,"substance-operator":90,"substance-util":103,"underscore":108}],42:[function(require,module,exports){
 var _ = require("underscore");
 var SRegExp = require("substance-regexp");
 var util = require("substance-util");
@@ -13723,7 +9288,7 @@ Object.defineProperties(Cursor.prototype, {
 
 module.exports = Cursor;
 
-},{"substance-regexp":136,"substance-util":142,"underscore":147}],91:[function(require,module,exports){
+},{"substance-regexp":97,"substance-util":103,"underscore":108}],43:[function(require,module,exports){
 "use strict";
 
 // Substance.Document 0.5.0
@@ -14051,7 +9616,7 @@ Document.DocumentError = DocumentError;
 
 module.exports = Document;
 
-},{"./container":88,"substance-chronicle":65,"substance-data":77,"substance-operator":129,"substance-util":142,"underscore":147}],92:[function(require,module,exports){
+},{"./container":40,"substance-chronicle":17,"substance-data":29,"substance-operator":90,"substance-util":103,"underscore":108}],44:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -14190,7 +9755,7 @@ Node.defineProperties(Node.prototype, ["id", "type"]);
 
 module.exports = Node;
 
-},{"underscore":147}],93:[function(require,module,exports){
+},{"underscore":108}],45:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -14747,7 +10312,7 @@ Selection.SelectionError = SelectionError;
 
 module.exports = Selection;
 
-},{"./cursor":90,"substance-util":142,"underscore":147}],94:[function(require,module,exports){
+},{"./cursor":42,"substance-util":103,"underscore":108}],46:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -14926,7 +10491,7 @@ DocumentNode.defineProperties(Text.prototype, ["content"]);
 
 module.exports = Text;
 
-},{"./node":92,"substance-operator":129,"substance-regexp":136,"underscore":147}],95:[function(require,module,exports){
+},{"./node":44,"substance-operator":90,"substance-regexp":97,"underscore":108}],47:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -14940,10 +10505,13 @@ module.exports = {
   "webresource": require("./src/web_resource"),
   "image": require("./src/image"),
   "formula": require("./src/formula"),
-  "table": require("./src/table")
+  "table": require("./src/table"),
+  "figure": require("./src/figure"),
+  "collaborator": require("./src/collaborator"),
+  "cover": require("./src/cover")
 };
 
-},{"./src/codeblock":98,"./src/composite":101,"./src/formula":104,"./src/heading":107,"./src/image":110,"./src/list":111,"./src/node":114,"./src/paragraph":117,"./src/table":120,"./src/text":123,"./src/web_resource":126}],96:[function(require,module,exports){
+},{"./src/codeblock":50,"./src/collaborator":53,"./src/composite":56,"./src/cover":59,"./src/figure":62,"./src/formula":65,"./src/heading":68,"./src/image":71,"./src/list":72,"./src/node":75,"./src/paragraph":78,"./src/table":81,"./src/text":84,"./src/web_resource":87}],48:[function(require,module,exports){
 "use strict";
 
 var Text = require("../text/text_node");
@@ -15002,7 +10570,7 @@ Codeblock.prototype.constructor = Codeblock;
 module.exports = Codeblock;
 
 
-},{"../text/text_node":124}],97:[function(require,module,exports){
+},{"../text/text_node":85}],49:[function(require,module,exports){
 "use strict";
 
 var TextView = require('../text/text_view');
@@ -15023,7 +10591,7 @@ CodeblockView.prototype = new CodeblockView.Prototype();
 
 module.exports = CodeblockView;
 
-},{"../text/text_view":125}],98:[function(require,module,exports){
+},{"../text/text_view":86}],50:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -15031,14 +10599,197 @@ module.exports = {
   View: require("./codeblock_view")
 };
 
-},{"./codeblock":96,"./codeblock_view":97}],99:[function(require,module,exports){
+},{"./codeblock":48,"./codeblock_view":49}],51:[function(require,module,exports){
+var _ = require('underscore');
+var Node = require('substance-document').Node;
+
+// Substance.Collaborator
+// -----------------
+//
+
+var Collaborator = function(node, doc) {
+  Node.call(this, node, doc);
+};
+
+
+// Type definition
+// -----------------
+//
+
+Collaborator.type = {
+  "id": "collaborator",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "name": "string", // full author name
+    "role": "string",
+    "organization": "string",
+    "image": "string", // optional
+    "email": "string",
+    "contribution": "string"
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Collaborator.description = {
+  "name": "Collaborator",
+  "remarks": [
+    "Describes an article collaborator such as an author or editor.",
+  ],
+  "properties": {
+    "name": "Full name.",
+  }
+};
+
+// Example Video
+// -----------------
+//
+
+Collaborator.example = {
+  "id": "collaborator_1",
+  "type": "collaborator",
+  "role": "author",
+  "name": "John Doe",
+  "image": "http://john.com/doe.png",
+  "email": "a@b.com",
+  "contribution": "Revising the article, data cleanup"
+};
+
+
+Collaborator.Prototype = function() {
+  this.getAffiliations = function() {
+    return _.map(this.properties.affiliations, function(affId) {
+      return this.document.get(affId);
+    }, this);
+  }
+};
+
+Collaborator.Prototype.prototype = Node.prototype;
+Collaborator.prototype = new Collaborator.Prototype();
+Collaborator.prototype.constructor = Collaborator;
+
+
+// Generate getters
+// --------
+
+var getters = {};
+
+var getters = {
+  header: {
+    get: function() {
+      return this.properties.name;
+    }
+  }
+};
+
+_.each(Collaborator.type.properties, function(prop, key) {
+  getters[key] = {
+    get: function() {
+      return this.properties[key];
+    }
+  };
+});
+
+
+Object.defineProperties(Collaborator.prototype, getters);
+module.exports = Collaborator;
+
+},{"substance-document":36,"underscore":108}],52:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+var html = util.html;
+var NodeView = require("../node").View;
+var $$ = require("substance-application").$$;
+
+// Substance.Collaborator.View
+// ==========================================================================
+
+var CollaboratorView = function(node) {
+  NodeView.call(this, node);
+
+  this.$el.attr({id: node.id});
+  this.$el.addClass("content-node collaborator");
+};
+
+CollaboratorView.Prototype = function() {
+
+  // Render it
+  // --------
+  //
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    // Image
+    // -------
+
+    if (this.node.image) {
+      this.content.appendChild($$('.image', {
+        children: [$$('img', {src: this.node.image})]
+      }));
+    }
+
+    // Organization
+    // -------
+
+    // this.content.appendChild($$('.label', {text: 'Organization'}));
+    if (this.node.organization) {
+      this.content.appendChild($$('.organization', {text: this.node.organization}));  
+    }
+    
+
+    // Contribution
+    // -------
+
+    if (this.node.contribution) {
+      this.content.appendChild($$('.label', {text: 'Contribution'}));
+      this.content.appendChild($$('.contribution', {text: this.node.contribution}));
+    }
+
+
+    // Email
+    // -------
+
+    if (this.node.email) {
+      this.content.appendChild($$('.label', {text: 'Email'}));
+      this.content.appendChild($$('.email', {
+        children: [$$('a', {href: "mailto:"+ this.node.email, text: this.node.email})]
+      }));
+    }
+
+
+
+    return this;
+  };
+
+};
+
+CollaboratorView.Prototype.prototype = NodeView.prototype;
+CollaboratorView.prototype = new CollaboratorView.Prototype();
+
+module.exports = CollaboratorView;
+
+},{"../node":75,"substance-application":7,"substance-util":103,"underscore":108}],53:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./collaborator"),
+  View: require("./collaborator_view")
+};
+
+},{"./collaborator":51,"./collaborator_view":52}],54:[function(require,module,exports){
 "use strict";
 
 // Note: we leave the Composite in `substance-document` as it is an essential part of the API.
 var Document = require("substance-document");
 module.exports = Document.Composite;
 
-},{"substance-document":84}],100:[function(require,module,exports){
+},{"substance-document":36}],55:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node").View;
@@ -15117,7 +10868,7 @@ CompositeView.prototype = new CompositeView.Prototype();
 
 module.exports = CompositeView;
 
-},{"../node":114}],101:[function(require,module,exports){
+},{"../node":75}],56:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -15125,7 +10876,311 @@ module.exports = {
   View: require("./composite_view")
 };
 
-},{"./composite":99,"./composite_view":100}],102:[function(require,module,exports){
+},{"./composite":54,"./composite_view":55}],57:[function(require,module,exports){
+var _ = require('underscore');
+var DocumentNode = require('../node/node');
+
+// Lens.Cover
+// -----------------
+//
+
+var Cover = function(node, doc) {
+  DocumentNode.call(this, node, doc);
+};
+
+// Type definition
+// -----------------
+//
+
+Cover.type = {
+  "id": "cover",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "authors": ["array", "person_reference"],
+    "image": "string"
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Cover.description = {
+  "name": "Cover",
+  "remarks": [
+    "Virtual view on the title and authors of the paper."
+  ],
+  "properties": {
+    "authors": "An array of references to collaborators"
+  }
+};
+
+// Example Cover
+// -----------------
+//
+
+Cover.example = {
+  "id": "cover",
+  "type": "cover",
+  "authors": ["collaborator_reference_1", "collaborator_reference_2"]
+};
+
+Cover.Prototype = function() {
+  this.getAuthorRefs = function() {
+    return _.map(this.properties.authors, function(id) {
+      return this.document.get(id);
+    }, this);
+  };
+};
+
+Cover.Prototype.prototype = DocumentNode.prototype;
+Cover.prototype = new Cover.Prototype();
+Cover.prototype.constructor = Cover;
+
+// Generate getters
+// --------
+
+Object.defineProperties(Cover.prototype, {
+  title: {
+    get: function() {
+      return this.document.title;
+    }
+  },
+  authors: {
+    // Expand author id's to corresponding person nodes
+    get: function() {
+      return this.properties.authors;
+    }
+  },
+  image: {
+    get: function() {
+      return this.properties.image;
+    }
+  }
+});
+
+module.exports = Cover;
+
+},{"../node/node":76,"underscore":108}],58:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var NodeView = require("../node/node_view");
+var $$ = require("substance-application").$$;
+
+// Lens.Cover.View
+// ==========================================================================
+
+var CoverView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+
+  this.$el.attr({id: node.id});
+  this.$el.addClass("content-node cover");
+};
+
+
+CoverView.Prototype = function() {
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+    var node = this.node;
+
+    this.content.appendChild($$('.title', {text: node.title }));
+
+    var authorRefs = this.node.getAuthorRefs();
+    if (authorRefs) {
+      var authorsEl = document.createElement("DIV");
+      authorsEl.classList.add("authors");
+      var authorRefEl;
+      for (var i = 0; i < authorRefs.length; i++) {
+        var ref = authorRefs[i];
+        var author = this.node.document.get(ref.target);
+        authorRefEl = document.createElement("SPAN");
+        // TODO: use data-* attribute to store the referenced collaborator node
+        authorRefEl.setAttribute("id", ref.id);
+        authorRefEl.classList.add("annotation", "person_reference");
+        authorRefEl.innerHTML = author.name;
+        authorsEl.appendChild(authorRefEl);
+      }
+      this.content.appendChild(authorsEl);
+    }
+
+    if (this.node.image) {
+      this.el.style.backgroundImage = "url('"+this.node.image+"')"
+    }
+
+    return this;
+  };
+};
+
+CoverView.Prototype.prototype = NodeView.prototype;
+CoverView.prototype = new CoverView.Prototype();
+
+module.exports = CoverView;
+
+},{"../node/node_view":77,"substance-application":7,"underscore":108}],59:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./cover'),
+  View: require('./cover_view')
+};
+
+},{"./cover":57,"./cover_view":58}],60:[function(require,module,exports){
+"use strict";
+
+var Document = require("substance-document");
+
+var Figure = function(node, document) {
+  Document.Composite.call(this, node, document);
+};
+
+Figure.type = {
+  "parent": "content",
+  "properties": {
+    "url": "string",
+    "label": "string",
+    "caption": "paragraph"
+  }
+};
+
+Figure.Prototype = function() {
+
+  this.insertOperation = function(startChar, text) {
+    return null;
+  };
+
+  this.deleteOperation = function(startChar, endChar) {
+    return null;
+  };
+
+  this.hasCaption = function() {
+    return (!!this.properties.caption);
+  };
+
+  this.getNodes = function() {
+    var nodes = [];
+    if (this.properties.caption) nodes.push(this.properties.caption);
+    return nodes;
+  };
+
+  this.getCaption = function() {
+    if (this.properties.caption) return this.document.get(this.properties.caption);
+  };
+};
+
+Figure.Prototype.prototype = Document.Composite.prototype;
+Figure.prototype = new Figure.Prototype();
+Figure.prototype.constructor = Figure;
+
+// a factory method to create nodes more conveniently
+// Supported
+//  - id: unique id
+//  - url: a relative path or a web URL
+//  - caption: a string used as caption
+Figure.create = function(data) {
+
+  var result = {};
+
+  var figId = data.id;
+  var figure = {
+    id: figId,
+    type: "figure",
+    label: data.label,
+    url: data.url
+  };
+
+  if (data.caption) {
+    var captionId = "caption_" + data.id;
+    var caption = {
+      id: captionId,
+      type: "text",
+      content: data.caption
+    };
+    result[captionId] = caption;
+    figure.caption = captionId;
+  }
+
+  result[figId] = figure;
+  return result;
+};
+
+Document.Node.defineProperties(Figure.prototype, ["url", "caption"]);
+
+Object.defineProperties(Figure.prototype, {
+  // Used as a resource header
+  header: {
+    get: function() { return this.properties.label; }
+  }
+});
+
+module.exports = Figure;
+
+},{"substance-document":36}],61:[function(require,module,exports){
+"use strict";
+
+var CompositeView = require("../composite").View;
+var $$ = require ("substance-application").$$;
+
+// Substance.Figure.View
+// ==========================================================================
+
+var FigureView = function(node, viewFactory) {
+  CompositeView.call(this, node, viewFactory);
+};
+
+FigureView.Prototype = function() {
+
+  // Rendering
+  // =============================
+  //
+
+  this.render = function() {
+    this.el.innerHTML = "";
+    this.content = $$('div.content');
+
+    // Add graphic (img element)
+    var imgEl = $$('.image-wrapper', {
+      children: [ $$("img", {src: this.node.url}) ]
+    });
+
+    this.content.appendChild(imgEl);
+
+    var i;
+    // dispose existing children views if called multiple times
+    for (i = 0; i < this.childrenViews.length; i++) {
+      this.childrenViews[i].dispose();
+    }
+
+    var caption = this.node.getCaption();
+    if (caption) {
+      var captionView = this.viewFactory.createView(caption);
+      var captionEl = captionView.render().el;
+      this.content.appendChild(captionEl);
+      this.childrenViews.push(captionView);
+    }
+
+    this.el.appendChild(this.content);
+    return this;
+  };
+};
+
+FigureView.Prototype.prototype = CompositeView.prototype;
+FigureView.prototype = new FigureView.Prototype();
+
+module.exports = FigureView;
+
+},{"../composite":56,"substance-application":7}],62:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./figure'),
+  View: require('./figure_view')
+};
+
+},{"./figure":60,"./figure_view":61}],63:[function(require,module,exports){
 var _ = require('underscore');
 var Node = require('substance-document').Node;
 
@@ -15209,7 +11264,7 @@ Object.defineProperties(Formula.prototype, getters);
 
 module.exports = Formula;
 
-},{"substance-document":84,"underscore":147}],103:[function(require,module,exports){
+},{"substance-document":36,"underscore":108}],64:[function(require,module,exports){
 "use strict";
 
 var NodeView = require('../node').View;
@@ -15275,7 +11330,7 @@ FormulaView.prototype = new FormulaView.Prototype();
 
 module.exports = FormulaView;
 
-},{"../node":114}],104:[function(require,module,exports){
+},{"../node":75}],65:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -15283,7 +11338,7 @@ module.exports = {
   View: require('./formula_view')
 };
 
-},{"./formula":102,"./formula_view":103}],105:[function(require,module,exports){
+},{"./formula":63,"./formula_view":64}],66:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require("substance-document").Node;
@@ -15346,7 +11401,7 @@ DocumentNode.defineProperties(Heading.prototype, ["level"]);
 
 module.exports = Heading;
 
-},{"../text/text_node":124,"substance-document":84}],106:[function(require,module,exports){
+},{"../text/text_node":85,"substance-document":36}],67:[function(require,module,exports){
 "use strict";
 
 var TextView = require('../text/text_view');
@@ -15369,7 +11424,7 @@ HeadingView.prototype = new HeadingView.Prototype();
 
 module.exports = HeadingView;
 
-},{"../text/text_view":125}],107:[function(require,module,exports){
+},{"../text/text_view":86}],68:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -15377,7 +11432,7 @@ module.exports = {
   View: require("./heading_view")
 };
 
-},{"./heading":105,"./heading_view":106}],108:[function(require,module,exports){
+},{"./heading":66,"./heading_view":67}],69:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require("substance-document").Node;
@@ -15406,7 +11461,7 @@ ImageNode.type = {
 ImageNode.example = {
   "type": "image",
   "id": "image_1",
-  "url": "http://elife.elifesciences.org/content/elife/1/e00311/F3.medium.gif"
+  "url": "http://substance.io/image_1.png"
 };
 
 // This is used for the auto-generated docs
@@ -15430,7 +11485,7 @@ ImageNode.prototype.constructor = ImageNode;
 
 module.exports = ImageNode;
 
-},{"../web_resource/web_resource":127,"substance-document":84}],109:[function(require,module,exports){
+},{"../web_resource/web_resource":88,"substance-document":36}],70:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node").View;
@@ -15521,7 +11576,7 @@ ImageView.prototype = new ImageView.Prototype();
 
 module.exports = ImageView;
 
-},{"../node":114}],110:[function(require,module,exports){
+},{"../node":75}],71:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -15529,7 +11584,7 @@ module.exports = {
   View: require("./image_view")
 };
 
-},{"./image":108,"./image_view":109}],111:[function(require,module,exports){
+},{"./image":69,"./image_view":70}],72:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -15537,7 +11592,7 @@ module.exports = {
   View: require("./list_view")
 };
 
-},{"./list":112,"./list_view":113}],112:[function(require,module,exports){
+},{"./list":73,"./list_view":74}],73:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -15671,7 +11726,7 @@ DocumentNode.defineProperties(List.prototype, ["items", "ordered"]);
 
 module.exports = List;
 
-},{"substance-document":84,"underscore":147}],113:[function(require,module,exports){
+},{"substance-document":36,"underscore":108}],74:[function(require,module,exports){
 "use strict";
 
 var CompositeView = require("../composite/composite_view");
@@ -15740,7 +11795,7 @@ ListView.prototype = new ListView.Prototype();
 
 module.exports = ListView;
 
-},{"../composite/composite_view":100,"./list":112}],114:[function(require,module,exports){
+},{"../composite/composite_view":55,"./list":73}],75:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -15748,14 +11803,14 @@ module.exports = {
   View: require("./node_view")
 };
 
-},{"./node":115,"./node_view":116}],115:[function(require,module,exports){
+},{"./node":76,"./node_view":77}],76:[function(require,module,exports){
 "use strict";
 
 // Note: we leave the Node in `substance-document` as it is an essential part of the API.
 var Document = require("substance-document");
 module.exports = Document.Node;
 
-},{"substance-document":84}],116:[function(require,module,exports){
+},{"substance-document":36}],77:[function(require,module,exports){
 var View = require("substance-application").View;
 
 // Substance.Node.View
@@ -15829,7 +11884,7 @@ NodeView.prototype = new NodeView.Prototype();
 
 module.exports = NodeView;
 
-},{"substance-application":59}],117:[function(require,module,exports){
+},{"substance-application":7}],78:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -15837,7 +11892,7 @@ module.exports = {
   View: require("./paragraph_view")
 };
 
-},{"./paragraph":118,"./paragraph_view":119}],118:[function(require,module,exports){
+},{"./paragraph":79,"./paragraph_view":80}],79:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -15968,7 +12023,7 @@ DocumentNode.defineProperties(Paragraph.prototype, ["children"]);
 
 module.exports = Paragraph;
 
-},{"substance-document":84,"underscore":147}],119:[function(require,module,exports){
+},{"substance-document":36,"underscore":108}],80:[function(require,module,exports){
 "use strict";
 
 var CompositeView = require("../composite/composite_view");
@@ -15994,7 +12049,7 @@ ParagraphView.prototype = new ParagraphView.Prototype();
 
 module.exports = ParagraphView;
 
-},{"../composite/composite_view":100}],120:[function(require,module,exports){
+},{"../composite/composite_view":55}],81:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -16002,7 +12057,7 @@ module.exports = {
   View: require("./table_view")
 };
 
-},{"./table":121,"./table_view":122}],121:[function(require,module,exports){
+},{"./table":82,"./table_view":83}],82:[function(require,module,exports){
 "use strict";
 
 var Document = require("substance-document");
@@ -16018,6 +12073,7 @@ Table.type = {
   "id": "table",
   "parent": "content",
   "properties": {
+    "label": "string",
     "source_id": "string",
     "headers": ["array", "content"],
     "cells": ["array", "array", "content"],
@@ -16044,8 +12100,8 @@ Table.description = {
 //
 
 Table.example = {
-  "type": "list",
-  "id": "list_1",
+  "type": "table",
+  "id": "table_1",
   "headers": ["text_1", "text_2"],
   "cells": [
     ["cell_1_1", "cell_1_2"],
@@ -16109,7 +12165,7 @@ Table.Prototype = function() {
       caption = this.document.get(this.properties.caption);
     }
     return caption;
-  }
+  };
 
   this.getChangePosition = function(/*op*/) {
     // TODO: map to the corresponding cell
@@ -16134,11 +12190,78 @@ Table.Prototype.prototype = Composite.prototype;
 Table.prototype = new Table.Prototype();
 Table.prototype.constructor = Table;
 
+Table.create = function(data) {
+ var result = {};
+
+  var tableId = data.id;
+  var table = {
+    id: tableId,
+    type: "table",
+    label: data.label,
+    headers: [],
+    cells: []
+  };
+
+  var id, node;
+  if (data.headers) {
+    for (var i = 0; i < data.headers.length; i++) {
+      var h = data.headers[i];
+      id = "th_" + i + "_" + tableId;
+      node = {
+        id: id,
+        type: "text",
+        content: h
+      };
+      result[id] = node;
+      table.headers.push(id);
+    }
+  }
+
+  for (var row = 0; row < data.cells.length; row++) {
+    var rowData = data.cells[row];
+    var tableRow = [];
+    for (var col = 0; col < rowData.length; col++) {
+      var cell = rowData[col];
+      id = "td_" + "_" + row + "_" + col + "_" + tableId;
+      node = {
+        id: id,
+        type: "text",
+        content: cell
+      };
+      result[id] = node;
+      tableRow.push(id);
+    }
+    table.cells.push(tableRow);
+  }
+
+  if (data.caption) {
+    id = "caption_"+ tableId;
+    node = {
+      id: id,
+      type: "text",
+      content: data.caption
+    };
+    result[id] = node;
+    table.caption = id;
+  }
+
+  result[table.id] = table;
+
+  return result;
+};
+
 DocumentNode.defineProperties(Table.prototype, ["headers", "cells", "caption"]);
+
+Object.defineProperties(Table.prototype, {
+  // Used as a resource header
+  header: {
+    get: function() { return this.properties.label; }
+  }
+});
 
 module.exports = Table;
 
-},{"substance-document":84,"underscore":147}],122:[function(require,module,exports){
+},{"substance-document":36,"underscore":108}],83:[function(require,module,exports){
 "use strict";
 
 var CompositeView = require("../composite/composite_view");
@@ -16236,7 +12359,7 @@ TableView.prototype.constructor = TableView;
 
 module.exports = TableView;
 
-},{"../composite/composite_view":100,"underscore":147}],123:[function(require,module,exports){
+},{"../composite/composite_view":55,"underscore":108}],84:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -16244,7 +12367,7 @@ module.exports = {
   View: require("./text_view")
 };
 
-},{"./text_node":124,"./text_view":125}],124:[function(require,module,exports){
+},{"./text_node":85,"./text_view":86}],85:[function(require,module,exports){
 "use strict";
 
 // Note: for now, we have left the Text node implementation in substance-document
@@ -16254,7 +12377,7 @@ module.exports = {
 var Document = require("substance-document");
 module.exports = Document.TextNode;
 
-},{"substance-document":84}],125:[function(require,module,exports){
+},{"substance-document":36}],86:[function(require,module,exports){
 var NodeView = require('../node/node_view');
 var Document = require("substance-document");
 var Annotator = Document.Annotator;
@@ -16492,7 +12615,7 @@ TextView.prototype = new TextView.Prototype();
 
 module.exports = TextView;
 
-},{"../node/node_view":116,"substance-application":59,"substance-document":84}],126:[function(require,module,exports){
+},{"../node/node_view":77,"substance-application":7,"substance-document":36}],87:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -16500,7 +12623,7 @@ module.exports = {
   View: require("./web_resource_view")
 };
 
-},{"./web_resource":127,"./web_resource_view":128}],127:[function(require,module,exports){
+},{"./web_resource":88,"./web_resource_view":89}],88:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require("substance-document").Node;
@@ -16546,12 +12669,12 @@ DocumentNode.defineProperties(WebResource.prototype, ["url"]);
 
 module.exports = WebResource;
 
-},{"substance-document":84}],128:[function(require,module,exports){
+},{"substance-document":36}],89:[function(require,module,exports){
 "use strict";
 
 module.exports = require("../node").View;
 
-},{"../node":114}],129:[function(require,module,exports){
+},{"../node":75}],90:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -16563,7 +12686,7 @@ module.exports = {
   Helpers: require('./src/operation_helpers')
 };
 
-},{"./src/array_operation":130,"./src/compound":131,"./src/object_operation":132,"./src/operation":133,"./src/operation_helpers":134,"./src/text_operation":135}],130:[function(require,module,exports){
+},{"./src/array_operation":91,"./src/compound":92,"./src/object_operation":93,"./src/operation":94,"./src/operation_helpers":95,"./src/text_operation":96}],91:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -17229,7 +13352,7 @@ ArrayOperation.MOVE = MOV;
 
 module.exports = ArrayOperation;
 
-},{"./compound":131,"./operation":133,"substance-util":142,"underscore":147}],131:[function(require,module,exports){
+},{"./compound":92,"./operation":94,"substance-util":103,"underscore":108}],92:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -17354,7 +13477,7 @@ Compound.createTransform = function(primitive_transform) {
 
 module.exports = Compound;
 
-},{"./operation":133,"substance-util":142,"underscore":147}],132:[function(require,module,exports){
+},{"./operation":94,"substance-util":103,"underscore":108}],93:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -17899,7 +14022,7 @@ ObjectOperation.SET = SET;
 
 module.exports = ObjectOperation;
 
-},{"./array_operation":130,"./compound":131,"./operation":133,"./text_operation":135,"substance-util":142,"underscore":147}],133:[function(require,module,exports){
+},{"./array_operation":91,"./compound":92,"./operation":94,"./text_operation":96,"substance-util":103,"underscore":108}],94:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -17950,7 +14073,7 @@ Operation.Conflict = Conflict;
 
 module.exports = Operation;
 
-},{"substance-util":142}],134:[function(require,module,exports){
+},{"substance-util":103}],95:[function(require,module,exports){
 var Helpers = {};
 
 Helpers.last = function(op) {
@@ -17995,7 +14118,7 @@ Helpers.each = function(op, iterator, context, reverse) {
 
 module.exports = Helpers;
 
-},{}],135:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -18490,12 +14613,12 @@ TextOperation.DELETE = DEL;
 
 module.exports = TextOperation;
 
-},{"./compound":131,"./operation":133,"substance-util":142,"underscore":147}],136:[function(require,module,exports){
+},{"./compound":92,"./operation":94,"substance-util":103,"underscore":108}],97:[function(require,module,exports){
 "use strict";
 
 module.exports = require("./src/regexp");
 
-},{"./src/regexp":137}],137:[function(require,module,exports){
+},{"./src/regexp":98}],98:[function(require,module,exports){
 "use strict";
 
 // Substanc.RegExp.Match
@@ -18574,14 +14697,14 @@ RegExp.Match = Match;
 
 module.exports = RegExp;
 
-},{}],138:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 "use strict";
 
 var Surface = require("./src/surface");
 
 module.exports = Surface;
 
-},{"./src/surface":139}],139:[function(require,module,exports){
+},{"./src/surface":100}],100:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -19011,13 +15134,13 @@ Surface.prototype = new Surface.Prototype();
 
 module.exports = Surface;
 
-},{"substance-application":59,"substance-commander":73,"substance-util":142,"underscore":147}],140:[function(require,module,exports){
+},{"substance-application":7,"substance-commander":25,"substance-util":103,"underscore":108}],101:[function(require,module,exports){
 "use strict";
 
 var TOC = require("./toc_view");
 
 module.exports = TOC;
-},{"./toc_view":141}],141:[function(require,module,exports){
+},{"./toc_view":102}],102:[function(require,module,exports){
 "use strict";
 
 var View = require("substance-application").View;
@@ -19050,7 +15173,7 @@ TOCView.Prototype = function() {
   // --------
 
   this.render = function() {
-
+    if (this.headings.length <= 2) return this;
     _.each(this.headings, function(heading) {
       this.el.appendChild($$('a.heading-ref.level-'+heading.level, {
         id: "toc_"+heading.id,
@@ -19078,7 +15201,7 @@ TOCView.prototype = new TOCView.Prototype();
 
 module.exports = TOCView;
 
-},{"substance-application":59,"substance-data":77,"underscore":147}],142:[function(require,module,exports){
+},{"substance-application":7,"substance-data":29,"underscore":108}],103:[function(require,module,exports){
 "use strict";
 
 var util = require("./src/util");
@@ -19089,7 +15212,7 @@ util.dom = require("./src/dom");
 
 module.exports = util;
 
-},{"./src/dom":143,"./src/errors":144,"./src/html":145,"./src/util":146}],143:[function(require,module,exports){
+},{"./src/dom":104,"./src/errors":105,"./src/html":106,"./src/util":107}],104:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -19119,7 +15242,9 @@ dom.ChildNodeIterator.prototype = {
   },
 
   back: function() {
-    this.pos -= 1;
+    if (this.pos >= 0) {
+      this.pos -= 1;
+    }
     return this;
   }
 };
@@ -19151,7 +15276,7 @@ dom.getNodeType = function(el) {
 
 module.exports = dom;
 
-},{"underscore":147}],144:[function(require,module,exports){
+},{"underscore":108}],105:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -19222,7 +15347,7 @@ errors.define = function(className, code) {
 
 module.exports = errors;
 
-},{"./util":146,"underscore":147}],145:[function(require,module,exports){
+},{"./util":107,"underscore":108}],106:[function(require,module,exports){
 "use strict";
 
 var html = {};
@@ -19268,7 +15393,7 @@ html.tpl = function (tpl, ctx) {
 
 module.exports = html;
 
-},{"underscore":147}],146:[function(require,module,exports){
+},{"underscore":108}],107:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -19979,7 +16104,7 @@ util.isEmpty = function(str) {
 
 module.exports = util;
 
-},{"fs":151,"underscore":147}],147:[function(require,module,exports){
+},{"fs":112,"underscore":108}],108:[function(require,module,exports){
 //     Underscore.js 1.5.2
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -21257,13 +17382,13 @@ module.exports = util;
 
 }).call(this);
 
-},{}],148:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
 var Application = require("substance-application");
-var LensController = require("./lens_controller");
-var LensView = require("./lens_view");
+var SubstanceController = require("./substance_controller");
+var SubstanceView = require("./substance_view");
 var util = require("substance-util");
 var html = util.html;
 
@@ -21301,24 +17426,24 @@ var ROUTES = [
   }
 ];
 
-// The Lens Application
+
+// The Substance Reader Application
 // ========
 //
 
-var Lens = function(config) {
+var Substance = function(config) {
   config = config || {};
   config.routes = ROUTES;
   Application.call(this, config);
 
-  this.controller = new LensController(config);
+  this.controller = new SubstanceController(config);
 };
 
-Lens.Article = require("lens-article");
-Lens.Reader = require("lens-reader");
-Lens.Outline = require("lens-outline");
+Substance.Reader = require("lens-reader");
+Substance.Outline = require("lens-outline");
 
 
-Lens.Prototype = function() {
+Substance.Prototype = function() {
 
   // Start listening to routes
   // --------
@@ -21330,71 +17455,48 @@ Lens.Prototype = function() {
 };
 
 
-Lens.Prototype.prototype = Application.prototype;
-Lens.prototype = new Lens.Prototype();
-Lens.prototype.constructor = Lens;
+Substance.Prototype.prototype = Application.prototype;
+Substance.prototype = new Substance.Prototype();
+Substance.prototype.constructor = Substance;
 
-var Substance = {
-  util: require("substance-util"),
-  Application: require("substance-application"),
-  Document: require("substance-document"),
-  Operator: require("substance-operator"),
-  Chronicle: require("substance-chronicle"),
-  Data: require("substance-data"),
-  Surface: require("substance-surface")
-};
 
-Lens.Substance = Substance;
-module.exports = Lens;
+module.exports = Substance;
 
-},{"./lens_controller":149,"./lens_view":150,"lens-article":3,"lens-outline":54,"lens-reader":56,"substance-application":59,"substance-chronicle":65,"substance-data":77,"substance-document":84,"substance-operator":129,"substance-surface":138,"substance-util":142,"underscore":147}],149:[function(require,module,exports){
+},{"./substance_controller":110,"./substance_view":111,"lens-outline":2,"lens-reader":4,"substance-application":7,"substance-util":103,"underscore":108}],110:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
 var util = require("substance-util");
 var Controller = require("substance-application").Controller;
-var LensView = require("./lens_view");
+var SubstanceView = require("./substance_view");
 var ReaderController = require("lens-reader").Controller;
-var Article = require("lens-article");
-var Converter = require("lens-converter");
+var Article = require("substance-article");
 
-// Lens.Controller
+
+// Substance.Controller
 // -----------------
 //
-// Main Application Controller
+// Main Application Controller for the Substance reading environment
 
-var LensController = function(config) {
+var SubstanceController = function(config) {
   Controller.call(this);
 
   this.config = config;
 
   // Main controls
   this.on('open:reader', this.openReader);
-  this.on('open:library', this.openLibrary);
-  this.on('open:login', this.openLogin);
-  this.on('open:test_center', this.openTestCenter);
 };
 
-LensController.Prototype = function() {
+SubstanceController.Prototype = function() {
 
   // Initial view creation
   // ===================================
 
   this.createView = function() {
-    var view = new LensView(this);
+    var view = new SubstanceView(this);
     this.view = view;
     return view;
   };
-
-  // After a file gets drag and dropped it will be remembered in Local Storage
-  // ---------
-
-  this.importXML = function(xml) {
-    var importer = new Converter.Importer();
-    var doc = importer.import(xml);
-    this.createReader(doc, {});
-  };
-
 
   // Update URL Fragment
   // -------
@@ -21432,6 +17534,7 @@ LensController.Prototype = function() {
 
     // Create new reader controller instance
     this.reader = new ReaderController(doc, state);
+
     this.reader.on('state-changed', function() {
       that.updatePath(that.reader.state);
     });
@@ -21454,26 +17557,11 @@ LensController.Prototype = function() {
 
     this.trigger("loading:started", "Loading document ...");
 
-    var url = "https://s3.amazonaws.com/elife-cdn/elife-articles/00778/elife00778.xml";
     $.get(this.config.document_url)
     .done(function(data) {
       var doc, err;
-
-      // Determine type of resource
-      var xml = $.isXMLDoc(data);
-
-      // Process XML file
-      if(xml) {
-        var importer = new Converter.Importer();
-        doc = importer.import(data);
-
-        console.log('ON THE FLY CONVERTED DOC', doc.toJSON());
-        // Process JSON file
-      } else {
-        if(typeof data == 'string') data = $.parseJSON(data);
-        doc = Article.fromSnapshot(data);
-      }
-
+      if(typeof data == 'string') data = $.parseJSON(data);
+      doc = Article.fromSnapshot(data);
       that.createReader(doc, state);
     })
     .fail(function(err) {
@@ -21487,7 +17575,7 @@ LensController.Prototype = function() {
   //
 
   this.getActiveControllers = function() {
-    var result = [["lens", this]];
+    var result = [["substance", this]];
     result.push(["reader", this.reader]);
     return result;
   };
@@ -21497,13 +17585,13 @@ LensController.Prototype = function() {
 // Exports
 // --------
 
-LensController.Prototype.prototype = Controller.prototype;
-LensController.prototype = new LensController.Prototype();
-_.extend(LensController.prototype, util.Events);
+SubstanceController.Prototype.prototype = Controller.prototype;
+SubstanceController.prototype = new SubstanceController.Prototype();
+_.extend(SubstanceController.prototype, util.Events);
 
-module.exports = LensController;
+module.exports = SubstanceController;
 
-},{"./lens_view":150,"lens-article":3,"lens-converter":47,"lens-reader":56,"substance-application":59,"substance-util":142,"underscore":147}],150:[function(require,module,exports){
+},{"./substance_view":111,"lens-reader":4,"substance-application":7,"substance-article":13,"substance-util":103,"underscore":108}],111:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -21513,11 +17601,11 @@ var View = require("substance-application").View;
 var $$ = require("substance-application").$$;
 
 
-// Lens.View Constructor
+// Substance.View Constructor
 // ========
 // 
 
-var LensView = function(controller) {
+var SubstanceView = function(controller) {
   View.call(this);
 
   this.controller = controller;
@@ -21526,47 +17614,30 @@ var LensView = function(controller) {
   // Handle state transitions
   // --------
   
-  this.listenTo(this.controller, 'context-changed', this.onContextChanged);
+  this.listenTo(this.controller, 'state-changed', this.onStateChanged);
   this.listenTo(this.controller, 'loading:started', this.displayLoadingIndicator);
 
-  $(document).on('dragover', function () { return false; });
-  $(document).on('ondragend', function () { return false; });
-  $(document).on('drop', this.handleDroppedFile.bind(this));
 };
 
-LensView.Prototype = function() {
+SubstanceView.Prototype = function() {
 
   this.displayLoadingIndicator = function(msg) {
     this.$('#main').empty();
     this.$('.loading').html(msg).show();
   };
 
-  this.handleDroppedFile = function(e) {
-    var ctrl = this.controller;
-    var files = event.dataTransfer.files;
-    var file = files[0];
-    var reader = new FileReader();
-
-    reader.onload = function(e) {
-      ctrl.importXML(e.target.result);
-    };
-
-    reader.readAsText(file);
-    return false;
-  };
-
   // Session Event handlers
   // --------
   //
 
-  this.onContextChanged = function(context) {
-    if (context === "reader") {
+  this.onStateChanged = function() {
+    var state = this.controller.state;
+    if (state.context === "reader") {
       this.openReader();
     } else {
-      console.log("Unknown application state: " + newState);
+      console.log("Unknown application state: " + state);
     }
   };
-
 
   // Open the reader view
   // ----------
@@ -21577,15 +17648,9 @@ LensView.Prototype = function() {
     this.replaceMainView('reader', view);
 
     var doc = this.controller.reader.__document;
-    var publicationInfo = doc.get('publication_info');
     
     // Hide loading indicator
     this.$('.loading').hide();
-
-    // Update URL
-    this.$('.go-back').attr({
-      href: publicationInfo.doi
-    });
   };
 
   // Rendering
@@ -21608,15 +17673,19 @@ LensView.Prototype = function() {
 
     // Browser not supported dialogue
     // ------------
+
     this.el.appendChild($$('.browser-not-supported', {
       text: "Sorry, your browser is not supported.",
       style: "display: none;"
     }));
 
-    this.el.appendChild($$('a.go-back', {
-      href: "#",
-      html: '<i class="icon-chevron-left"></i>'
-    }));
+    // About Substance
+    // ------------
+
+    // this.el.appendChild($$('a.about-substance', {
+    //   href: "http://substance.io",
+    //   html: 'Substance 0.5.0'
+    // }));
 
     // Loading indicator
     // ------------
@@ -21642,12 +17711,15 @@ LensView.Prototype = function() {
 // Export
 // --------
 
-LensView.Prototype.prototype = View.prototype;
-LensView.prototype = new LensView.Prototype();
+SubstanceView.Prototype.prototype = View.prototype;
+SubstanceView.prototype = new SubstanceView.Prototype();
 
-module.exports = LensView;
-},{"substance-application":59,"substance-util":142,"underscore":147}],151:[function(require,module,exports){
-// nothing to see here... no file methods for the browser
+module.exports = SubstanceView;
+},{"substance-application":7,"substance-util":103,"underscore":108}],112:[function(require,module,exports){
+
+// not implemented
+// The reason for having an empty file and not throwing is to allow
+// untraditional implementation of this module.
 
 },{}]},{},[1])
 ;
