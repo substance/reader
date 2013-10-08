@@ -113,7 +113,7 @@
     "data": "data"
   },
   "bundle": {
-    "name": "lens",
+    "name": "substance",
     "folder": "./dist",
     "source": "./boot.js",
     "index": "./index.html"

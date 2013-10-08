@@ -1,1 +1,1 @@
-window.Lens = require("./src/substance");
+window.Substance = require("./src/substance");

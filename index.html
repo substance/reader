@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:mml="http://www.w3.org/1998/Math/MathML">
   <head>
-    <title>eLife Lens</title>
+    <title>Substance Reader</title>
     <link href='http://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
     <link href='styles/font-awesome.css' rel='stylesheet' type='text/css'/>
 
@@ -22,8 +22,8 @@
 
     <script>
 
-      if (window.Lens === undefined) {
-        window.Lens = require("/src/substance.js");
+      if (window.Substance === undefined) {
+        window.Substance = require("/src/substance.js");
       }
 
       // Create a new Lens app instance
@@ -31,7 +31,7 @@
       //
       // Injects itself into body
 
-      var app = new Lens({
+      var app = new Substance({
         // Endpoint must have CORS enabled, or file is served from the same domain as the app
         document_url: "data/lorem_ipsum.json"
       });
