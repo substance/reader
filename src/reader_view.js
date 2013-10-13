@@ -32,8 +32,8 @@ var addFocusControls = function(doc, nodeView) {
   });
 
   // Add stripe
-  focus.appendChild($$('.stripe'));
-  nodeView.el.appendChild(focus);
+  // focus.appendChild($$('.stripe'));
+  // nodeView.el.appendChild(focus);
 };
 
 
@@ -110,6 +110,7 @@ var Renderer = function(reader) {
   if (reader.figuresView) {
     children.push($$('.context-toggle.figures', {
       'sbs-click': 'switchContext(figures)',
+      'title': 'Figures',
       'html': '<i class="icon-camera"></i><span> Figures</span>'
     }));
   }
@@ -117,6 +118,7 @@ var Renderer = function(reader) {
   if (reader.citationsView) {
     children.push($$('.context-toggle.citations', {
       'sbs-click': 'switchContext(citations)',
+      'title': 'Citations',
       'html': '<i class="icon-link"></i><span> References</span>'
     }));
   }
@@ -124,6 +126,7 @@ var Renderer = function(reader) {
   if (reader.infoView) {
     children.push($$('.context-toggle.info', {
       'sbs-click': 'switchContext(info)',
+      'title': 'Article Info',
       'html': '<i class="icon-info-sign"></i><span> Article Info</span>'
     }));
   }
