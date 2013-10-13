@@ -30,7 +30,7 @@
   overflow: hidden;
   height: 100%;
   width: 50%;
-  border-right: 1px solid #ccc;
+  border-right: 1px solid #ddd;
 }
 
 .article .document .surface.content {
@@ -162,6 +162,7 @@
   /*background: rgba(0,0,0,0.01);*/
   background: #fff;
   border: 1px solid #ddd;
+  border-top: none;
   margin-bottom: 30px;
   margin-right: 20px;
   padding: 0px;
@@ -175,7 +176,9 @@
 .article .resources .content-node .resource-header {
   min-height: 80px;
   position: relative;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 2px solid #eee;
+  border-top: 1px solid #eee;
+  background: rgba(0,0,0,0.01);
 }
 
 /* Shared styles for selected and mouseover states
@@ -188,7 +191,7 @@
 
 /* active figure */
 .article .resources .figures .content-node.active {
-  border-color: rgba(145, 187, 4, 1);
+  /*border-color: rgba(145, 187, 4, 1);*/
   
 }
 
@@ -204,7 +207,7 @@
 /* active citation */
 
 .article .resources .citations .content-node.active {
-  border-color: rgba(11, 157, 217, 1);
+  /*border-color: rgba(11, 157, 217, 1);*/
 }
 
 .article .resources .citations .content-node.active .resource-header {
@@ -217,7 +220,7 @@
 
 /* active person */
 .article .resources .info .content-node.active {
-  border-color: #5c6570;
+  /*border-color: #5c6570;*/
 }
 
 .article .resources .info .content-node.active .resource-header {
