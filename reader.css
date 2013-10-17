@@ -17,10 +17,8 @@
 }
 
 
-
 /* Main content panel 
 ======================================================================= */
-
 
 .article .document {
   line-height: 28.5px;
@@ -54,47 +52,88 @@
   background: #FFFFFF;
 }
 
-.article .document .surface.content::-webkit-scrollbar {
-  width: 2px;
-  height: 2px; 
-}
 
-.article .document .surface.content::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0);
-}
+/* Back Navigation 
+=======================================================================*/
 
-.article .document .scrollbar-mask {
-  position: absolute;
-  right: 0px;
-}
 
 
 /* Context Toggles 
-=======================================================================
+=======================================================================*/
 
 /* Switcher */
-.article .context-toggles {
 
-  /*background: #F5F5F5;*/
+.article .medial-strip {
   overflow: hidden;
-  /*height: 60px;*/
   width: 40px;
   position: absolute;
-  /*right: 20px;*/
   left: -18px;
-  top: 30px;
-  z-index: 3000;
+  top: 0px;
+  bottom: 0px;
   background: #fff;
-  padding: 10px 0px;
+  z-index: 3000;
+}
+
+.article .back-nav {
+  display: block;
+  overflow: hidden;
+  width: 40px;
+  position: absolute;
+  top: 20px;
+  z-index: 5000;
+  /*left: -20px;*/
+  /*top: 10px;*/
+  font-size: 22px;
+
+  /*z-index: 3000;*/
+  background: #fff;
+  /*padding: 10px 0px;*/
+  color: #aaa;
+  padding: 10px 10px;
 }
 
 
+.article .back-nav:hover {
+  color: #333;
+}
+
+
+.article .medial-strip .separator-line {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 20px;
+  width: 1px;
+  background: #ddd;
+  z-index: 4000;
+}
+
+.article .context-toggles {
+  position: absolute;
+  top: 100px;
+  /*bottom: 0px;*/
+  left: 0px;
+  right: 0px;
+  
+  background: #fff;
+  z-index: 5000;
+  /*border-right: 1px solid #ddd;*/
+  
+  /*padding: 10px 0px;*/
+
+  /*padding-top: 100px;*/
+}
+
+
+
 .article .context-toggles .context-toggle {
+  /*background: #fff;*/
   cursor: pointer;
   /*float: left;*/
+  z-index: 5000;
   padding: 0 10px;
   line-height: 40px;
-  font-size: 18px;
+  font-size: 22px;
   color: #aaa;
   font-family: 'Avenir LT W01 85 Heavy', 'Montserrat', 'Source Sans Pro';
 }
@@ -164,7 +203,6 @@
   border: 1px solid #ddd;
   border-top: none;
   margin-bottom: 30px;
-  margin-right: 20px;
   padding: 0px;
 }
 
@@ -554,36 +592,9 @@ span.annotation.formula_reference, span.publication_reference {
 }
 
 
-/* Optimizations for smaller screen sizes */
 
 
-/*@media (max-width: 70.5em) {
-  .article .document .surface.content .nodes {
-    padding-left: 40px;
-  }
 
-  .article .resources {
-    width: 30%;
-  }
-
-  .article .document {
-    width: 68%;
-  }
-
-  .lens-outline {
-    width: 40px;
-  }
-
-  .lens-outline .node {
-    width: 30px;
-  }
-
-  .surface.content .nodes > .content-node {
-    padding-left: 20px;
-    padding-right: 30px;
-    word-wrap: break-word;
-  }
-}*/
 
 
 /* Hide focus toggles for cover
@@ -610,3 +621,130 @@ span.annotation.formula_reference, span.publication_reference {
 .resources .info .nodes > .content-node.paragraph > .content > .content-node {
   padding: 20px 0;
 }
+
+
+
+/* Scroll bars */
+/* ---------------------------------------*/
+
+/*.article .document .surface.content::-webkit-scrollbar {
+  width: 2px;
+  height: 2px; 
+}
+
+.article .document .surface.content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.article .document .scrollbar-mask {
+  position: absolute;
+  right: 0px;
+}*/
+
+
+
+
+
+
+
+
+/* Responsiveness */
+/* ---------------------------------------*/
+
+
+
+/*@media (min-width: 70.51em) {*/
+
+/*}*/
+
+
+/*@media (min-width: 70.52em) {
+  body {
+    background: blue;
+    color: red;
+  }
+
+}*/
+
+/*  .article .document .surface.content::-webkit-scrollbar {
+    width: 2px;
+    height: 2px; 
+  }
+
+  .article .document .surface.content::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0);
+  }
+
+  .article .document .scrollbar-mask {
+    position: absolute;
+    right: 0px;
+  }*/
+
+
+@media (max-width: 70.5em) {
+
+/*  body.reader {
+    overflow: auto;
+    height: auto;
+  }
+
+  body.reader #container {
+    overflow: auto;
+    height: auto;
+  }
+
+  body.reader #main {
+    height: auto;
+  }*/
+
+  .article .document .surface.content .nodes {
+    padding-left: 40px;
+  }
+
+  .article .document {
+    width: 100%;
+/*    font-size: 24px;
+    line-height: 30px;*/
+  }
+
+  .article .resources .medial-strip {
+    
+    background: #333;
+    position: fixed;
+    bottom: 0px;
+    top: auto;
+    left: 0px;
+    right: 0px;
+    height: 50px;
+    width: auto;
+    /*bottom: 0px;*/
+
+    /*height: 50px;*/
+  }
+
+  .article .lens-outline {
+    display: none;
+  }
+
+/*  .article .resources {
+    width: 30%;
+  }
+
+  .article .document {
+    width: 68%;
+  }
+
+  .lens-outline {
+    width: 40px;
+  }
+
+  .lens-outline .node {
+    width: 30px;
+  }
+
+  .surface.content .nodes > .content-node {
+    padding-left: 20px;
+    padding-right: 30px;
+  }*/
+}
+

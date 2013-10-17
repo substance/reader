@@ -95,10 +95,15 @@ var Renderer = function(reader) {
   var docView = $$('.document');
   docView.appendChild(reader.contentView.render().el);
 
+
+
+
+
   // Prepare context toggles
   // --------
 
   var children = [];
+
 
   if (reader.tocView && reader.tocView.headings.length > 2) {
     children.push($$('.context-toggle.toc', {
@@ -131,15 +136,32 @@ var Renderer = function(reader) {
     }));
   }
 
+
   var contextToggles = $$('.context-toggles', {
     children: children
   });
 
+
   // Prepare resources view
   // --------
 
+  var medialStrip = $$('.medial-strip');
+
+  var collection = reader.readerCtrl.options.collection
+  if (collection) {
+    medialStrip.appendChild($$('a.back-nav', {
+      'href': collection.url,
+      'title': 'Go back',
+      'html': '<i class=" icon-chevron-up"></i>'
+    }));
+  }
+  
+  medialStrip.appendChild($$('.separator-line'));
+  medialStrip.appendChild(contextToggles);
+
+  // Wrap everything within resources view
   var resourcesView = $$('.resources');
-  resourcesView.appendChild(contextToggles);
+  resourcesView.appendChild(medialStrip);
   
 
   // Add TOC

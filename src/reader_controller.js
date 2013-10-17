@@ -10,11 +10,13 @@ var util = require("substance-util");
 //
 // Controls the Reader.View
 
-var ReaderController = function(doc, state) {
+var ReaderController = function(doc, state, options) {
 
   // Private reference to the document
   this.__document = doc;
 
+  // E.g. context information
+  this.options = options || {};
 
   // Reader state
   // -------
