@@ -97,8 +97,6 @@ var Renderer = function(reader) {
 
 
 
-
-
   // Prepare context toggles
   // --------
 
@@ -106,14 +104,16 @@ var Renderer = function(reader) {
 
 
   if (reader.tocView && reader.tocView.headings.length > 2) {
-    children.push($$('.context-toggle.toc', {
+    children.push($$('a.context-toggle.toc', {
+      'href': '#',
       'sbs-click': 'switchContext(toc)',
       'html': '<i class="icon-align-left"></i><span> Contents</span>'
     }));
   }
 
   if (reader.figuresView) {
-    children.push($$('.context-toggle.figures', {
+    children.push($$('a.context-toggle.figures', {
+      'href': '#',
       'sbs-click': 'switchContext(figures)',
       'title': 'Figures',
       'html': '<i class="icon-camera"></i><span> Figures</span>'
@@ -121,7 +121,8 @@ var Renderer = function(reader) {
   }
 
   if (reader.citationsView) {
-    children.push($$('.context-toggle.citations', {
+    children.push($$('a.context-toggle.citations', {
+      'href': '#',
       'sbs-click': 'switchContext(citations)',
       'title': 'Citations',
       'html': '<i class="icon-link"></i><span> References</span>'
@@ -129,7 +130,8 @@ var Renderer = function(reader) {
   }
 
   if (reader.infoView) {
-    children.push($$('.context-toggle.info', {
+    children.push($$('a.context-toggle.info', {
+      'href': '#',
       'sbs-click': 'switchContext(info)',
       'title': 'Article Info',
       'html': '<i class="icon-info-sign"></i><span> Article Info</span>'
@@ -155,7 +157,7 @@ var Renderer = function(reader) {
       'html': '<i class=" icon-chevron-up"></i>'
     }));
   }
-  
+
   medialStrip.appendChild($$('.separator-line'));
   medialStrip.appendChild(contextToggles);
 
@@ -344,14 +346,17 @@ ReaderView.Prototype = function() {
 
   this.toggleFigureReference = function(e) {
     this.toggleResourceReference('figures', e);
+    e.preventDefault();
   };
 
   this.toggleCitationReference = function(e) {
     this.toggleResourceReference('citations', e);
+    e.preventDefault();
   };
 
   this.togglePersonReference = function(e) {
     this.toggleResourceReference('info', e);
+    e.preventDefault();
   };
 
   this.toggleResourceReference = function(context, e) {
@@ -360,7 +365,6 @@ ReaderView.Prototype = function() {
     var a = this.readerCtrl.__document.get(aid);
 
     var nodeId = this.readerCtrl.content.container.getRoot(a.path[0]);
-
     var resourceId = a.target;
 
     if (resourceId === state.resource) {
