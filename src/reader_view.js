@@ -95,15 +95,14 @@ var Renderer = function(reader) {
   var docView = $$('.document');
   docView.appendChild(reader.contentView.render().el);
 
-
-
   // Prepare context toggles
   // --------
 
   var children = [];
 
 
-  if (reader.tocView && reader.tocView.headings.length > 2) {
+  //  && reader.tocView.headings.length > 2
+  if (reader.tocView) {
     children.push($$('a.context-toggle.toc', {
       'href': '#',
       'sbs-click': 'switchContext(toc)',
