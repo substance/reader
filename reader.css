@@ -619,11 +619,34 @@ span.annotation.formula_reference, span.publication_reference {
 }
 
 
+
+.article .document .surface.content::-webkit-scrollbar {
+  width: 2px;
+  height: 2px; 
+}
+
+.article .document .surface.content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0);
+}
+
+
 /* Responsiveness */
 /* ---------------------------------------*/
 
-
+/* Smaller screens */
 @media (max-width: 70.5em) {
+  .article .document {
+    width: 60%;
+  }
+
+  .article .resources {
+    width: 40%;
+  }
+
+}
+
+/* Mobile */
+@media (max-width: 50.5em) {
 
   /* body.reader {
     overflow: auto;
