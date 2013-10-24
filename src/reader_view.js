@@ -310,12 +310,16 @@ var ReaderView = function(readerCtrl) {
   this.$el.on('click', '.annotation.person_reference', _.bind(this.togglePersonReference, this));
   this.$el.on('click', '.annotation.cross_reference', _.bind(this.followCrossReference, this));
 
+  this.$el.on('click', '.document .content-node.heading', _.bind(this.setAnchor, this));
   this.outline.$el.on('click', '.node', _.bind(this._jumpToNode, this));
-
 };
 
 
 ReaderView.Prototype = function() {
+
+  this.setAnchor = function(e) {
+    this.toggleNode('toc', $(e.currentTarget).attr('id'));
+  };
 
   // Toggles on and off the zoom
   // --------
