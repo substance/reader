@@ -1,3 +1,16 @@
+/* Fix weird behavior
+-------------------------------------------------------------------------------*/
+
+/*
+When using event delegation if the parent element has a click handler, when
+the user touches anything inside this element, the whole region will gray 
+out (on iOS 5.1), or flicker (on iOS 6). */
+
+* {
+  -webkit-tap-highlight-color:transparent;
+}
+
+
 /* Article
 -------------------------------------------------------------------------------*/
 
@@ -47,7 +60,6 @@
   min-height: 100%;
   padding-left: 40px;
   padding-right: 0px;
-  /*margin-right: 15px;*/
   background: #FFFFFF;
 }
 
@@ -115,17 +127,10 @@
   
   background: #fff;
   z-index: 5000;
-  /*border-right: 1px solid #ddd;*/
-  
-  /*padding: 10px 0px;*/
-
-  /*padding-top: 100px;*/
 }
 
 
-
 .article .context-toggles .context-toggle {
-  /*background: #fff;*/
   cursor: pointer;
   display: block;
   /*float: left;*/
@@ -151,12 +156,22 @@
 
 /*Active states depend on the global reader context */
 
+.article .context-toggles .context-toggle.figures:hover {
+  color: rgba(145, 187, 4, 1);
+}
+
+.article .context-toggles .context-toggle.citations:hover {
+  color: rgba(11, 157, 217, 1);
+}
+
 .article.figures .context-toggles .context-toggle.figures {
-  color: #111;
+  color: rgba(145, 187, 4, 1);
+  /* color: #111; */
 }
 
 .article.citations .context-toggles .context-toggle.citations {
-  color: #111;
+  color: rgba(11, 157, 217, 1);
+  /* color: #111; */
 }
 
 .article.toc .context-toggles .context-toggle.toc {
@@ -617,8 +632,6 @@ span.annotation.formula_reference, span.publication_reference {
   padding: 20px 0;
 }
 
-
-
 .article .document .surface.content::-webkit-scrollbar {
   width: 2px;
   height: 2px; 
@@ -637,6 +650,41 @@ span.annotation.formula_reference, span.publication_reference {
 /* Responsiveness */
 /* ---------------------------------------*/
 
+
+/*@media all and (orientation:portrait) {
+
+}*/
+
+#container.touchable .toggle-fullscreen {
+  /* Hide document outline for touch devices */
+  display: none;
+}
+
+#container.touchable .article .document .surface.content {
+  right: 20px;
+}
+
+#container.touchable .article .document .surface.content .nodes {
+  padding-left: 0px;
+}
+
+#container.touchable .lens-outline {
+  /*display: none;*/
+  background: transparent;
+  left: auto;
+  right: 30px;
+  width: 12px;
+  overflow: hidden;
+}
+
+#container.touchable .lens-outline .visible-area {
+  display: none;
+}
+
+#container.touchable .lens-outline .arrow {
+  display: none;
+}
+
 /* Smaller screens */
 @media (max-width: 70.5em) {
   .article .document {
@@ -650,7 +698,7 @@ span.annotation.formula_reference, span.publication_reference {
 }
 
 /* Mobile */
-@media (max-width: 50.5em) {
+@media (max-width: 60.5em) {
 
   /* body.reader {
     overflow: auto;

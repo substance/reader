@@ -13,6 +13,8 @@ var $$ = require("substance-application").$$;
 
 var CORRECTION = -100; // Extra offset from the top
 
+
+
 var addFocusControls = function(doc, nodeView) {
   // The content node object
   var node = nodeView.node;
@@ -115,7 +117,7 @@ var Renderer = function(reader) {
       'href': '#',
       'sbs-click': 'switchContext(figures)',
       'title': 'Figures',
-      'html': '<i class="icon-camera"></i><span> Figures</span>'
+      'html': '<i class="icon-picture"></i><span> Figures</span>'
     }));
   }
 
@@ -653,6 +655,15 @@ ReaderView.Prototype = function() {
         }
       }, 100);
     }
+
+    // I this called only once?
+
+    // Ditch those scroll fixes
+    // new ScrollFix(this.contentView.el);
+    // if (this.figuresView) new ScrollFix(this.figuresView.el);
+    // if (this.citationsView) new ScrollFix(this.citationsView.el);
+    // if (this.infoView) new ScrollFix(this.infoView.el);
+
 
     $(window).resize(lazyOutline);
     

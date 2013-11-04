@@ -45,7 +45,7 @@ var ReaderController = function(doc, state, options) {
 ReaderController.Prototype = function() {
 
   this.createView = function() {
-    this.view = new ReaderView(this);
+    if (!this.view) this.view = new ReaderView(this);
     return this.view;
   };
 
