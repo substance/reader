@@ -135,7 +135,7 @@ var Renderer = function(reader) {
       'href': '#',
       'sbs-click': 'switchContext(info)',
       'title': 'Article Info',
-      'html': '<i class="icon-info-sign"></i><span> Article Info</span>'
+      'html': '<i class="icon-info-sign"></i><span>Info</span>'
     }));
   }
 
@@ -318,7 +318,7 @@ var ReaderView = function(readerCtrl) {
 
 
 ReaderView.Prototype = function() {
-
+  
   this.setAnchor = function(e) {
     this.toggleNode('toc', $(e.currentTarget).attr('id'));
   };
