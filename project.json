@@ -23,27 +23,22 @@
     {
       "repository": "https://github.com/substance/document.git",
       "folder": "node_modules/substance-document",
-      "branch": "0.5.x"
-    },
-    {
-      "repository": "https://github.com/elifesciences/lens-reader.git",
-      "folder": "node_modules/lens-reader",
-      "branch": "0.1.x"
+      "branch": "0.6.x"
     },
     {
       "repository": "https://github.com/substance/article.git",
       "folder": "node_modules/substance-article",
-      "branch": "0.1.x"
+      "branch": "0.3.x"
     },
     {
       "repository": "https://github.com/substance/nodes.git",
       "folder": "node_modules/substance-nodes",
-      "branch": "0.1.x"
+      "branch": "0.3.x"
     },
     {
       "repository": "https://github.com/elifesciences/lens-outline.git",
       "folder": "node_modules/lens-outline",
-      "branch": "0.1.x"
+      "branch": "0.2.x"
     },
     {
       "repository": "https://github.com/substance/toc.git",
@@ -71,7 +66,7 @@
       "branch": "0.2.x"
     },
     {
-      "repository": "https://github.com/elifesciences/lens.git",
+      "repository": "https://github.com/substance/reader.git",
       "folder": ".",
       "branch": "0.2.x"
     }
@@ -90,21 +85,23 @@
     "styles/surface.css": "node_modules/substance-surface/styles/surface.css",
     "styles/lens-outline.css": "node_modules/lens-outline/outline.css",
 
-    "styles/nodes/cover.css": "node_modules/substance-article/nodes/cover/cover.css",
     "styles/nodes/text.css": "node_modules/substance-article/nodes/text/text.css",
-    "styles/nodes/figure.css": "node_modules/substance-article/nodes/figure/figure.css",
     "styles/nodes/paragraph.css": "node_modules/substance-article/nodes/paragraph/paragraph.css",
     "styles/nodes/heading.css": "node_modules/substance-article/nodes/heading/heading.css",
     "styles/nodes/list.css": "node_modules/substance-article/nodes/list/list.css",
     "styles/nodes/image.css": "node_modules/substance-article/nodes/image/image.css",
     "styles/nodes/formula.css": "node_modules/substance-article/nodes/formula/formula.css",
     "styles/nodes/codeblock.css": "node_modules/substance-article/nodes/codeblock/codeblock.css",
+    "styles/nodes/collaborator.css": "node_modules/substance-article/nodes/collaborator/collaborator.css",
 
-    "styles/reader.css": "node_modules/lens-reader/reader.css",
-    
+    "styles/nodes/table.css": "node_modules/substance-article/nodes/table/table.css",
+    "styles/nodes/figure.css": "node_modules/substance-article/nodes/figure/figure.css",
+    "styles/nodes/cover.css": "node_modules/substance-article/nodes/cover/cover.css",
+    "styles/nodes/description.css": "node_modules/substance-article/nodes/description.css",
+
     "styles/toc.css": "node_modules/substance-toc/toc.css",
-    "styles/lens.css":  "styles/lens.css"
-
+    "styles/reader.css": "reader.css",
+    "styles/substance.css":  "styles/substance.css"
   },
   "assets": {
     "lib/jquery-2.0.3.min.js": "lib/jquery-2.0.3.min.js",

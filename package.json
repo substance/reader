@@ -32,7 +32,6 @@
     "substance-chronicle": "git+https://github.com/substance/chronicle.git#0.3.x",
     "substance-application": "git+https://github.com/substance/application.git#0.2.x",
     "lens-article": "git+https://github.com/elifesciences/lens-article.git#0.2.x",
-    "lens-reader": "git+https://github.com/elifesciences/lens-reader.git#0.2.x",
     "lens-outline": "git+https://github.com/elifesciences/lens-outline.git#0.2.x",
     "lens-converter": "git+https://github.com/elifesciences/lens-converter.git#0.2.x"
   },

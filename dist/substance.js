@@ -1,13 +1,22 @@
 ;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 window.Substance = require("./src/substance");
-},{"./src/substance":109}],2:[function(require,module,exports){
+},{"./src/substance":112}],2:[function(require,module,exports){
+"use strict";
+
+var Reader = {
+  Controller: require("./src/reader_controller"),
+  View: require("./src/reader_view")
+};
+
+module.exports = Reader;
+},{"./src/reader_controller":110,"./src/reader_view":111}],3:[function(require,module,exports){
 "use strict";
 
 var Outline = require('./outline');
 
 module.exports = Outline;
 
-},{"./outline":3}],3:[function(require,module,exports){
+},{"./outline":4}],4:[function(require,module,exports){
 "use strict";
 
 var View = require("substance-application").View;
@@ -193,761 +202,7 @@ Outline.prototype = new Outline.Prototype();
 
 module.exports = Outline;
 
-},{"substance-application":7,"underscore":108}],4:[function(require,module,exports){
-"use strict";
-
-var Reader = {
-  Controller: require("./reader_controller"),
-  View: require("./reader_view")
-};
-
-module.exports = Reader;
-},{"./reader_controller":5,"./reader_view":6}],5:[function(require,module,exports){
-"use strict";
-
-var Document = require("substance-document");
-var Controller = require("substance-application").Controller;
-var ReaderView = require("./reader_view");
-var util = require("substance-util");
-
-// Reader.Controller
-// -----------------
-//
-// Controls the Reader.View
-
-var ReaderController = function(doc, state) {
-
-  // Private reference to the document
-  this.__document = doc;
-
-
-  // Reader state
-  // -------
-
-  this.content = new Document.Controller(doc, {view: "content"});
-
-  if (doc.get('figures')) {
-    this.figures = new Document.Controller(doc, {view: "figures"});
-  }
-
-  if (doc.get('citations')) {
-    this.citations = new Document.Controller(doc, {view: "citations"});
-  }
-
-  if (doc.get('info')) {
-    this.info = new Document.Controller(doc, {view: "info"});
-  }
-
-  this.state = state;
-
-  // Current explicitly set context
-  this.currentContext = "toc";
-
-};
-
-ReaderController.Prototype = function() {
-
-  this.createView = function() {
-    this.view = new ReaderView(this);
-    return this.view;
-  };
-
-  // Explicit context switch
-  // --------
-  // 
-
-  this.switchContext = function(context) {
-    this.currentContext = context;
-    this.modifyState({
-      context: context,
-      node: null,
-      resource: null
-    });
-  };
-
-  this.modifyState = function(state) {
-    Controller.prototype.modifyState.call(this, state);
-  };
-
-  // TODO: Transition to ao new solid API
-  // --------
-  // 
-
-  this.getActiveControllers = function() {
-    var result = [];
-    result.push(["article", this]);
-    result.push(["reader", this.content]);
-    return result;
-  };
-};
-
-
-ReaderController.Prototype.prototype = Controller.prototype;
-ReaderController.prototype = new ReaderController.Prototype();
-
-module.exports = ReaderController;
-
-},{"./reader_view":6,"substance-application":7,"substance-document":36,"substance-util":103}],6:[function(require,module,exports){
-"use strict";
-
-var _ = require("underscore");
-var util = require("substance-util");
-var html = util.html;
-var Surface = require("substance-surface");
-var Outline = require("lens-outline");
-var View = require("substance-application").View;
-var TOC = require("substance-toc");
-var Data = require("substance-data");
-var Index = Data.Graph.Index;
-var $$ = require("substance-application").$$;
-
-var CORRECTION = -100; // Extra offset from the top
-
-var addFocusControls = function(doc, nodeView) {
-  // The content node object
-  var node = nodeView.node;
-
-  // Per mode
-  var focusToggles = [];
-
-  focusToggles.push($$('div', {
-    "sbs-click": 'toggleNode(toc,'+node.id+')',
-    class: "focus-mode node",
-    html: '<div class="arrow"></div><i class="icon-anchor"></i>',
-    title: 'Focus and share link'
-  }));
-
-  var focus = $$('div.focus', {
-    children: focusToggles
-  });
-
-  // Add stripe
-  focus.appendChild($$('.stripe'));
-  nodeView.el.appendChild(focus);
-};
-
-
-var addResourceHeader = function(docCtrl, nodeView) {
-  var node = nodeView.node;
-  var typeDescr = node.constructor.description;
-
-  // Don't render resource headers in info panel (except for person nodes)
-  if (docCtrl.view === "info" && node.type !== "person" && node.type !== "collaborator") {
-    return;
-  }
-
-  var children = [
-    $$('a.name', {
-      href: "#",
-      text: node.header ,
-      "sbs-click": "toggleResource("+node.id+")"
-    })
-  ];
-
-  var config = node.constructor.config;
-  if (config && config.zoomable) {
-    children.push($$('a.toggle-fullscreen', {
-      "href": "#",
-      "html": "<i class=\"icon-resize-full\"></i><i class=\"icon-resize-small\"></i>",
-      "sbs-click": "toggleFullscreen("+node.id+")"
-    }));
-  }
-
-  var resourceHeader = $$('.resource-header', {
-    children: children
-  });
-  nodeView.el.insertBefore(resourceHeader, nodeView.content);
-};
-
-
-// Renders the reader view
-// --------
-// 
-// .document
-// .context-toggles
-//   .toggle-toc
-//   .toggle-figures
-//   .toggle-citations
-//   .toggle-info
-// .resources
-//   .toc
-//   .surface.figures
-//   .surface.citations
-//   .info
-
-var Renderer = function(reader) {
-
-  var frag = document.createDocumentFragment();
-
-  // Prepare doc view
-  // --------
-
-  var docView = $$('.document');
-  docView.appendChild(reader.contentView.render().el);
-
-  // Prepare context toggles
-  // --------
-
-  var children = [];
-
-  if (reader.tocView && reader.tocView.headings.length > 2) {
-    children.push($$('.context-toggle.toc', {
-      'sbs-click': 'switchContext(toc)',
-      'html': '<i class="icon-align-left"></i><span> Contents</span>'
-    }));
-  }
-
-  if (reader.figuresView) {
-    children.push($$('.context-toggle.figures', {
-      'sbs-click': 'switchContext(figures)',
-      'html': '<i class="icon-camera"></i><span> Figures</span>'
-    }));
-  }
-
-  if (reader.citationsView) {
-    children.push($$('.context-toggle.citations', {
-      'sbs-click': 'switchContext(citations)',
-      'html': '<i class="icon-link"></i><span> References</span>'
-    }));
-  }
-
-  if (reader.infoView) {
-    children.push($$('.context-toggle.info', {
-      'sbs-click': 'switchContext(info)',
-      'html': '<i class="icon-info-sign"></i><span> Article Info</span>'
-    }));
-  }
-
-  var contextToggles = $$('.context-toggles', {
-    children: children
-  });
-
-  // Prepare resources view
-  // --------
-
-  var resourcesView = $$('.resources');
-  resourcesView.appendChild(contextToggles);
-  
-
-  // Add TOC
-  // --------
- 
-  resourcesView.appendChild(reader.tocView.render().el);
-
-  if (reader.figuresView) {
-    resourcesView.appendChild(reader.figuresView.render().el);
-  }
-  
-  if (reader.citationsView) {
-    resourcesView.appendChild(reader.citationsView.render().el);
-  }
-
-  if (reader.infoView) {
-    resourcesView.appendChild(reader.infoView.render().el);
-  }
-
-  frag.appendChild(docView);
-  frag.appendChild(resourcesView);
-  return frag;
-};
-
-
-// Lens.Reader.View
-// ==========================================================================
-//
-
-var ReaderView = function(readerCtrl) {
-  View.call(this);
-
-  // Controllers
-  // --------
-
-  this.readerCtrl = readerCtrl;
-
-  var doc = this.readerCtrl.content.__document;
-
-  this.$el.addClass('article');
-  this.$el.addClass(doc.schema.id); // Substance article or lens article?
-
-
-  var ArticleRenderer = this.readerCtrl.content.__document.constructor.Renderer;
-
-  // Surfaces
-  // --------
-
-  // A Substance.Document.Writer instance is provided by the controller
-  this.contentView = new Surface(this.readerCtrl.content, {
-    editable: false,
-    renderer: new ArticleRenderer(this.readerCtrl.content, {
-      afterRender: addFocusControls
-    })
-  });
-
-  // Table of Contents 
-  // --------
-
-  this.tocView = new TOC(this.readerCtrl);
-
-  // Provisional Hack:
-  // -----------------
-  // 
-  // We sniff into the tocView to determine the default context based on how many 
-  // headings are in the document
-  // We show the TOC for headings.length > 2
-  // 
-  // Real solution: determine on the controller level wheter toc should be shown or not
-
-  if (this.tocView.headings.length <= 2) {
-    var newCtx;
-    if (doc.get('figures').nodes.length > 0) {
-      newCtx = "figures";
-    } else {
-      newCtx = "info";
-    }
-
-    this.readerCtrl.modifyState({
-      context: newCtx
-    });
-  }
-
-  this.tocView.$el.addClass('resource-view');
-
-  // A Surface for the figures view
-  if (this.readerCtrl.figures && this.readerCtrl.figures.get('figures').nodes.length) {
-    this.figuresView = new Surface(this.readerCtrl.figures, {
-      editable: false,
-      renderer: new ArticleRenderer(this.readerCtrl.figures, {
-        afterRender: addResourceHeader
-      })
-    });
-    this.figuresView.$el.addClass('resource-view');
-  }
-
-  // A Surface for the citations view
-  if (this.readerCtrl.citations && this.readerCtrl.citations.get('citations').nodes.length) {
-    this.citationsView = new Surface(this.readerCtrl.citations, {
-      editable: false,
-      renderer: new ArticleRenderer(this.readerCtrl.citations, {
-        afterRender: addResourceHeader
-      })
-    });
-    this.citationsView.$el.addClass('resource-view');
-  }
-
-  // A Surface for the info view
-  if (this.readerCtrl.info && this.readerCtrl.info.get('info').nodes.length) {
-    this.infoView = new Surface(this.readerCtrl.info, {
-      editable: false,
-      renderer: new ArticleRenderer(this.readerCtrl.info, {
-        afterRender: addResourceHeader
-      })
-    });
-    this.infoView.$el.addClass('resource-view');
-  }
-
-  // Whenever a state change happens (e.g. user navigates somewhere)
-  // the interface gets updated accordingly
-  this.listenTo(this.readerCtrl, "state-changed", this.updateState);
-
-
-  // Keep an index for resources
-  this.resources = new Index(this.readerCtrl.__document, {
-    types: ["figure_reference", "citation_reference", "person_reference"],
-    property: "target"
-  });
-
-
-  // Outline
-  // --------
-
-  this.outline = new Outline(this.contentView);
-
-  // DOM Events
-  // --------
-  // 
-
-  this.contentView.$el.on('scroll', _.bind(this.onContentScroll, this));
-
-  // Resource references
-  this.$el.on('click', '.annotation.figure_reference', _.bind(this.toggleFigureReference, this));
-  this.$el.on('click', '.annotation.citation_reference', _.bind(this.toggleCitationReference, this));
-  this.$el.on('click', '.annotation.person_reference', _.bind(this.togglePersonReference, this));
-  this.$el.on('click', '.annotation.cross_reference', _.bind(this.followCrossReference, this));
-
-  this.outline.$el.on('click', '.node', _.bind(this._jumpToNode, this));
-
-};
-
-
-ReaderView.Prototype = function() {
-
-  // Toggles on and off the zoom
-  // --------
-  // 
-
-  this.toggleFullscreen = function(resourceId) {
-    var state = this.readerCtrl.state;
-
-    // Always activate the resource
-    this.readerCtrl.modifyState({
-      resource: resourceId,
-      fullscreen: !state.fullscreen
-    });
-
-    // this.$('#'+resourceId)
-  };
-
-  this._jumpToNode = function(e) {
-    var nodeId = $(e.currentTarget).attr('id').replace("outline_", "");
-    this.jumpToNode(nodeId);
-    return false;
-  };
-
-  // Toggle Resource Reference
-  // --------
-  //
-
-  this.toggleFigureReference = function(e) {
-    this.toggleResourceReference('figures', e);
-  };
-
-  this.toggleCitationReference = function(e) {
-    this.toggleResourceReference('citations', e);
-  };
-
-  this.togglePersonReference = function(e) {
-    this.toggleResourceReference('info', e);
-  };
-
-  this.toggleResourceReference = function(context, e) {
-    var state = this.readerCtrl.state;
-    var aid = $(e.currentTarget).attr('id');
-    var a = this.readerCtrl.__document.get(aid);
-
-    var nodeId = this.readerCtrl.content.container.getRoot(a.path[0]);
-
-    var resourceId = a.target;
-
-    if (resourceId === state.resource) {
-      this.readerCtrl.modifyState({
-        context: this.readerCtrl.currentContext,
-        node: null,
-        resource:  null
-      });
-    } else {
-      this.readerCtrl.modifyState({
-        context: context,
-        node: nodeId,
-        resource: resourceId
-      });
-
-      this.jumpToResource(resourceId);
-    }
-  };
-
-  // Follow cross reference
-  // --------
-  //
-
-  this.followCrossReference = function(e) {
-    var aid = $(e.currentTarget).attr('id');
-    var a = this.readerCtrl.__document.get(aid);
-    this.jumpToNode(a.target);
-  };
-
-
-  // Toggle on-off a resource
-  // --------
-  //
-
-  this.onContentScroll = function() {
-    var scrollTop = this.contentView.$el.scrollTop();
-    this.outline.updateVisibleArea(scrollTop);
-    this.markActiveHeading(scrollTop);
-  };
-
-
-  // Clear selection
-  // --------
-  //
-
-  this.markActiveHeading = function(scrollTop) {
-    var contentHeight = $('.nodes').height();
-
-    // No headings?
-    if (this.tocView.headings.length === 0) return;
-
-    // Use first heading as default
-    var activeNode = _.first(this.tocView.headings).id;
-
-    this.contentView.$('.content-node.heading').each(function() {
-      if (scrollTop >= $(this).position().top + CORRECTION) {
-        activeNode = this.id;
-      }
-    });
-
-    // Edge case: select last item (once we reach the end of the doc)
-    if (scrollTop + this.contentView.$el.height() >= contentHeight) {
-      activeNode = _.last(this.tocView.headings).id;
-    }
-    this.tocView.setActiveNode(activeNode);
-  };
-
-  // Toggle on-off a resource
-  // --------
-  //
-
-  this.toggleResource = function(id) {
-    var state = this.readerCtrl.state;
-    var node = state.node;
-    // Toggle off if already on
-    if (state.resource === id) {
-      id = null;
-      node = null;
-    }
-
-    this.readerCtrl.modifyState({
-      fullscreen: false,
-      resource: id,
-      node: node
-    });
-  };
-
-  // Jump to the given node id
-  // --------
-  //
-
-  this.jumpToNode = function(nodeId) {
-    var $n = $('#'+nodeId);
-    if ($n.length > 0) {
-      var topOffset = $n.position().top+CORRECTION;
-      this.contentView.$el.scrollTop(topOffset);
-    }
-  };
-
-  // Jump to the given resource id
-  // --------
-  //
-
-  this.jumpToResource = function(nodeId) {
-    var $n = $('#'+nodeId);
-    if ($n.length > 0) {
-      var topOffset = $n.position().top;
-
-      // TODO: Brute force for now
-      // Make sure to find out which resource view is currently active
-      if (this.figuresView) this.figuresView.$el.scrollTop(topOffset);
-      if (this.citationsView) this.citationsView.$el.scrollTop(topOffset);
-      if (this.infoView) this.infoView.$el.scrollTop(topOffset);
-    }
-  };
-
-
-  // Toggle on-off node focus
-  // --------
-  //
-
-  this.toggleNode = function(context, nodeId) {
-    var state = this.readerCtrl.state;
-
-    if (state.node === nodeId && state.context === context) {
-      // Toggle off -> reset, preserve the context
-      this.readerCtrl.modifyState({
-        context: this.readerCtrl.currentContext,
-        node: null,
-        resource: null
-      });
-    } else {
-      this.readerCtrl.modifyState({
-        context: context,
-        node: nodeId,
-        resource: null
-      });
-    }
-  };
-
-  // Explicit context switch
-  // --------
-  //
-
-  this.switchContext = function(context) {
-    this.readerCtrl.switchContext(context);
-  };
-
-  // Update Reader State
-  // --------
-  // 
-
-  this.updateState = function(options) {
-    options = options || {};
-    var state = this.readerCtrl.state;
-    var that = this;
-
-    // Set context on the reader view
-    // -------
-
-    this.$el.removeClass('toc figures citations info');
-    this.contentView.$('.content-node.active').removeClass('active');
-    this.$el.addClass(state.context);
-  
-    if (state.node) {
-      this.contentView.$('#'+state.node).addClass('active');
-    }
-
-    // According to the current context show active resource panel
-    // -------
-    this.updateResource();
-  };
-
-
-  // Based on the current application state, highlight the current resource
-  // -------
-  // 
-  // Triggered by updateState
-
-  this.updateResource = function() {
-    var state = this.readerCtrl.state;
-    this.$('.resources .content-node.active').removeClass('active fullscreen');
-    this.contentView.$('.annotation.active').removeClass('active');
-    
-    if (state.resource) {
-      // Show selected resource
-      var $res = this.$('#'+state.resource);
-      $res.addClass('active');
-      if (state.fullscreen) $res.addClass('fullscreen');
-
-      // Mark all annotations that reference the resource
-      var annotations = this.resources.get(state.resource);
-      
-      _.each(annotations, function(a) {
-        this.contentView.$('#'+a.id).addClass('active');
-      }, this);
-
-      // Update outline
-    } else {
-      // Hide all resources
-    }
-
-    this.updateOutline();
-  };
-
-  // Whenever the app state changes
-  // --------
-  // 
-  // Triggered by updateResource.
-
-  this.updateOutline = function() {
-    var that = this;
-
-    var state = this.readerCtrl.state;
-    var container = this.readerCtrl.content.container;
-
-    // Find all annotations
-    // TODO: this is supposed to be slow -> optimize
-    var annotations = _.filter(this.readerCtrl.content.getAnnotations(), function(a) {
-      return a.target && a.target === state.resource;
-    }, this);
-
-    var nodes = _.uniq(_.map(annotations, function(a) {
-      var nodeId = container.getRoot(a.path[0]);
-      return nodeId;
-    }));
-
-    that.outline.update({
-      context: state.context,
-      selectedNode: state.node,
-      highlightedNodes: nodes
-    });
-  };
-
-  // Annotate current selection
-  // --------
-  //
-
-  this.annotate = function(type) {
-    this.readerCtrl.content.annotate(type);
-    return false;
-  };
-
-  // Rendering
-  // --------
-  //
-
-  this.render = function() {
-    var that = this;
-
-    var state = this.readerCtrl.state;
-    this.el.appendChild(new Renderer(this));
-
-    // After rendering make reader reflect the app state
-    this.$('.document').append(that.outline.el);
-
-    // Await next UI tick to update layout and outline
-    _.delay(function() {
-      // Render outline that sticks on this.surface
-      // that.updateLayout();
-      that.updateState();
-      MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-    }, 1);
-
-    // Wait for stuff to be rendered (e.g. formulas)
-    // TODO: use a handler? MathJax.Hub.Queue(fn) does not work for some reason
-
-    _.delay(function() {
-      that.updateOutline();
-    }, 2000);
-
-    var lazyOutline = _.debounce(function() {
-      // that.updateLayout();
-      that.updateOutline();
-    }, 1);
-
-    // Jump marks for teh win
-    if (state.node) {
-      _.delay(function() {
-        that.jumpToNode(state.node);
-        if (state.resource) {
-          that.jumpToResource(state.resource);
-        }
-      }, 100);
-    }
-
-    $(window).resize(lazyOutline);
-    
-    return this;
-  };
-
-  // Recompute Layout properties
-  // --------
-  // 
-  // This fixes some issues that can't be dealth with CSS
-
-  // this.updateLayout = function() {
-  //   // var docWidth = this.$('.document').width();
-  //   // 15 = margin for arrows, 42 ?? WTF
-  //   // this.contentView.$('.nodes > .content-node').css('width', docWidth - 15 - 42);
-  // },
-
-  // Free the memory.
-  // --------
-  //
-
-  this.dispose = function() {
-    this.contentView.dispose();
-    if (this.figuresView) this.figuresView.dispose();
-    if (this.citationsView) this.citationsView.dispose();
-    if (this.infoView) this.infoView.dispose();
-    this.stopListening();
-  };
-};
-
-ReaderView.Prototype.prototype = View.prototype;
-ReaderView.prototype = new ReaderView.Prototype();
-ReaderView.prototype.constructor = ReaderView;
-
-module.exports = ReaderView;
-
-},{"lens-outline":2,"substance-application":7,"substance-data":29,"substance-surface":99,"substance-toc":101,"substance-util":103,"underscore":108}],7:[function(require,module,exports){
+},{"substance-application":5,"underscore":109}],5:[function(require,module,exports){
 "use strict";
 
 var Application = require("./src/application");
@@ -959,7 +214,7 @@ Application.$$ = Application.ElementRenderer.$$;
 
 module.exports = Application;
 
-},{"./src/application":8,"./src/controller":9,"./src/renderers/element_renderer":10,"./src/router":11,"./src/view":12}],8:[function(require,module,exports){
+},{"./src/application":6,"./src/controller":7,"./src/renderers/element_renderer":8,"./src/router":9,"./src/view":10}],6:[function(require,module,exports){
 "use strict";
 
 var View = require("./view");
@@ -1016,7 +271,7 @@ Application.prototype = new Application.Prototype();
 
 module.exports = Application;
 
-},{"./router":11,"./view":12,"substance-util":103,"underscore":108}],9:[function(require,module,exports){
+},{"./router":9,"./view":10,"substance-util":104,"underscore":109}],7:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -1073,7 +328,7 @@ Controller.Prototype.prototype = util.Events;
 Controller.prototype = new Controller.Prototype();
 
 module.exports = Controller;
-},{"substance-util":103,"underscore":108}],10:[function(require,module,exports){
+},{"substance-util":104,"underscore":109}],8:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -1184,7 +439,7 @@ ElementRenderer.Prototype.prototype = util.Events;
 ElementRenderer.prototype = new ElementRenderer.Prototype();
 
 module.exports = ElementRenderer;
-},{"substance-regexp":97,"substance-util":103}],11:[function(require,module,exports){
+},{"substance-regexp":98,"substance-util":104}],9:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -1504,7 +759,7 @@ Router.history = new History;
 
 
 module.exports = Router;
-},{"substance-util":103,"underscore":108}],12:[function(require,module,exports){
+},{"substance-util":104,"underscore":109}],10:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -1579,27 +834,29 @@ View.prototype = new View.Prototype();
 
 module.exports = View;
 
-},{"substance-util":103}],13:[function(require,module,exports){
+},{"substance-util":104}],11:[function(require,module,exports){
 "use strict";
 
 var Article = require("./src/article");
 Article.Renderer = require("./src/renderer");
 
 module.exports = Article;
-},{"./src/article":15,"./src/renderer":16}],14:[function(require,module,exports){
+},{"./src/article":13,"./src/renderer":14}],12:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
 
 var nodes = {};
 
+// TODO: we should change the 'substance-nodes' module in that way,
+// that it provides a function that gives the cloned set
 _.each(require("substance-nodes"), function(spec, name) {
   nodes[name] = _.clone(spec);
 });
 
 module.exports = nodes;
 
-},{"substance-nodes":47,"underscore":108}],15:[function(require,module,exports){
+},{"substance-nodes":45,"underscore":109}],13:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -1618,9 +875,8 @@ var Article = function(options) {
   // --------
 
   options.schema = util.deepclone(Document.schema);
-
   options.schema.id = "substance-article";
-  options.schema.version = "0.1.0";
+  options.schema.version = "0.2.0";
 
   // Merge in custom types
   _.each(Article.types, function(type, key) {
@@ -1631,7 +887,6 @@ var Article = function(options) {
   _.each(Article.annotations, function(aType, key) {
     options.schema.types[key] = aType;
   });
-
 
   // Merge in node types
   _.each(Article.nodeTypes, function(node, key) {
@@ -1703,7 +958,6 @@ Article.fromSnapshot = function(data, options) {
 
 Article.views = ["content"];
 
-
 // Register node types
 // --------
 
@@ -1714,7 +968,6 @@ Article.nodeTypes = require("../nodes");
 // --------
 
 Article.annotations = {
-
   "strong": {
     "parent": "annotation",
     "properties": {
@@ -1788,7 +1041,6 @@ Article.annotations = {
       "target": "content"
     }
   }
-
 };
 
 // Custom type definitions
@@ -1853,6 +1105,157 @@ Article.indexes = {
   }
 };
 
+
+// From article definitions generate a nice reference document
+// --------
+//
+
+var ARTICLE_DOC_SEED = {
+  "id": "article",
+  "nodes": {
+    "document": {
+      "type": "document",
+      "id": "document",
+      "views": [
+        "content",
+        "info"
+      ],
+      "title": "The Anatomy of a Substance Article",
+      "collaborators": ["collaborator_1", "collaborator_2"],
+      "guid": "lens_article"
+    },
+
+    "content": {
+      "type": "view",
+      "id": "content",
+      "nodes": [
+        "cover",
+      ]
+    },
+
+    "cover": {
+      "id": "cover",
+      "type": "cover",
+      "collaborators": ["collaborator_1", "collaborator_2"]
+    },
+
+    "collaborator_1": {
+      "id": "collaborator_1",
+      "type": "collaborator",
+      "name": "Michael Aufreiter"
+    },
+
+    "collaborator_2": {
+      "id": "collaborator_2",
+      "type": "collaborator",
+      "name": "Oliver Buchtala"
+    }
+  }
+};
+
+Article.describe = function() {
+  var doc = new Article({seed: ARTICLE_DOC_SEED});
+
+  var id = 0;
+
+  _.each(Article.nodeTypes, function(nodeType, key) {
+    if (key === "composite") return;
+    nodeType = nodeType.Model;
+
+    // Create a heading for each node type
+    var headingId = "heading_"+nodeType.type.id;
+
+    doc.create({
+      id: headingId,
+      type: "heading",
+      content: nodeType.description.name,
+      level: 1
+    });
+
+    // Turn remarks and description into an introduction paragraph
+    var introText = nodeType.description.remarks.join(' ');
+    var introId = "text_"+nodeType.type.id+"_intro";
+
+    doc.create({
+      id: introId,
+      type: "text",
+      content: introText,
+    });
+
+
+    // Show it in the content view
+    doc.show("content", [headingId, introId], -1);
+
+    // Include property description
+    // --------
+    //
+
+    doc.create({
+      id: headingId+"_properties",
+      type: "text",
+      content: nodeType.description.name+ " uses the following properties:"
+    });
+
+    doc.show("content", [headingId+"_properties"], -1);
+
+    var items = [];
+
+    _.each(nodeType.description.properties, function(propertyDescr, key) {
+
+      var listItemId = "text_" + (++id);
+      doc.create({
+        id: listItemId,
+        type: "text",
+        content: key +": " + propertyDescr
+      });
+
+      // Create code annotation for the propertyName
+      doc.create({
+        "id": id+"_annotation",
+        "type": "code",
+        "path": [listItemId, "content"],
+        "range":[0, key.length]
+      });
+
+      items.push(listItemId);
+    });
+
+    // Create list
+    doc.create({
+      id: headingId+"_property_list",
+      type: "list",
+      items: items,
+      ordered: false
+    });
+
+    // And show it
+    doc.show("content", [headingId+"_property_list"], -1);
+
+    // Include example
+    // --------
+
+    if (nodeType.example) {
+      doc.create({
+        id: headingId+"_example",
+        type: "text",
+        content: "Here's an example:"
+      });
+
+      doc.create({
+        id: headingId+"_example_codeblock",
+        type: "codeblock",
+        content: JSON.stringify(nodeType.example, null, '  '),
+      });
+      doc.show("content", [headingId+"_example", headingId+"_example_codeblock"], -1);
+    }
+  });
+
+  return doc;
+};
+
+
+
+
 Article.Prototype.prototype = Document.prototype;
 Article.prototype = new Article.Prototype();
 Article.prototype.constructor = Article;
@@ -1883,6 +1286,14 @@ Object.defineProperties(Article.prototype, {
       this.get("document").created_at = created_at;
     }
   },
+  published_on: {
+    get: function () {
+      return this.get("document").published_on;
+    },
+    set: function(published_on) {
+      this.get("document").published_on = published_on;
+    }
+  },
   title: {
     get: function () {
       return this.get("document").title;
@@ -1909,7 +1320,7 @@ Object.defineProperties(Article.prototype, {
 
 module.exports = Article;
 
-},{"../nodes":14,"substance-document":36,"substance-util":103,"underscore":108}],16:[function(require,module,exports){
+},{"../nodes":12,"substance-document":34,"substance-util":104,"underscore":109}],14:[function(require,module,exports){
 var Article = require('./article');
 var _ = require("underscore");
 
@@ -1988,7 +1399,7 @@ Renderer.prototype = new Renderer.Prototype();
 
 module.exports = Renderer;
 
-},{"./article":15,"underscore":108}],17:[function(require,module,exports){
+},{"./article":13,"underscore":109}],15:[function(require,module,exports){
 "use strict";
 
 var Chronicle = require('./src/chronicle');
@@ -2007,7 +1418,7 @@ Chronicle.TextOperationAdapter = require('./src/text_adapter');
 
 module.exports = Chronicle;
 
-},{"./src/array_adapter":18,"./src/chronicle":19,"./src/chronicle_impl":20,"./src/diff_impl":21,"./src/index_impl":22,"./src/text_adapter":23,"./src/tmp_index":24}],18:[function(require,module,exports){
+},{"./src/array_adapter":16,"./src/chronicle":17,"./src/chronicle_impl":18,"./src/diff_impl":19,"./src/index_impl":20,"./src/text_adapter":21,"./src/tmp_index":22}],16:[function(require,module,exports){
 "use strict";
 
 var util = require('substance-util');
@@ -2049,7 +1460,7 @@ ArrayOperationAdapter.prototype = new ArrayOperationAdapter.Prototype();
 
 module.exports = ArrayOperationAdapter;
 
-},{"./chronicle":19,"substance-operator":90,"substance-util":103}],19:[function(require,module,exports){
+},{"./chronicle":17,"substance-operator":91,"substance-util":104}],17:[function(require,module,exports){
 "use strict";
 
 /*jshint unused: false*/ // deactivating this, as we define abstract interfaces here
@@ -2750,7 +2161,7 @@ Chronicle.mergeConflict = function(a, b) {
 
 module.exports = Chronicle;
 
-},{"substance-util":103,"underscore":108}],20:[function(require,module,exports){
+},{"substance-util":104,"underscore":109}],18:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -3396,7 +2807,7 @@ ChronicleImpl.create = function(options) {
 
 module.exports = ChronicleImpl;
 
-},{"./chronicle":19,"substance-util":103,"underscore":108}],21:[function(require,module,exports){
+},{"./chronicle":17,"substance-util":104,"underscore":109}],19:[function(require,module,exports){
 var _ = require("underscore");
 var Chronicle = require("./chronicle");
 
@@ -3466,7 +2877,7 @@ DiffImpl.create = function(id, reverts, applies) {
 
 module.exports = DiffImpl;
 
-},{"./chronicle":19,"underscore":108}],22:[function(require,module,exports){
+},{"./chronicle":17,"underscore":109}],20:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -3790,7 +3201,7 @@ IndexImpl.create = function(options) {
 
 module.exports = IndexImpl;
 
-},{"./chronicle":19,"substance-util":103,"underscore":108}],23:[function(require,module,exports){
+},{"./chronicle":17,"substance-util":104,"underscore":109}],21:[function(require,module,exports){
 "use strict";
 
 var util = require('substance-util');
@@ -3830,7 +3241,7 @@ TextOperationAdapter.prototype = new TextOperationAdapter.Prototype();
 
 module.exports = TextOperationAdapter;
 
-},{"./chronicle":19,"substance-operator":90,"substance-util":103}],24:[function(require,module,exports){
+},{"./chronicle":17,"substance-operator":91,"substance-util":104}],22:[function(require,module,exports){
 var _ = require("underscore");
 var util = require("substance-util");
 var errors = util.errors;
@@ -3912,7 +3323,7 @@ TmpIndex.prototype = new TmpIndex.Prototype();
 
 module.exports = TmpIndex;
 
-},{"./index_impl":22,"substance-util":103,"underscore":108}],25:[function(require,module,exports){
+},{"./index_impl":20,"substance-util":104,"underscore":109}],23:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -3920,7 +3331,7 @@ module.exports = {
   Mousetrap: require("./src/mousetrap")
 };
 
-},{"./src/keyboard":27,"./src/mousetrap":28}],26:[function(require,module,exports){
+},{"./src/keyboard":25,"./src/mousetrap":26}],24:[function(require,module,exports){
 /*global define:false */
 /**
  * Copyright 2013 Craig Campbell
@@ -4866,7 +4277,7 @@ module.exports = {
     }
 }) ();
 
-},{}],27:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 "use strict";
 
 require("../lib/mousetrap");
@@ -5072,7 +4483,7 @@ Keyboard.prototype = new Keyboard.Prototype();
 
 module.exports = Keyboard;
 
-},{"../lib/mousetrap":26}],28:[function(require,module,exports){
+},{"../lib/mousetrap":24}],26:[function(require,module,exports){
 "use strict";
 
 /**
@@ -6011,7 +5422,7 @@ Mousetrap.prototype = new Mousetrap.Prototype();
 
 module.exports = Mousetrap;
 
-},{}],29:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 "use strict";
 
 var Data = {};
@@ -6023,7 +5434,7 @@ Data.Graph = require('./src/graph');
 
 module.exports = Data;
 
-},{"./src/graph":31}],30:[function(require,module,exports){
+},{"./src/graph":29}],28:[function(require,module,exports){
 "use strict";
 
 var Chronicle = require('substance-chronicle');
@@ -6070,14 +5481,7 @@ ChronicleAdapter.prototype = new ChronicleAdapter.Prototype();
 
 module.exports = ChronicleAdapter;
 
-},{"substance-chronicle":17,"substance-operator":90}],31:[function(require,module,exports){
-//     (c) 2013 Michael Aufreiter, Oliver Buchtala
-//     Data.js is freely distributable under the MIT license.
-//     Portions of Data.js are inspired or borrowed from Underscore.js,
-//     Backbone.js and Google's Visualization API.
-//     For all details and documentation:
-//     http://github.com/michael/data
-
+},{"substance-chronicle":15,"substance-operator":91}],29:[function(require,module,exports){
 "use strict";
 
 var _ = require('underscore');
@@ -6843,7 +6247,7 @@ Graph.Index = Index;
 
 module.exports = Graph;
 
-},{"./chronicle_adapter":30,"./graph_index":32,"./persistence_adapter":33,"./property":34,"./schema":35,"substance-chronicle":17,"substance-operator":90,"substance-util":103,"underscore":108}],32:[function(require,module,exports){
+},{"./chronicle_adapter":28,"./graph_index":30,"./persistence_adapter":31,"./property":32,"./schema":33,"substance-chronicle":15,"substance-operator":91,"substance-util":104,"underscore":109}],30:[function(require,module,exports){
 var _ = require("underscore");
 var util = require("substance-util");
 
@@ -7031,7 +6435,7 @@ Index.typeFilter = function(schema, types) {
 
 module.exports = Index;
 
-},{"substance-util":103,"underscore":108}],33:[function(require,module,exports){
+},{"substance-util":104,"underscore":109}],31:[function(require,module,exports){
 "use strict";
 
 var Operator = require('substance-operator');
@@ -7074,7 +6478,7 @@ PersistenceAdapter.prototype = new PersistenceAdapter.Prototype();
 
 module.exports = PersistenceAdapter;
 
-},{"substance-operator":90}],34:[function(require,module,exports){
+},{"substance-operator":91}],32:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7177,7 +6581,7 @@ Object.defineProperties(Property.prototype, {
 
 module.exports = Property;
 
-},{"underscore":108}],35:[function(require,module,exports){
+},{"underscore":109}],33:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7352,7 +6756,7 @@ Schema.prototype = new Schema.Prototype();
 
 module.exports = Schema;
 
-},{"substance-util":103,"underscore":108}],36:[function(require,module,exports){
+},{"substance-util":104,"underscore":109}],34:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7377,7 +6781,7 @@ Document.Writer = require('./src/controller');
 
 module.exports = Document;
 
-},{"./src/annotator":37,"./src/composite":39,"./src/container":40,"./src/controller":41,"./src/cursor":42,"./src/document":43,"./src/node":44,"./src/selection":45,"./src/text_node":46,"underscore":108}],37:[function(require,module,exports){
+},{"./src/annotator":35,"./src/composite":37,"./src/container":38,"./src/controller":39,"./src/cursor":40,"./src/document":41,"./src/node":42,"./src/selection":43,"./src/text_node":44,"underscore":109}],35:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -8069,7 +7473,7 @@ Annotator.Fragmenter = Fragmenter;
 
 module.exports = Annotator;
 
-},{"./document":43,"./selection":45,"substance-data":29,"substance-operator":90,"substance-util":103,"underscore":108}],38:[function(require,module,exports){
+},{"./document":41,"./selection":43,"substance-data":27,"substance-operator":91,"substance-util":104,"underscore":109}],36:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -8114,7 +7518,7 @@ Clipboard.prototype = new Clipboard.Prototype();
 
 module.exports = Clipboard;
 
-},{"substance-util":103,"underscore":108}],39:[function(require,module,exports){
+},{"substance-util":104,"underscore":109}],37:[function(require,module,exports){
 var DocumentNode = require("./node");
 
 var Composite = function(node, doc) {
@@ -8217,7 +7621,7 @@ Composite.prototype = new Composite.Prototype();
 
 module.exports = Composite;
 
-},{"./node":44}],40:[function(require,module,exports){
+},{"./node":42}],38:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -8451,7 +7855,7 @@ Object.defineProperties(Container.prototype, {
 
 module.exports = Container;
 
-},{"./composite":39,"substance-util":103,"underscore":108}],41:[function(require,module,exports){
+},{"./composite":37,"substance-util":104,"underscore":109}],39:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -9051,7 +8455,7 @@ Controller.ManipulationSession = ManipulationSession;
 
 module.exports = Controller;
 
-},{"./annotator":37,"./clipboard":38,"./composite":39,"./selection":45,"substance-operator":90,"substance-util":103,"underscore":108}],42:[function(require,module,exports){
+},{"./annotator":35,"./clipboard":36,"./composite":37,"./selection":43,"substance-operator":91,"substance-util":104,"underscore":109}],40:[function(require,module,exports){
 var _ = require("underscore");
 var SRegExp = require("substance-regexp");
 var util = require("substance-util");
@@ -9288,7 +8692,7 @@ Object.defineProperties(Cursor.prototype, {
 
 module.exports = Cursor;
 
-},{"substance-regexp":97,"substance-util":103,"underscore":108}],43:[function(require,module,exports){
+},{"substance-regexp":98,"substance-util":104,"underscore":109}],41:[function(require,module,exports){
 "use strict";
 
 // Substance.Document 0.5.0
@@ -9501,56 +8905,6 @@ Document.Prototype = function() {
   // --------
   //
 
-// Deactivated this as it does not work and breaks everything
-/*
-  this.startSimulation = function() {
-
-    var parent = this;
-
-    var doc = _.extend({}, this);
-    doc._events = [];
-    doc.objectAdapter = new Data.Graph.ObjectAdapter(doc);
-
-    // remember the original state
-    var initialState = this.chronicle.getState();
-
-    // create a temporary chronicle index
-    doc.chronicle = _.extend({}, this.chronicle);
-    doc.chronicle.manage(new Data.Graph.ChronicleAdapter(doc));
-    doc.chronicle.index = new Chronicle.TmpIndex(this.chronicle.index);
-
-    // inject a recording apply method
-    var ops = [];
-    var __apply__ = this.apply;
-    doc.apply = function(op) {
-      op = __apply__.call(this, op);
-      ops.push(op);
-      return op;
-    };
-
-    doc.save = function() {
-      var _ops = [];
-      for (var i = 0; i < ops.length; i++) {
-        if (ops[i].type !== "compound") {
-          _ops.push(ops[i]);
-        } else {
-          _ops = _ops.concat(ops[i].ops);
-        }
-      }
-      var compound = Operator.ObjectOperation.Compound(_ops);
-      this.chronicle.reset(initialState);
-
-      parent.apply(compound);
-    };
-
-    return doc;
-  };
-*/
-
-  // Start simulation, which conforms to a transaction (think databases)
-  // --------
-  //
-
   this.startSimulation = function() {
     // TODO: this should be implemented in a more cleaner and efficient way.
     // Though, for now and sake of simplicity done by creating a copy
@@ -9584,7 +8938,6 @@ Document.Prototype = function() {
 
       var compound = Operator.ObjectOperation.Compound(_ops);
       self.apply(compound);
-      // console.log("Saved simulated ops", self);
     };
 
     return simulation;
@@ -9616,7 +8969,7 @@ Document.DocumentError = DocumentError;
 
 module.exports = Document;
 
-},{"./container":40,"substance-chronicle":17,"substance-data":29,"substance-operator":90,"substance-util":103,"underscore":108}],44:[function(require,module,exports){
+},{"./container":38,"substance-chronicle":15,"substance-data":27,"substance-operator":91,"substance-util":104,"underscore":109}],42:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -9755,7 +9108,7 @@ Node.defineProperties(Node.prototype, ["id", "type"]);
 
 module.exports = Node;
 
-},{"underscore":108}],45:[function(require,module,exports){
+},{"underscore":109}],43:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -10312,7 +9665,7 @@ Selection.SelectionError = SelectionError;
 
 module.exports = Selection;
 
-},{"./cursor":42,"substance-util":103,"underscore":108}],46:[function(require,module,exports){
+},{"./cursor":40,"substance-util":104,"underscore":109}],44:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -10491,7 +9844,7 @@ DocumentNode.defineProperties(Text.prototype, ["content"]);
 
 module.exports = Text;
 
-},{"./node":44,"substance-operator":90,"substance-regexp":97,"underscore":108}],47:[function(require,module,exports){
+},{"./node":42,"substance-operator":91,"substance-regexp":98,"underscore":109}],45:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10508,10 +9861,11 @@ module.exports = {
   "table": require("./src/table"),
   "figure": require("./src/figure"),
   "collaborator": require("./src/collaborator"),
-  "cover": require("./src/cover")
+  "cover": require("./src/cover"),
+  "description": require("./src/description")
 };
 
-},{"./src/codeblock":50,"./src/collaborator":53,"./src/composite":56,"./src/cover":59,"./src/figure":62,"./src/formula":65,"./src/heading":68,"./src/image":71,"./src/list":72,"./src/node":75,"./src/paragraph":78,"./src/table":81,"./src/text":84,"./src/web_resource":87}],48:[function(require,module,exports){
+},{"./src/codeblock":48,"./src/collaborator":51,"./src/composite":54,"./src/cover":57,"./src/description":60,"./src/figure":63,"./src/formula":66,"./src/heading":69,"./src/image":72,"./src/list":73,"./src/node":76,"./src/paragraph":79,"./src/table":82,"./src/text":85,"./src/web_resource":88}],46:[function(require,module,exports){
 "use strict";
 
 var Text = require("../text/text_node");
@@ -10570,7 +9924,7 @@ Codeblock.prototype.constructor = Codeblock;
 module.exports = Codeblock;
 
 
-},{"../text/text_node":85}],49:[function(require,module,exports){
+},{"../text/text_node":86}],47:[function(require,module,exports){
 "use strict";
 
 var TextView = require('../text/text_view');
@@ -10591,7 +9945,7 @@ CodeblockView.prototype = new CodeblockView.Prototype();
 
 module.exports = CodeblockView;
 
-},{"../text/text_view":86}],50:[function(require,module,exports){
+},{"../text/text_view":87}],48:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10599,7 +9953,7 @@ module.exports = {
   View: require("./codeblock_view")
 };
 
-},{"./codeblock":48,"./codeblock_view":49}],51:[function(require,module,exports){
+},{"./codeblock":46,"./codeblock_view":47}],49:[function(require,module,exports){
 var _ = require('underscore');
 var Node = require('substance-document').Node;
 
@@ -10697,7 +10051,7 @@ _.each(Collaborator.type.properties, function(prop, key) {
 Object.defineProperties(Collaborator.prototype, getters);
 module.exports = Collaborator;
 
-},{"substance-document":36,"underscore":108}],52:[function(require,module,exports){
+},{"substance-document":34,"underscore":109}],50:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -10774,7 +10128,7 @@ CollaboratorView.prototype = new CollaboratorView.Prototype();
 
 module.exports = CollaboratorView;
 
-},{"../node":75,"substance-application":7,"substance-util":103,"underscore":108}],53:[function(require,module,exports){
+},{"../node":76,"substance-application":5,"substance-util":104,"underscore":109}],51:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10782,14 +10136,14 @@ module.exports = {
   View: require("./collaborator_view")
 };
 
-},{"./collaborator":51,"./collaborator_view":52}],54:[function(require,module,exports){
+},{"./collaborator":49,"./collaborator_view":50}],52:[function(require,module,exports){
 "use strict";
 
 // Note: we leave the Composite in `substance-document` as it is an essential part of the API.
 var Document = require("substance-document");
 module.exports = Document.Composite;
 
-},{"substance-document":36}],55:[function(require,module,exports){
+},{"substance-document":34}],53:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node").View;
@@ -10868,7 +10222,7 @@ CompositeView.prototype = new CompositeView.Prototype();
 
 module.exports = CompositeView;
 
-},{"../node":75}],56:[function(require,module,exports){
+},{"../node":76}],54:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10876,7 +10230,7 @@ module.exports = {
   View: require("./composite_view")
 };
 
-},{"./composite":54,"./composite_view":55}],57:[function(require,module,exports){
+},{"./composite":52,"./composite_view":53}],55:[function(require,module,exports){
 var _ = require('underscore');
 var DocumentNode = require('../node/node');
 
@@ -10963,12 +10317,13 @@ Object.defineProperties(Cover.prototype, {
 
 module.exports = Cover;
 
-},{"../node/node":76,"underscore":108}],58:[function(require,module,exports){
+},{"../node/node":77,"underscore":109}],56:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
 var NodeView = require("../node/node_view");
 var $$ = require("substance-application").$$;
+
 
 // Lens.Cover.View
 // ==========================================================================
@@ -10980,14 +10335,21 @@ var CoverView = function(node, viewFactory) {
   this.$el.addClass("content-node cover");
 };
 
-
 CoverView.Prototype = function() {
 
   this.render = function() {
     NodeView.prototype.render.call(this);
     var node = this.node;
 
+    if (this.node.document.published_on) {
+      this.content.appendChild($$('.published-on', {
+        html: new Date(this.node.document.published_on).toDateString()
+      }));      
+    }
+
+
     this.content.appendChild($$('.title', {text: node.title }));
+
 
     var authorRefs = this.node.getAuthorRefs();
     if (authorRefs) {
@@ -11000,7 +10362,8 @@ CoverView.Prototype = function() {
         authorRefEl = document.createElement("SPAN");
         // TODO: use data-* attribute to store the referenced collaborator node
         authorRefEl.setAttribute("id", ref.id);
-        authorRefEl.classList.add("annotation", "person_reference");
+        authorRefEl.classList.add("annotation");
+        authorRefEl.classList.add("person_reference");
         authorRefEl.innerHTML = author.name;
         authorsEl.appendChild(authorRefEl);
       }
@@ -11020,7 +10383,7 @@ CoverView.prototype = new CoverView.Prototype();
 
 module.exports = CoverView;
 
-},{"../node/node_view":77,"substance-application":7,"underscore":108}],59:[function(require,module,exports){
+},{"../node/node_view":78,"substance-application":5,"underscore":109}],57:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11028,7 +10391,129 @@ module.exports = {
   View: require('./cover_view')
 };
 
-},{"./cover":57,"./cover_view":58}],60:[function(require,module,exports){
+},{"./cover":55,"./cover_view":56}],58:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var Document = require("substance-document");
+var DocumentNode = Document.Node;
+var Composite = Document.Composite;
+
+var Description = function(node, document) {
+  Composite.call(this, node, document);
+};
+
+Description.type = {
+  "id": "description",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "topic": "text",
+    "body": "paragraph"
+  }
+};
+
+Description.description = {
+  "name": "Description",
+  "remarks": [
+    "A Description consists of two components: a topic and its textual description."
+  ],
+  "properties": {
+    "topic": "The entity to be described",
+    "body": "A paragraph containing content which describe the topic",
+  }
+};
+
+Description.example = {
+  "type": "description",
+  "id": "description_1",
+  "topic": "text_1",
+  "body": "paragraph_2"
+};
+
+Description.Prototype = function() {
+
+  this.getLength = function() {
+    return 2;
+  };
+
+  this.getNodes = function() {
+    return [this.properties.topic, this.properties.body];
+  };
+
+  this.getTopic = function() {
+    return this.document.get(this.properties.topic);
+  };
+
+  this.getBody = function() {
+    return this.document.get(this.properties.body);
+  };
+
+};
+
+Description.Prototype.prototype = Composite.prototype;
+Description.prototype = new Description.Prototype();
+Description.prototype.constructor = Description;
+
+DocumentNode.defineProperties(Description.prototype, ["topic", "body"]);
+
+module.exports = Description;
+
+},{"substance-document":34,"underscore":109}],59:[function(require,module,exports){
+"use strict";
+
+var NodeView = require("../node").View;
+
+var DescriptionView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+
+  this.$el.addClass('description');
+  this.$el.attr('id', this.node.id);
+};
+
+DescriptionView.Prototype = function() {
+
+  this.render = function() {
+
+    var content = document.createElement('div');
+    content.className = 'content';
+
+    var topicEl = document.createElement('div');
+    topicEl.className = 'topic';
+    var topicView = this.viewFactory.createView(this.node.getTopic());
+    topicEl.appendChild(topicView.render().el);
+    this._topicEl = topicEl;
+
+    var bodyEl = document.createElement('div');
+    bodyEl.className = 'body';
+    var bodyView = this.viewFactory.createView(this.node.getBody());
+    bodyEl.appendChild(bodyView.render().el);
+    this._bodyEl = bodyEl;
+
+    content.appendChild(topicEl);
+    content.appendChild(bodyEl);
+
+    this.el.appendChild(content);
+
+    return this;
+  };
+
+};
+
+DescriptionView.Prototype.prototype = NodeView.prototype;
+DescriptionView.prototype = new DescriptionView.Prototype();
+
+module.exports = DescriptionView;
+
+},{"../node":76}],60:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./description"),
+  View: require("./description_view")
+};
+
+},{"./description":58,"./description_view":59}],61:[function(require,module,exports){
 "use strict";
 
 var Document = require("substance-document");
@@ -11038,12 +10523,40 @@ var Figure = function(node, document) {
 };
 
 Figure.type = {
+  "id": "figure",
   "parent": "content",
   "properties": {
     "url": "string",
     "label": "string",
     "caption": "paragraph"
   }
+};
+
+Figure.description = {
+  "name": "Figure",
+  "remarks": [
+    "A figure is a figure is figure."
+  ],
+  "properties": {
+    "label": "Figure label (e.g. Figure 1)",
+    "url": "Image url",
+    "caption": "A reference to a paragraph that describes the figure",
+  }
+};
+
+// Example Figure
+// -----------------
+//
+
+Figure.example = {
+  "id": "figure_1",
+  "label": "Figure 1",
+  "url": "http://example.com/fig1.png",
+  "caption": "paragraph_1"
+};
+
+Figure.config = {
+  "zoomable": true
 };
 
 Figure.Prototype = function() {
@@ -11118,7 +10631,7 @@ Object.defineProperties(Figure.prototype, {
 
 module.exports = Figure;
 
-},{"substance-document":36}],61:[function(require,module,exports){
+},{"substance-document":34}],62:[function(require,module,exports){
 "use strict";
 
 var CompositeView = require("../composite").View;
@@ -11172,7 +10685,7 @@ FigureView.prototype = new FigureView.Prototype();
 
 module.exports = FigureView;
 
-},{"../composite":56,"substance-application":7}],62:[function(require,module,exports){
+},{"../composite":54,"substance-application":5}],63:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11180,7 +10693,7 @@ module.exports = {
   View: require('./figure_view')
 };
 
-},{"./figure":60,"./figure_view":61}],63:[function(require,module,exports){
+},{"./figure":61,"./figure_view":62}],64:[function(require,module,exports){
 var _ = require('underscore');
 var Node = require('substance-document').Node;
 
@@ -11264,7 +10777,7 @@ Object.defineProperties(Formula.prototype, getters);
 
 module.exports = Formula;
 
-},{"substance-document":36,"underscore":108}],64:[function(require,module,exports){
+},{"substance-document":34,"underscore":109}],65:[function(require,module,exports){
 "use strict";
 
 var NodeView = require('../node').View;
@@ -11330,7 +10843,7 @@ FormulaView.prototype = new FormulaView.Prototype();
 
 module.exports = FormulaView;
 
-},{"../node":75}],65:[function(require,module,exports){
+},{"../node":76}],66:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11338,7 +10851,7 @@ module.exports = {
   View: require('./formula_view')
 };
 
-},{"./formula":63,"./formula_view":64}],66:[function(require,module,exports){
+},{"./formula":64,"./formula_view":65}],67:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require("substance-document").Node;
@@ -11401,7 +10914,7 @@ DocumentNode.defineProperties(Heading.prototype, ["level"]);
 
 module.exports = Heading;
 
-},{"../text/text_node":85,"substance-document":36}],67:[function(require,module,exports){
+},{"../text/text_node":86,"substance-document":34}],68:[function(require,module,exports){
 "use strict";
 
 var TextView = require('../text/text_view');
@@ -11414,7 +10927,7 @@ var HeadingView = function(node) {
 
   this.$el.addClass('heading');
   this.$el.addClass('level-'+this.node.level);
-
+  this.$el.attr('title', "Click to set anchor. Great for sharing!");
 };
 
 HeadingView.Prototype = function() {};
@@ -11424,7 +10937,7 @@ HeadingView.prototype = new HeadingView.Prototype();
 
 module.exports = HeadingView;
 
-},{"../text/text_view":86}],68:[function(require,module,exports){
+},{"../text/text_view":87}],69:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11432,7 +10945,7 @@ module.exports = {
   View: require("./heading_view")
 };
 
-},{"./heading":66,"./heading_view":67}],69:[function(require,module,exports){
+},{"./heading":67,"./heading_view":68}],70:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require("substance-document").Node;
@@ -11485,7 +10998,7 @@ ImageNode.prototype.constructor = ImageNode;
 
 module.exports = ImageNode;
 
-},{"../web_resource/web_resource":88,"substance-document":36}],70:[function(require,module,exports){
+},{"../web_resource/web_resource":89,"substance-document":34}],71:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node").View;
@@ -11576,7 +11089,7 @@ ImageView.prototype = new ImageView.Prototype();
 
 module.exports = ImageView;
 
-},{"../node":75}],71:[function(require,module,exports){
+},{"../node":76}],72:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11584,7 +11097,7 @@ module.exports = {
   View: require("./image_view")
 };
 
-},{"./image":69,"./image_view":70}],72:[function(require,module,exports){
+},{"./image":70,"./image_view":71}],73:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11592,7 +11105,7 @@ module.exports = {
   View: require("./list_view")
 };
 
-},{"./list":73,"./list_view":74}],73:[function(require,module,exports){
+},{"./list":74,"./list_view":75}],74:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -11726,7 +11239,7 @@ DocumentNode.defineProperties(List.prototype, ["items", "ordered"]);
 
 module.exports = List;
 
-},{"substance-document":36,"underscore":108}],74:[function(require,module,exports){
+},{"substance-document":34,"underscore":109}],75:[function(require,module,exports){
 "use strict";
 
 var CompositeView = require("../composite/composite_view");
@@ -11795,7 +11308,7 @@ ListView.prototype = new ListView.Prototype();
 
 module.exports = ListView;
 
-},{"../composite/composite_view":55,"./list":73}],75:[function(require,module,exports){
+},{"../composite/composite_view":53,"./list":74}],76:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11803,14 +11316,36 @@ module.exports = {
   View: require("./node_view")
 };
 
-},{"./node":76,"./node_view":77}],76:[function(require,module,exports){
+},{"./node":77,"./node_view":78}],77:[function(require,module,exports){
 "use strict";
 
 // Note: we leave the Node in `substance-document` as it is an essential part of the API.
 var Document = require("substance-document");
-module.exports = Document.Node;
 
-},{"substance-document":36}],77:[function(require,module,exports){
+
+var Node = Document.Node;
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Node.description = {
+  "name": "Node",
+  "remarks": [
+    "Abstract node type."
+  ],
+  "properties": {
+    "source_id": "Useful for document conversion where the original id of an element should be remembered.",
+  }
+};
+
+// Example
+// -------
+//
+
+module.exports = Node;
+
+},{"substance-document":34}],78:[function(require,module,exports){
 var View = require("substance-application").View;
 
 // Substance.Node.View
@@ -11884,7 +11419,7 @@ NodeView.prototype = new NodeView.Prototype();
 
 module.exports = NodeView;
 
-},{"substance-application":7}],78:[function(require,module,exports){
+},{"substance-application":5}],79:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11892,7 +11427,7 @@ module.exports = {
   View: require("./paragraph_view")
 };
 
-},{"./paragraph":79,"./paragraph_view":80}],79:[function(require,module,exports){
+},{"./paragraph":80,"./paragraph_view":81}],80:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -12023,7 +11558,7 @@ DocumentNode.defineProperties(Paragraph.prototype, ["children"]);
 
 module.exports = Paragraph;
 
-},{"substance-document":36,"underscore":108}],80:[function(require,module,exports){
+},{"substance-document":34,"underscore":109}],81:[function(require,module,exports){
 "use strict";
 
 var CompositeView = require("../composite/composite_view");
@@ -12049,7 +11584,7 @@ ParagraphView.prototype = new ParagraphView.Prototype();
 
 module.exports = ParagraphView;
 
-},{"../composite/composite_view":55}],81:[function(require,module,exports){
+},{"../composite/composite_view":53}],82:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12057,7 +11592,7 @@ module.exports = {
   View: require("./table_view")
 };
 
-},{"./table":82,"./table_view":83}],82:[function(require,module,exports){
+},{"./table":83,"./table_view":84}],83:[function(require,module,exports){
 "use strict";
 
 var Document = require("substance-document");
@@ -12261,7 +11796,7 @@ Object.defineProperties(Table.prototype, {
 
 module.exports = Table;
 
-},{"substance-document":36,"underscore":108}],83:[function(require,module,exports){
+},{"substance-document":34,"underscore":109}],84:[function(require,module,exports){
 "use strict";
 
 var CompositeView = require("../composite/composite_view");
@@ -12359,7 +11894,7 @@ TableView.prototype.constructor = TableView;
 
 module.exports = TableView;
 
-},{"../composite/composite_view":55,"underscore":108}],84:[function(require,module,exports){
+},{"../composite/composite_view":53,"underscore":109}],85:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12367,7 +11902,7 @@ module.exports = {
   View: require("./text_view")
 };
 
-},{"./text_node":85,"./text_view":86}],85:[function(require,module,exports){
+},{"./text_node":86,"./text_view":87}],86:[function(require,module,exports){
 "use strict";
 
 // Note: for now, we have left the Text node implementation in substance-document
@@ -12377,7 +11912,7 @@ module.exports = {
 var Document = require("substance-document");
 module.exports = Document.TextNode;
 
-},{"substance-document":36}],86:[function(require,module,exports){
+},{"substance-document":34}],87:[function(require,module,exports){
 var NodeView = require('../node/node_view');
 var Document = require("substance-document");
 var Annotator = Document.Annotator;
@@ -12615,7 +12150,7 @@ TextView.prototype = new TextView.Prototype();
 
 module.exports = TextView;
 
-},{"../node/node_view":77,"substance-application":7,"substance-document":36}],87:[function(require,module,exports){
+},{"../node/node_view":78,"substance-application":5,"substance-document":34}],88:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12623,7 +12158,7 @@ module.exports = {
   View: require("./web_resource_view")
 };
 
-},{"./web_resource":88,"./web_resource_view":89}],88:[function(require,module,exports){
+},{"./web_resource":89,"./web_resource_view":90}],89:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require("substance-document").Node;
@@ -12669,12 +12204,12 @@ DocumentNode.defineProperties(WebResource.prototype, ["url"]);
 
 module.exports = WebResource;
 
-},{"substance-document":36}],89:[function(require,module,exports){
+},{"substance-document":34}],90:[function(require,module,exports){
 "use strict";
 
 module.exports = require("../node").View;
 
-},{"../node":75}],90:[function(require,module,exports){
+},{"../node":76}],91:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12686,7 +12221,7 @@ module.exports = {
   Helpers: require('./src/operation_helpers')
 };
 
-},{"./src/array_operation":91,"./src/compound":92,"./src/object_operation":93,"./src/operation":94,"./src/operation_helpers":95,"./src/text_operation":96}],91:[function(require,module,exports){
+},{"./src/array_operation":92,"./src/compound":93,"./src/object_operation":94,"./src/operation":95,"./src/operation_helpers":96,"./src/text_operation":97}],92:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -13352,7 +12887,7 @@ ArrayOperation.MOVE = MOV;
 
 module.exports = ArrayOperation;
 
-},{"./compound":92,"./operation":94,"substance-util":103,"underscore":108}],92:[function(require,module,exports){
+},{"./compound":93,"./operation":95,"substance-util":104,"underscore":109}],93:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -13477,7 +13012,7 @@ Compound.createTransform = function(primitive_transform) {
 
 module.exports = Compound;
 
-},{"./operation":94,"substance-util":103,"underscore":108}],93:[function(require,module,exports){
+},{"./operation":95,"substance-util":104,"underscore":109}],94:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14022,7 +13557,7 @@ ObjectOperation.SET = SET;
 
 module.exports = ObjectOperation;
 
-},{"./array_operation":91,"./compound":92,"./operation":94,"./text_operation":96,"substance-util":103,"underscore":108}],94:[function(require,module,exports){
+},{"./array_operation":92,"./compound":93,"./operation":95,"./text_operation":97,"substance-util":104,"underscore":109}],95:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14073,7 +13608,7 @@ Operation.Conflict = Conflict;
 
 module.exports = Operation;
 
-},{"substance-util":103}],95:[function(require,module,exports){
+},{"substance-util":104}],96:[function(require,module,exports){
 var Helpers = {};
 
 Helpers.last = function(op) {
@@ -14118,7 +13653,7 @@ Helpers.each = function(op, iterator, context, reverse) {
 
 module.exports = Helpers;
 
-},{}],96:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14613,12 +14148,12 @@ TextOperation.DELETE = DEL;
 
 module.exports = TextOperation;
 
-},{"./compound":92,"./operation":94,"substance-util":103,"underscore":108}],97:[function(require,module,exports){
+},{"./compound":93,"./operation":95,"substance-util":104,"underscore":109}],98:[function(require,module,exports){
 "use strict";
 
 module.exports = require("./src/regexp");
 
-},{"./src/regexp":98}],98:[function(require,module,exports){
+},{"./src/regexp":99}],99:[function(require,module,exports){
 "use strict";
 
 // Substanc.RegExp.Match
@@ -14697,14 +14232,14 @@ RegExp.Match = Match;
 
 module.exports = RegExp;
 
-},{}],99:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 "use strict";
 
 var Surface = require("./src/surface");
 
 module.exports = Surface;
 
-},{"./src/surface":100}],100:[function(require,module,exports){
+},{"./src/surface":101}],101:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -15134,13 +14669,13 @@ Surface.prototype = new Surface.Prototype();
 
 module.exports = Surface;
 
-},{"substance-application":7,"substance-commander":25,"substance-util":103,"underscore":108}],101:[function(require,module,exports){
+},{"substance-application":5,"substance-commander":23,"substance-util":104,"underscore":109}],102:[function(require,module,exports){
 "use strict";
 
 var TOC = require("./toc_view");
 
 module.exports = TOC;
-},{"./toc_view":102}],102:[function(require,module,exports){
+},{"./toc_view":103}],103:[function(require,module,exports){
 "use strict";
 
 var View = require("substance-application").View;
@@ -15201,7 +14736,7 @@ TOCView.prototype = new TOCView.Prototype();
 
 module.exports = TOCView;
 
-},{"substance-application":7,"substance-data":29,"underscore":108}],103:[function(require,module,exports){
+},{"substance-application":5,"substance-data":27,"underscore":109}],104:[function(require,module,exports){
 "use strict";
 
 var util = require("./src/util");
@@ -15212,7 +14747,7 @@ util.dom = require("./src/dom");
 
 module.exports = util;
 
-},{"./src/dom":104,"./src/errors":105,"./src/html":106,"./src/util":107}],104:[function(require,module,exports){
+},{"./src/dom":105,"./src/errors":106,"./src/html":107,"./src/util":108}],105:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -15276,7 +14811,7 @@ dom.getNodeType = function(el) {
 
 module.exports = dom;
 
-},{"underscore":108}],105:[function(require,module,exports){
+},{"underscore":109}],106:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -15347,7 +14882,7 @@ errors.define = function(className, code) {
 
 module.exports = errors;
 
-},{"./util":107,"underscore":108}],106:[function(require,module,exports){
+},{"./util":108,"underscore":109}],107:[function(require,module,exports){
 "use strict";
 
 var html = {};
@@ -15393,7 +14928,7 @@ html.tpl = function (tpl, ctx) {
 
 module.exports = html;
 
-},{"underscore":108}],107:[function(require,module,exports){
+},{"underscore":109}],108:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -16104,7 +15639,7 @@ util.isEmpty = function(str) {
 
 module.exports = util;
 
-},{"fs":112,"underscore":108}],108:[function(require,module,exports){
+},{"fs":115,"underscore":109}],109:[function(require,module,exports){
 //     Underscore.js 1.5.2
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -17382,7 +16917,797 @@ module.exports = util;
 
 }).call(this);
 
-},{}],109:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
+"use strict";
+
+var Document = require("substance-document");
+var Controller = require("substance-application").Controller;
+var ReaderView = require("./reader_view");
+var util = require("substance-util");
+
+// Reader.Controller
+// -----------------
+//
+// Controls the Reader.View
+
+var ReaderController = function(doc, state, options) {
+
+  // Private reference to the document
+  this.__document = doc;
+
+  // E.g. context information
+  this.options = options || {};
+
+  // Reader state
+  // -------
+
+  this.content = new Document.Controller(doc, {view: "content"});
+
+  if (doc.get('figures')) {
+    this.figures = new Document.Controller(doc, {view: "figures"});
+  }
+
+  if (doc.get('citations')) {
+    this.citations = new Document.Controller(doc, {view: "citations"});
+  }
+
+  if (doc.get('info')) {
+    this.info = new Document.Controller(doc, {view: "info"});
+  }
+
+  this.state = state;
+
+  // Current explicitly set context
+  this.currentContext = "toc";
+
+};
+
+ReaderController.Prototype = function() {
+
+  this.createView = function() {
+    if (!this.view) this.view = new ReaderView(this);
+    return this.view;
+  };
+
+  // Explicit context switch
+  // --------
+  // 
+
+  this.switchContext = function(context) {
+    this.currentContext = context;
+    this.modifyState({
+      context: context,
+      node: null,
+      resource: null
+    });
+  };
+
+  this.modifyState = function(state) {
+    Controller.prototype.modifyState.call(this, state);
+  };
+
+  // TODO: Transition to ao new solid API
+  // --------
+  // 
+
+  this.getActiveControllers = function() {
+    var result = [];
+    result.push(["article", this]);
+    result.push(["reader", this.content]);
+    return result;
+  };
+};
+
+
+ReaderController.Prototype.prototype = Controller.prototype;
+ReaderController.prototype = new ReaderController.Prototype();
+
+module.exports = ReaderController;
+
+},{"./reader_view":111,"substance-application":5,"substance-document":34,"substance-util":104}],111:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+var html = util.html;
+var Surface = require("substance-surface");
+var Outline = require("lens-outline");
+var View = require("substance-application").View;
+var TOC = require("substance-toc");
+var Data = require("substance-data");
+var Index = Data.Graph.Index;
+var $$ = require("substance-application").$$;
+
+var CORRECTION = -100; // Extra offset from the top
+
+
+
+var addFocusControls = function(doc, nodeView) {
+  // The content node object
+  var node = nodeView.node;
+
+  // Per mode
+  var focusToggles = [];
+
+  focusToggles.push($$('div', {
+    "sbs-click": 'toggleNode(toc,'+node.id+')',
+    class: "focus-mode node",
+    html: '<div class="arrow"></div><i class="icon-anchor"></i>',
+    title: 'Focus and share link'
+  }));
+
+  var focus = $$('div.focus', {
+    children: focusToggles
+  });
+
+  // Add stripe
+  // focus.appendChild($$('.stripe'));
+  // nodeView.el.appendChild(focus);
+};
+
+
+var addResourceHeader = function(docCtrl, nodeView) {
+  var node = nodeView.node;
+  var typeDescr = node.constructor.description;
+
+  // Don't render resource headers in info panel (except for person nodes)
+  if (docCtrl.view === "info" && node.type !== "person" && node.type !== "collaborator") {
+    return;
+  }
+
+  var children = [
+    $$('a.name', {
+      href: "#",
+      text: node.header ,
+      "sbs-click": "toggleResource("+node.id+")"
+    })
+  ];
+
+  var config = node.constructor.config;
+  if (config && config.zoomable) {
+    children.push($$('a.toggle-fullscreen', {
+      "href": "#",
+      "html": "<i class=\"icon-resize-full\"></i><i class=\"icon-resize-small\"></i>",
+      "sbs-click": "toggleFullscreen("+node.id+")"
+    }));
+  }
+
+  var resourceHeader = $$('.resource-header', {
+    children: children
+  });
+  nodeView.el.insertBefore(resourceHeader, nodeView.content);
+};
+
+
+// Renders the reader view
+// --------
+// 
+// .document
+// .context-toggles
+//   .toggle-toc
+//   .toggle-figures
+//   .toggle-citations
+//   .toggle-info
+// .resources
+//   .toc
+//   .surface.figures
+//   .surface.citations
+//   .info
+
+var Renderer = function(reader) {
+
+  var frag = document.createDocumentFragment();
+
+  // Prepare doc view
+  // --------
+
+  var docView = $$('.document');
+  docView.appendChild(reader.contentView.render().el);
+
+  // Prepare context toggles
+  // --------
+
+  var children = [];
+
+
+  //  && reader.tocView.headings.length > 2
+  if (reader.tocView) {
+    children.push($$('a.context-toggle.toc', {
+      'href': '#',
+      'sbs-click': 'switchContext(toc)',
+      'html': '<i class="icon-align-left"></i><span> Contents</span>'
+    }));
+  }
+
+  if (reader.figuresView) {
+    children.push($$('a.context-toggle.figures', {
+      'href': '#',
+      'sbs-click': 'switchContext(figures)',
+      'title': 'Figures',
+      'html': '<i class="icon-picture"></i><span> Figures</span>'
+    }));
+  }
+
+  if (reader.citationsView) {
+    children.push($$('a.context-toggle.citations', {
+      'href': '#',
+      'sbs-click': 'switchContext(citations)',
+      'title': 'Citations',
+      'html': '<i class="icon-link"></i><span> References</span>'
+    }));
+  }
+
+  if (reader.infoView) {
+    children.push($$('a.context-toggle.info', {
+      'href': '#',
+      'sbs-click': 'switchContext(info)',
+      'title': 'Article Info',
+      'html': '<i class="icon-info-sign"></i><span>Info</span>'
+    }));
+  }
+
+
+  var contextToggles = $$('.context-toggles', {
+    children: children
+  });
+
+
+  // Prepare resources view
+  // --------
+
+  var medialStrip = $$('.medial-strip');
+
+  var collection = reader.readerCtrl.options.collection
+  if (collection) {
+    medialStrip.appendChild($$('a.back-nav', {
+      'href': collection.url,
+      'title': 'Go back',
+      'html': '<i class=" icon-chevron-up"></i>'
+    }));
+  }
+
+  medialStrip.appendChild($$('.separator-line'));
+  medialStrip.appendChild(contextToggles);
+
+  // Wrap everything within resources view
+  var resourcesView = $$('.resources');
+  resourcesView.appendChild(medialStrip);
+  
+
+  // Add TOC
+  // --------
+ 
+  resourcesView.appendChild(reader.tocView.render().el);
+
+  if (reader.figuresView) {
+    resourcesView.appendChild(reader.figuresView.render().el);
+  }
+  
+  if (reader.citationsView) {
+    resourcesView.appendChild(reader.citationsView.render().el);
+  }
+
+  if (reader.infoView) {
+    resourcesView.appendChild(reader.infoView.render().el);
+  }
+
+  frag.appendChild(docView);
+  frag.appendChild(resourcesView);
+  return frag;
+};
+
+
+// Lens.Reader.View
+// ==========================================================================
+//
+
+var ReaderView = function(readerCtrl) {
+  View.call(this);
+
+  // Controllers
+  // --------
+
+  this.readerCtrl = readerCtrl;
+
+  var doc = this.readerCtrl.content.__document;
+
+  this.$el.addClass('article');
+  this.$el.addClass(doc.schema.id); // Substance article or lens article?
+
+
+  var ArticleRenderer = this.readerCtrl.content.__document.constructor.Renderer;
+
+  // Surfaces
+  // --------
+
+  // A Substance.Document.Writer instance is provided by the controller
+  this.contentView = new Surface(this.readerCtrl.content, {
+    editable: false,
+    renderer: new ArticleRenderer(this.readerCtrl.content, {
+      afterRender: addFocusControls
+    })
+  });
+
+  // Table of Contents 
+  // --------
+
+  this.tocView = new TOC(this.readerCtrl);
+
+  // Provisional Hack:
+  // -----------------
+  // 
+  // We sniff into the tocView to determine the default context based on how many 
+  // headings are in the document
+  // We show the TOC for headings.length > 2
+  // 
+  // Real solution: determine on the controller level wheter toc should be shown or not
+
+  if (this.tocView.headings.length <= 2) {
+    var newCtx;
+    if (doc.get('figures').nodes.length > 0) {
+      newCtx = "figures";
+    } else {
+      newCtx = "info";
+    }
+
+    this.readerCtrl.modifyState({
+      context: newCtx
+    });
+  }
+
+  this.tocView.$el.addClass('resource-view');
+
+  // A Surface for the figures view
+  if (this.readerCtrl.figures && this.readerCtrl.figures.get('figures').nodes.length) {
+    this.figuresView = new Surface(this.readerCtrl.figures, {
+      editable: false,
+      renderer: new ArticleRenderer(this.readerCtrl.figures, {
+        afterRender: addResourceHeader
+      })
+    });
+    this.figuresView.$el.addClass('resource-view');
+  }
+
+  // A Surface for the citations view
+  if (this.readerCtrl.citations && this.readerCtrl.citations.get('citations').nodes.length) {
+    this.citationsView = new Surface(this.readerCtrl.citations, {
+      editable: false,
+      renderer: new ArticleRenderer(this.readerCtrl.citations, {
+        afterRender: addResourceHeader
+      })
+    });
+    this.citationsView.$el.addClass('resource-view');
+  }
+
+  // A Surface for the info view
+  if (this.readerCtrl.info && this.readerCtrl.info.get('info').nodes.length) {
+    this.infoView = new Surface(this.readerCtrl.info, {
+      editable: false,
+      renderer: new ArticleRenderer(this.readerCtrl.info, {
+        afterRender: addResourceHeader
+      })
+    });
+    this.infoView.$el.addClass('resource-view');
+  }
+
+  // Whenever a state change happens (e.g. user navigates somewhere)
+  // the interface gets updated accordingly
+  this.listenTo(this.readerCtrl, "state-changed", this.updateState);
+
+
+  // Keep an index for resources
+  this.resources = new Index(this.readerCtrl.__document, {
+    types: ["figure_reference", "citation_reference", "person_reference"],
+    property: "target"
+  });
+
+
+  // Outline
+  // --------
+
+  this.outline = new Outline(this.contentView);
+
+  // DOM Events
+  // --------
+  // 
+
+  this.contentView.$el.on('scroll', _.bind(this.onContentScroll, this));
+
+  // Resource references
+  this.$el.on('click', '.annotation.figure_reference', _.bind(this.toggleFigureReference, this));
+  this.$el.on('click', '.annotation.citation_reference', _.bind(this.toggleCitationReference, this));
+  this.$el.on('click', '.annotation.person_reference', _.bind(this.togglePersonReference, this));
+  this.$el.on('click', '.annotation.cross_reference', _.bind(this.followCrossReference, this));
+
+  this.$el.on('click', '.document .content-node.heading', _.bind(this.setAnchor, this));
+  this.outline.$el.on('click', '.node', _.bind(this._jumpToNode, this));
+};
+
+
+ReaderView.Prototype = function() {
+  
+  this.setAnchor = function(e) {
+    this.toggleNode('toc', $(e.currentTarget).attr('id'));
+  };
+
+  // Toggles on and off the zoom
+  // --------
+  // 
+
+  this.toggleFullscreen = function(resourceId) {
+    var state = this.readerCtrl.state;
+
+    // Always activate the resource
+    this.readerCtrl.modifyState({
+      resource: resourceId,
+      fullscreen: !state.fullscreen
+    });
+
+    // this.$('#'+resourceId)
+  };
+
+  this._jumpToNode = function(e) {
+    var nodeId = $(e.currentTarget).attr('id').replace("outline_", "");
+    this.jumpToNode(nodeId);
+    return false;
+  };
+
+  // Toggle Resource Reference
+  // --------
+  //
+
+  this.toggleFigureReference = function(e) {
+    this.toggleResourceReference('figures', e);
+    e.preventDefault();
+  };
+
+  this.toggleCitationReference = function(e) {
+    this.toggleResourceReference('citations', e);
+    e.preventDefault();
+  };
+
+  this.togglePersonReference = function(e) {
+    this.toggleResourceReference('info', e);
+    e.preventDefault();
+  };
+
+  this.toggleResourceReference = function(context, e) {
+    var state = this.readerCtrl.state;
+    var aid = $(e.currentTarget).attr('id');
+    var a = this.readerCtrl.__document.get(aid);
+
+    var nodeId = this.readerCtrl.content.container.getRoot(a.path[0]);
+    var resourceId = a.target;
+
+    if (resourceId === state.resource) {
+      this.readerCtrl.modifyState({
+        context: this.readerCtrl.currentContext,
+        node: null,
+        resource:  null
+      });
+    } else {
+      this.readerCtrl.modifyState({
+        context: context,
+        node: nodeId,
+        resource: resourceId
+      });
+
+      this.jumpToResource(resourceId);
+    }
+  };
+
+  // Follow cross reference
+  // --------
+  //
+
+  this.followCrossReference = function(e) {
+    var aid = $(e.currentTarget).attr('id');
+    var a = this.readerCtrl.__document.get(aid);
+    this.jumpToNode(a.target);
+  };
+
+
+  // Toggle on-off a resource
+  // --------
+  //
+
+  this.onContentScroll = function() {
+    var scrollTop = this.contentView.$el.scrollTop();
+    this.outline.updateVisibleArea(scrollTop);
+    this.markActiveHeading(scrollTop);
+  };
+
+
+  // Clear selection
+  // --------
+  //
+
+  this.markActiveHeading = function(scrollTop) {
+    var contentHeight = $('.nodes').height();
+
+    // No headings?
+    if (this.tocView.headings.length === 0) return;
+
+    // Use first heading as default
+    var activeNode = _.first(this.tocView.headings).id;
+
+    this.contentView.$('.content-node.heading').each(function() {
+      if (scrollTop >= $(this).position().top + CORRECTION) {
+        activeNode = this.id;
+      }
+    });
+
+    // Edge case: select last item (once we reach the end of the doc)
+    if (scrollTop + this.contentView.$el.height() >= contentHeight) {
+      activeNode = _.last(this.tocView.headings).id;
+    }
+    this.tocView.setActiveNode(activeNode);
+  };
+
+  // Toggle on-off a resource
+  // --------
+  //
+
+  this.toggleResource = function(id) {
+    var state = this.readerCtrl.state;
+    var node = state.node;
+    // Toggle off if already on
+    if (state.resource === id) {
+      id = null;
+      node = null;
+    }
+
+    this.readerCtrl.modifyState({
+      fullscreen: false,
+      resource: id,
+      node: node
+    });
+  };
+
+  // Jump to the given node id
+  // --------
+  //
+
+  this.jumpToNode = function(nodeId) {
+    var $n = $('#'+nodeId);
+    if ($n.length > 0) {
+      var topOffset = $n.position().top+CORRECTION;
+      this.contentView.$el.scrollTop(topOffset);
+    }
+  };
+
+  // Jump to the given resource id
+  // --------
+  //
+
+  this.jumpToResource = function(nodeId) {
+    var $n = $('#'+nodeId);
+    if ($n.length > 0) {
+      var topOffset = $n.position().top;
+
+      // TODO: Brute force for now
+      // Make sure to find out which resource view is currently active
+      if (this.figuresView) this.figuresView.$el.scrollTop(topOffset);
+      if (this.citationsView) this.citationsView.$el.scrollTop(topOffset);
+      if (this.infoView) this.infoView.$el.scrollTop(topOffset);
+    }
+  };
+
+
+  // Toggle on-off node focus
+  // --------
+  //
+
+  this.toggleNode = function(context, nodeId) {
+    var state = this.readerCtrl.state;
+
+    if (state.node === nodeId && state.context === context) {
+      // Toggle off -> reset, preserve the context
+      this.readerCtrl.modifyState({
+        context: this.readerCtrl.currentContext,
+        node: null,
+        resource: null
+      });
+    } else {
+      this.readerCtrl.modifyState({
+        context: context,
+        node: nodeId,
+        resource: null
+      });
+    }
+  };
+
+  // Explicit context switch
+  // --------
+  //
+
+  this.switchContext = function(context) {
+    this.readerCtrl.switchContext(context);
+  };
+
+  // Update Reader State
+  // --------
+  // 
+
+  this.updateState = function(options) {
+    options = options || {};
+    var state = this.readerCtrl.state;
+    var that = this;
+
+    // Set context on the reader view
+    // -------
+
+    this.$el.removeClass('toc figures citations info');
+    this.contentView.$('.content-node.active').removeClass('active');
+    this.$el.addClass(state.context);
+  
+    if (state.node) {
+      this.contentView.$('#'+state.node).addClass('active');
+    }
+
+    // According to the current context show active resource panel
+    // -------
+    this.updateResource();
+  };
+
+
+  // Based on the current application state, highlight the current resource
+  // -------
+  // 
+  // Triggered by updateState
+
+  this.updateResource = function() {
+    var state = this.readerCtrl.state;
+    this.$('.resources .content-node.active').removeClass('active fullscreen');
+    this.contentView.$('.annotation.active').removeClass('active');
+    
+    if (state.resource) {
+      // Show selected resource
+      var $res = this.$('#'+state.resource);
+      $res.addClass('active');
+      if (state.fullscreen) $res.addClass('fullscreen');
+
+      // Mark all annotations that reference the resource
+      var annotations = this.resources.get(state.resource);
+      
+      _.each(annotations, function(a) {
+        this.contentView.$('#'+a.id).addClass('active');
+      }, this);
+
+      // Update outline
+    } else {
+      // Hide all resources
+    }
+
+    this.updateOutline();
+  };
+
+  // Whenever the app state changes
+  // --------
+  // 
+  // Triggered by updateResource.
+
+  this.updateOutline = function() {
+    var that = this;
+
+    var state = this.readerCtrl.state;
+    var container = this.readerCtrl.content.container;
+
+    // Find all annotations
+    // TODO: this is supposed to be slow -> optimize
+    var annotations = _.filter(this.readerCtrl.content.getAnnotations(), function(a) {
+      return a.target && a.target === state.resource;
+    }, this);
+
+    var nodes = _.uniq(_.map(annotations, function(a) {
+      var nodeId = container.getRoot(a.path[0]);
+      return nodeId;
+    }));
+
+    that.outline.update({
+      context: state.context,
+      selectedNode: state.node,
+      highlightedNodes: nodes
+    });
+  };
+
+  // Annotate current selection
+  // --------
+  //
+
+  this.annotate = function(type) {
+    this.readerCtrl.content.annotate(type);
+    return false;
+  };
+
+  // Rendering
+  // --------
+  //
+
+  this.render = function() {
+    var that = this;
+
+    var state = this.readerCtrl.state;
+    this.el.appendChild(new Renderer(this));
+
+    // After rendering make reader reflect the app state
+    this.$('.document').append(that.outline.el);
+
+    // Await next UI tick to update layout and outline
+    _.delay(function() {
+      // Render outline that sticks on this.surface
+      // that.updateLayout();
+      that.updateState();
+      MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    }, 1);
+
+    // Wait for stuff to be rendered (e.g. formulas)
+    // TODO: use a handler? MathJax.Hub.Queue(fn) does not work for some reason
+
+    _.delay(function() {
+      that.updateOutline();
+    }, 2000);
+
+    var lazyOutline = _.debounce(function() {
+      // that.updateLayout();
+      that.updateOutline();
+    }, 1);
+
+    // Jump marks for teh win
+    if (state.node) {
+      _.delay(function() {
+        that.jumpToNode(state.node);
+        if (state.resource) {
+          that.jumpToResource(state.resource);
+        }
+      }, 100);
+    }
+
+    // I this called only once?
+
+    // Ditch those scroll fixes
+    // new ScrollFix(this.contentView.el);
+    // if (this.figuresView) new ScrollFix(this.figuresView.el);
+    // if (this.citationsView) new ScrollFix(this.citationsView.el);
+    // if (this.infoView) new ScrollFix(this.infoView.el);
+
+
+    $(window).resize(lazyOutline);
+    
+    return this;
+  };
+
+  // Recompute Layout properties
+  // --------
+  // 
+  // This fixes some issues that can't be dealth with CSS
+
+  // this.updateLayout = function() {
+  //   // var docWidth = this.$('.document').width();
+  //   // 15 = margin for arrows, 42 ?? WTF
+  //   // this.contentView.$('.nodes > .content-node').css('width', docWidth - 15 - 42);
+  // },
+
+  // Free the memory.
+  // --------
+  //
+
+  this.dispose = function() {
+    this.contentView.dispose();
+    if (this.figuresView) this.figuresView.dispose();
+    if (this.citationsView) this.citationsView.dispose();
+    if (this.infoView) this.infoView.dispose();
+    this.stopListening();
+  };
+};
+
+ReaderView.Prototype.prototype = View.prototype;
+ReaderView.prototype = new ReaderView.Prototype();
+ReaderView.prototype.constructor = ReaderView;
+
+module.exports = ReaderView;
+
+},{"lens-outline":3,"substance-application":5,"substance-data":27,"substance-surface":100,"substance-toc":102,"substance-util":104,"underscore":109}],112:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -17439,7 +17764,8 @@ var Substance = function(config) {
   this.controller = new SubstanceController(config);
 };
 
-Substance.Reader = require("lens-reader");
+Substance.Reader = require("../index");
+
 Substance.Outline = require("lens-outline");
 
 
@@ -17462,14 +17788,14 @@ Substance.prototype.constructor = Substance;
 
 module.exports = Substance;
 
-},{"./substance_controller":110,"./substance_view":111,"lens-outline":2,"lens-reader":4,"substance-application":7,"substance-util":103,"underscore":108}],110:[function(require,module,exports){
+},{"../index":2,"./substance_controller":113,"./substance_view":114,"lens-outline":3,"substance-application":5,"substance-util":104,"underscore":109}],113:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
 var util = require("substance-util");
 var Controller = require("substance-application").Controller;
 var SubstanceView = require("./substance_view");
-var ReaderController = require("lens-reader").Controller;
+var ReaderController = require("./reader_controller");
 var Article = require("substance-article");
 
 
@@ -17591,7 +17917,7 @@ _.extend(SubstanceController.prototype, util.Events);
 
 module.exports = SubstanceController;
 
-},{"./substance_view":111,"lens-reader":4,"substance-application":7,"substance-article":13,"substance-util":103,"underscore":108}],111:[function(require,module,exports){
+},{"./reader_controller":110,"./substance_view":114,"substance-application":5,"substance-article":11,"substance-util":104,"underscore":109}],114:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -17715,11 +18041,8 @@ SubstanceView.Prototype.prototype = View.prototype;
 SubstanceView.prototype = new SubstanceView.Prototype();
 
 module.exports = SubstanceView;
-},{"substance-application":7,"substance-util":103,"underscore":108}],112:[function(require,module,exports){
-
-// not implemented
-// The reason for having an empty file and not throwing is to allow
-// untraditional implementation of this module.
+},{"substance-application":5,"substance-util":104,"underscore":109}],115:[function(require,module,exports){
+// nothing to see here... no file methods for the browser
 
 },{}]},{},[1])
 ;

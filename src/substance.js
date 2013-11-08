@@ -54,7 +54,8 @@ var Substance = function(config) {
   this.controller = new SubstanceController(config);
 };
 
-Substance.Reader = require("lens-reader");
+Substance.Reader = require("../index");
+
 Substance.Outline = require("lens-outline");
 
 

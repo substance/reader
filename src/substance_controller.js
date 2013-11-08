@@ -4,7 +4,7 @@ var _ = require("underscore");
 var util = require("substance-util");
 var Controller = require("substance-application").Controller;
 var SubstanceView = require("./substance_view");
-var ReaderController = require("lens-reader").Controller;
+var ReaderController = require("./reader_controller");
 var Article = require("substance-article");
 
 

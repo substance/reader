@@ -2,7 +2,7 @@
   "id": "",
   "schema": [
     "substance-article",
-    "0.1.0"
+    "0.2.0"
   ],
   "nodes": {
     "document": {
@@ -15,7 +15,7 @@
       "creator": "",
       "title": "",
       "abstract": "",
-      "published_on": "2013-10-07T21:05:17.961Z",
+      "published_on": "2013-11-08T12:24:37.856Z",
       "meta": {}
     },
     "content": {
@@ -26,12 +26,12 @@
         "text_1",
         "header_2",
         "figure_1",
-        "text_2",
+        "text_3",
         "header_3",
         "list_1",
         "header_4",
-        "text_6",
-        "text_7"
+        "text_7",
+        "text_8"
       ]
     },
     "header_1": {
@@ -54,16 +54,22 @@
       "content": "Images",
       "level": 2
     },
+    "text_2": {
+      "type": "text",
+      "id": "text_2",
+      "source_id": null,
+      "content": ""
+    },
     "figure_1": {
       "type": "figure",
       "id": "figure_1",
       "url": "http://farm2.staticflickr.com/1186/1017937415_a464bad1a9_z.jpg",
       "label": "",
-      "caption": null
+      "caption": "text_2"
     },
-    "text_2": {
+    "text_3": {
       "type": "text",
-      "id": "text_2",
+      "id": "text_3",
       "source_id": null,
       "content": "Fusce vulputate ac dui id cursus. Ut nec lobortis mi. Vivamus luctus pulvinar ligula a varius. Donec nec placerat tellus. Ut vehicula est vel cursus aliquam. Ut vestibulum lectus arcu, eu dictum augue ullamcorper at. Maecenas vel dictum turpis. Curabitur egestas pharetra elementum. Praesent facilisis libero semper, elementum tortor vitae, aliquam justo. Duis ut tellus elit. Curabitur nulla magna, fringilla ac quam at, ornare pharetra augue. Proin a velit sed ligula luctus cursus. Ut non libero magna. Phasellus luctus egestas posuere."
     },
@@ -74,21 +80,21 @@
       "content": "Lists",
       "level": 2
     },
-    "text_3": {
-      "type": "text",
-      "id": "text_3",
-      "source_id": null,
-      "content": "Vestibulum volutpat sapien eu semper pharetra"
-    },
     "text_4": {
       "type": "text",
       "id": "text_4",
       "source_id": null,
-      "content": "Vestibulum vulputate ligula nunc, eget adipiscing mauris cursus a. Aenean vitae erat sem"
+      "content": "Vestibulum volutpat sapien eu semper pharetra"
     },
     "text_5": {
       "type": "text",
       "id": "text_5",
+      "source_id": null,
+      "content": "Vestibulum vulputate ligula nunc, eget adipiscing mauris cursus a. Aenean vitae erat sem"
+    },
+    "text_6": {
+      "type": "text",
+      "id": "text_6",
       "source_id": null,
       "content": "Maecenas vel dictum turpis"
     },
@@ -97,9 +103,9 @@
       "id": "list_1",
       "source_id": "",
       "items": [
-        "text_3",
         "text_4",
-        "text_5"
+        "text_5",
+        "text_6"
       ],
       "ordered": false
     },
@@ -110,15 +116,15 @@
       "content": "Conclusion",
       "level": 2
     },
-    "text_6": {
-      "type": "text",
-      "id": "text_6",
-      "source_id": null,
-      "content": "Fusce vulputate ac dui id cursus. Ut nec lobortis mi. Vivamus luctus pulvinar ligula a varius. Donec nec placerat tellus. Ut vehicula est vel cursus aliquam. Ut vestibulum lectus arcu, eu dictum augue ullamcorper at. Maecenas vel dictum turpis. Curabitur egestas pharetra elementum. Praesent facilisis libero semper, elementum tortor vitae, aliquam justo. Duis ut tellus elit. Curabitur nulla magna, fringilla ac quam at, ornare pharetra augue. Proin a velit sed ligula luctus cursus. Ut non libero magna. Phasellus luctus egestas posuere."
-    },
     "text_7": {
       "type": "text",
       "id": "text_7",
+      "source_id": null,
+      "content": "Fusce vulputate ac dui id cursus. Ut nec lobortis mi. Vivamus luctus pulvinar ligula a varius. Donec nec placerat tellus. Ut vehicula est vel cursus aliquam. Ut vestibulum lectus arcu, eu dictum augue ullamcorper at. Maecenas vel dictum turpis. Curabitur egestas pharetra elementum. Praesent facilisis libero semper, elementum tortor vitae, aliquam justo. Duis ut tellus elit. Curabitur nulla magna, fringilla ac quam at, ornare pharetra augue. Proin a velit sed ligula luctus cursus. Ut non libero magna. Phasellus luctus egestas posuere."
+    },
+    "text_8": {
+      "type": "text",
+      "id": "text_8",
       "source_id": null,
       "content": "Nam in leo nec nibh porta congue ac vitae dui. Praesent sed condimentum nisi, vitae varius nulla. Nullam viverra enim lectus, eu posuere metus consectetur ut. Fusce venenatis, felis id elementum mollis, velit enim eleifend nibh, sit amet porttitor mi ipsum ut mi. Maecenas leo nunc, tincidunt vel elit pretium, congue imperdiet ante. Etiam hendrerit purus nibh, sit amet scelerisque diam fringilla id. Nam felis nibh, lobortis vitae tortor sit amet, dictum aliquam metus. Morbi eleifend massa eu lacus ornare, porttitor hendrerit nisi rutrum."
     },
@@ -163,7 +169,7 @@
       "type": "emphasis",
       "id": "emphasis_2",
       "path": [
-        "text_2",
+        "text_3",
         "content"
       ],
       "range": [
@@ -175,7 +181,7 @@
       "type": "link",
       "id": "link_2",
       "path": [
-        "text_2",
+        "text_3",
         "content"
       ],
       "range": [
