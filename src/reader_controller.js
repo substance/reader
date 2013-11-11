@@ -54,7 +54,9 @@ ReaderController.Prototype = function() {
   // 
 
   this.switchContext = function(context) {
+    // Remember scrollpos of previous context
     this.currentContext = context;
+
     this.modifyState({
       context: context,
       node: null,

@@ -207,6 +207,9 @@ var ReaderView = function(readerCtrl) {
   this.$el.addClass('article');
   this.$el.addClass(doc.schema.id); // Substance article or lens article?
 
+  // Stores latest body scroll positions per context
+  // Only relevant
+  this.bodyScroll = {};
 
   var ArticleRenderer = this.readerCtrl.content.__document.constructor.Renderer;
 
@@ -217,7 +220,7 @@ var ReaderView = function(readerCtrl) {
   this.contentView = new Surface(this.readerCtrl.content, {
     editable: false,
     renderer: new ArticleRenderer(this.readerCtrl.content, {
-      afterRender: addFocusControls
+      // afterRender: addFocusControls
     })
   });
 
@@ -335,8 +338,6 @@ ReaderView.Prototype = function() {
       resource: resourceId,
       fullscreen: !state.fullscreen
     });
-
-    // this.$('#'+resourceId)
   };
 
   this._jumpToNode = function(e) {
@@ -379,6 +380,7 @@ ReaderView.Prototype = function() {
         resource:  null
       });
     } else {
+      this.saveScroll();
       this.readerCtrl.modifyState({
         context: context,
         node: nodeId,
@@ -478,11 +480,16 @@ ReaderView.Prototype = function() {
     if ($n.length > 0) {
       var topOffset = $n.position().top;
 
+      console.log('topoffset of: '+ nodeId, topOffset);
+
       // TODO: Brute force for now
       // Make sure to find out which resource view is currently active
       if (this.figuresView) this.figuresView.$el.scrollTop(topOffset);
       if (this.citationsView) this.citationsView.$el.scrollTop(topOffset);
       if (this.infoView) this.infoView.$el.scrollTop(topOffset);
+
+      // Brute force for mobile
+      $('body').scrollTop(topOffset);
     }
   };
 
@@ -510,17 +517,63 @@ ReaderView.Prototype = function() {
     }
   };
 
+  // Get scroll position of active panel
+  // --------
+  // 
+  // Content, Figures, Citations, Info
+
+  this.getScroll = function() {
+    // Only covers the mobile mode!
+    return $('body').scrollTop();
+  };
+
+  // Recover scroll from previous state (if there is any)
+  // --------
+  // 
+  // TODO: retrieve from cookie to persist scroll pos over reload?
+
+  this.recoverScroll = function() {
+    var targetScroll = this.bodyScroll[this.readerCtrl.state.context];
+    if (targetScroll) {
+      $('body').scrollTop(targetScroll);
+      console.log('recovered scroll', targetScroll, this.readerCtrl.state.context);
+    } else {
+      // Scroll to top
+      $('body').scrollTop(0);
+    }
+  };
+
+  // Save current scroll position
+  // --------
+  // 
+
+  this.saveScroll = function() {
+    this.bodyScroll[this.readerCtrl.state.context] = this.getScroll();
+    console.log('scroll saved', this.bodyScroll[this.readerCtrl.state.context], this.readerCtrl.state.context);
+  };
+
   // Explicit context switch
   // --------
   //
+  // Only triggered by the explicit switch
+  // Implicit context switches happen someone clicks a figure reference
 
   this.switchContext = function(context) {
+    // var currentContext = this.readerCtrl.state.context;
+
+    this.saveScroll();
+
+    // Which view actions are triggered here?
     this.readerCtrl.switchContext(context);
+
+    this.recoverScroll();
   };
 
   // Update Reader State
   // --------
   // 
+  // Called every time the controller state has been modified
+  // Search for readerCtrl.modifyState occurences
 
   this.updateState = function(options) {
     options = options || {};
@@ -540,6 +593,7 @@ ReaderView.Prototype = function() {
 
     // According to the current context show active resource panel
     // -------
+
     this.updateResource();
   };
 
@@ -569,10 +623,18 @@ ReaderView.Prototype = function() {
 
       // Update outline
     } else {
-      // Hide all resources
+      this.recoverScroll();
+      // Hide all resources (see above)
     }
 
     this.updateOutline();
+  };
+
+  // Returns true when on a mobile device
+  // --------
+
+  this.isMobile = function() {
+
   };
 
   // Whenever the app state changes
