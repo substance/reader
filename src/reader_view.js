@@ -108,7 +108,8 @@ var Renderer = function(reader) {
     children.push($$('a.context-toggle.toc', {
       'href': '#',
       'sbs-click': 'switchContext(toc)',
-      'html': '<i class="icon-align-left"></i><span> Contents</span>'
+      'title': 'Text',
+      'html': '<i class="icon-align-left"></i><span> Text</span>'
     }));
   }
 
@@ -126,7 +127,7 @@ var Renderer = function(reader) {
       'href': '#',
       'sbs-click': 'switchContext(citations)',
       'title': 'Citations',
-      'html': '<i class="icon-link"></i><span> References</span>'
+      'html': '<i class="icon-link"></i><span> Citations</span>'
     }));
   }
 
