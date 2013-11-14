@@ -243,18 +243,18 @@ var ReaderView = function(readerCtrl) {
   // 
   // Real solution: determine on the controller level wheter toc should be shown or not
 
-  if (this.tocView.headings.length <= 2) {
-    var newCtx;
-    if (doc.get('figures').nodes.length > 0) {
-      newCtx = "figures";
-    } else {
-      newCtx = "info";
-    }
+  // if (this.tocView.headings.length <= 2) {
+  //   var newCtx;
+  //   if (doc.get('figures').nodes.length > 0) {
+  //     newCtx = "figures";
+  //   } else {
+  //     newCtx = "info";
+  //   }
 
-    this.readerCtrl.modifyState({
-      context: newCtx
-    });
-  }
+  //   this.readerCtrl.modifyState({
+  //     context: newCtx
+  //   });
+  // }
 
   this.tocView.$el.addClass('resource-view');
 
