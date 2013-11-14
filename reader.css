@@ -78,7 +78,9 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   overflow: hidden;
   width: 40px;
   position: absolute;
-  left: -18px;
+  left: 50%;
+  margin-left: -18px; 
+
   top: 0px;
   bottom: 0px;
   background: #fff;
@@ -574,11 +576,11 @@ span.annotation.formula_reference, span.publication_reference {
 /* Hover states */
 .content-node .figure_reference:hover { background-color: rgba(145, 187, 4, 0.35); }
 .content-node .citation_reference:hover { background-color: rgba(11, 157, 217, 0.30); }
-.content-node .person_reference:hover { background-color: rgba(0,0,0, 0.1); }
+.content-node .person_reference:hover { background-color: rgba(0,0,0, 0.05); }
 
 .content-node .figure_reference.active { background: rgba(145, 187, 4, 0.7); }
 .content-node .citation_reference.active { background: rgba(11, 157, 217, 0.6); }
-.content-node .person_reference.active { background-color: rgba(0,0,0, 0.8); color: white; }
+.content-node .person_reference.active { background-color: #5c6570; color: white; }
 
 /* Cross Reference */
 .content-node .cross_reference:hover {
@@ -856,22 +858,25 @@ span.annotation.formula_reference, span.publication_reference {
     z-index: 200;
   }
 
-  .article .resources .medial-strip {
+  .article .medial-strip {
     background: #252525;
     /*border-bottom: 1px solid #ddd;*/
-    position: fixed;
-    
-    top: 0px;
+    /*position: fixed;*/
+    position: relative;
+    top: auto;
     bottom: auto;
-    left: 0px;
-    right: 0px;
-    height: 50px;
+    left: auto;
+    right: auto;
+    margin-left: 0px;
+    height: 60px;
     width: auto;
   }
 
-  .article .resources .medial-strip .context-toggles {
-    background: #252525;
+  .article .medial-strip .context-toggles {
+    /*background: #252525;*/
+    background: #5c6570;
     /*line-height: 80px;*/
+
     position: absolute;
     left: 0px;
     right: 0px;
@@ -880,18 +885,17 @@ span.annotation.formula_reference, span.publication_reference {
     /*padding: 5px 20px;*/
   }
 
-  .article .resources .medial-strip .context-toggles .context-toggle {
+  .article .medial-strip .context-toggles .context-toggle {
     float: left;
-    height: 50px;
+    height: 70px;
     width: 80px;
-    padding-top: 8px;
-    color: rgba(255,255,255,0.4);
+    padding-top: 10px;
+    color: rgba(255,255,255,0.8);
     text-align: center;
     line-height: 17px;
-    /*background: green;*/
   }
 
-  .article .resources .medial-strip .context-toggles .context-toggle span {
+  .article .medial-strip .context-toggles .context-toggle span {
     display: block;
     font-size: 11px;
   }
@@ -899,23 +903,23 @@ span.annotation.formula_reference, span.publication_reference {
   .article.figures .context-toggles .context-toggle.figures {
     /*color: rgba(145, 187, 4, 1);*/
     color: white;
-    background: #000;
+    background: rgba(0,0,0,0.6);
   }
 
   .article.citations .context-toggles .context-toggle.citations {
     /*color: rgba(11, 157, 217, 1);*/
     color: white;
-    background: #000;
+    background: rgba(0,0,0,0.6);
   }
 
   .article.toc .context-toggles .context-toggle.toc {
     color: white;
-    background: #000;
+    background: rgba(0,0,0,0.6);
   }
 
   .article.info .context-toggles .context-toggle.info {
     color: white;
-    background: #000;
+    background: rgba(0,0,0,0.6);
   }
 
 
@@ -923,7 +927,7 @@ span.annotation.formula_reference, span.publication_reference {
 
 
 
-  .article .resources .medial-strip .back-nav {
+  .article .medial-strip .back-nav {
     display: none;
   }
 

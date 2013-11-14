@@ -163,9 +163,13 @@ var Renderer = function(reader) {
   medialStrip.appendChild($$('.separator-line'));
   medialStrip.appendChild(contextToggles);
 
+  frag.appendChild(medialStrip);
+  
   // Wrap everything within resources view
   var resourcesView = $$('.resources');
-  resourcesView.appendChild(medialStrip);
+
+
+  // resourcesView.appendChild(medialStrip);
   
 
   // Add TOC
