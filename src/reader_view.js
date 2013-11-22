@@ -649,26 +649,34 @@ ReaderView.Prototype = function() {
 
   this.updateOutline = function() {
     var that = this;
-
     var state = this.readerCtrl.state;
     var container = this.readerCtrl.content.container;
 
-    // Find all annotations
-    // TODO: this is supposed to be slow -> optimize
-    var annotations = _.filter(this.readerCtrl.content.getAnnotations(), function(a) {
-      return a.target && a.target === state.resource;
-    }, this);
-
-    var nodes = _.uniq(_.map(annotations, function(a) {
-      var nodeId = container.getRoot(a.path[0]);
-      return nodeId;
-    }));
+    var nodes = this.getResourceReferenceContainers();
 
     that.outline.update({
       context: state.context,
       selectedNode: state.node,
       highlightedNodes: nodes
     });
+  };
+
+  this.getResourceReferenceContainers = function() {
+    var state = this.readerCtrl.state;
+
+    if (!state.resource) return [];
+
+    // A reference is an annotation node. We want to highlight
+    // all (top-level) nodes that contain a reference to the currently activated resource
+    // For that we take all references pointing to the resource
+    // and find the root of the node on which the annotation sticks on.
+    var references = this.resources.get(state.resource);
+    var container = this.readerCtrl.content.container;
+    var nodes = _.uniq(_.map(references, function(ref) {
+      var nodeId = container.getRoot(ref.path[0]);
+      return nodeId;
+    }));
+    return nodes;
   };
 
   // Annotate current selection
@@ -731,7 +739,6 @@ ReaderView.Prototype = function() {
     // if (this.citationsView) new ScrollFix(this.citationsView.el);
     // if (this.infoView) new ScrollFix(this.infoView.el);
 
-
     $(window).resize(lazyOutline);
     
     return this;
@@ -757,6 +764,8 @@ ReaderView.Prototype = function() {
     if (this.figuresView) this.figuresView.dispose();
     if (this.citationsView) this.citationsView.dispose();
     if (this.infoView) this.infoView.dispose();
+    this.resources.dispose();
+
     this.stopListening();
   };
 };
