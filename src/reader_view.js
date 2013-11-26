@@ -494,7 +494,7 @@ ReaderView.Prototype = function() {
       if (this.infoView) this.infoView.$el.scrollTop(topOffset);
 
       // Brute force for mobile
-      $('body').scrollTop(topOffset);
+      $(document).scrollTop(topOffset);
     }
   };
 
@@ -529,7 +529,7 @@ ReaderView.Prototype = function() {
 
   this.getScroll = function() {
     // Only covers the mobile mode!
-    return $('body').scrollTop();
+    return $(document).scrollTop();
   };
 
   // Recover scroll from previous state (if there is any)
@@ -539,12 +539,13 @@ ReaderView.Prototype = function() {
 
   this.recoverScroll = function() {
     var targetScroll = this.bodyScroll[this.readerCtrl.state.context];
+
     if (targetScroll) {
-      $('body').scrollTop(targetScroll);
+      $(document).scrollTop(targetScroll);
       console.log('recovered scroll', targetScroll, this.readerCtrl.state.context);
     } else {
       // Scroll to top
-      $('body').scrollTop(0);
+      // $(document).scrollTop(0);
     }
   };
 
