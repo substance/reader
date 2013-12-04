@@ -14,31 +14,6 @@ var $$ = require("substance-application").$$;
 var CORRECTION = -100; // Extra offset from the top
 
 
-
-var addFocusControls = function(doc, nodeView) {
-  // The content node object
-  var node = nodeView.node;
-
-  // Per mode
-  var focusToggles = [];
-
-  focusToggles.push($$('div', {
-    "sbs-click": 'toggleNode(toc,'+node.id+')',
-    class: "focus-mode node",
-    html: '<div class="arrow"></div><i class="icon-anchor"></i>',
-    title: 'Focus and share link'
-  }));
-
-  var focus = $$('div.focus', {
-    children: focusToggles
-  });
-
-  // Add stripe
-  // focus.appendChild($$('.stripe'));
-  // nodeView.el.appendChild(focus);
-};
-
-
 var addResourceHeader = function(docCtrl, nodeView) {
   var node = nodeView.node;
   var typeDescr = node.constructor.description;
@@ -233,28 +208,6 @@ var ReaderView = function(readerCtrl) {
   // --------
 
   this.tocView = new TOC(this.readerCtrl);
-
-  // Provisional Hack:
-  // -----------------
-  // 
-  // We sniff into the tocView to determine the default context based on how many 
-  // headings are in the document
-  // We show the TOC for headings.length > 2
-  // 
-  // Real solution: determine on the controller level wheter toc should be shown or not
-
-  // if (this.tocView.headings.length <= 2) {
-  //   var newCtx;
-  //   if (doc.get('figures').nodes.length > 0) {
-  //     newCtx = "figures";
-  //   } else {
-  //     newCtx = "info";
-  //   }
-
-  //   this.readerCtrl.modifyState({
-  //     context: newCtx
-  //   });
-  // }
 
   this.tocView.$el.addClass('resource-view');
 
@@ -485,8 +438,6 @@ ReaderView.Prototype = function() {
     if ($n.length > 0) {
       var topOffset = $n.position().top;
 
-      console.log('topoffset of: '+ nodeId, topOffset);
-
       // TODO: Brute force for now
       // Make sure to find out which resource view is currently active
       if (this.figuresView) this.figuresView.$el.scrollTop(topOffset);
@@ -542,7 +493,6 @@ ReaderView.Prototype = function() {
 
     if (targetScroll) {
       $(document).scrollTop(targetScroll);
-      console.log('recovered scroll', targetScroll, this.readerCtrl.state.context);
     } else {
       // Scroll to top
       // $(document).scrollTop(0);
@@ -555,7 +505,6 @@ ReaderView.Prototype = function() {
 
   this.saveScroll = function() {
     this.bodyScroll[this.readerCtrl.state.context] = this.getScroll();
-    console.log('scroll saved', this.bodyScroll[this.readerCtrl.state.context], this.readerCtrl.state.context);
   };
 
   // Explicit context switch
@@ -566,12 +515,10 @@ ReaderView.Prototype = function() {
 
   this.switchContext = function(context) {
     // var currentContext = this.readerCtrl.state.context;
-
     this.saveScroll();
 
     // Which view actions are triggered here?
     this.readerCtrl.switchContext(context);
-
     this.recoverScroll();
   };
 
@@ -705,7 +652,6 @@ ReaderView.Prototype = function() {
     // Await next UI tick to update layout and outline
     _.delay(function() {
       // Render outline that sticks on this.surface
-      // that.updateLayout();
       that.updateState();
       MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
     }, 1);
@@ -718,7 +664,6 @@ ReaderView.Prototype = function() {
     }, 2000);
 
     var lazyOutline = _.debounce(function() {
-      // that.updateLayout();
       that.updateOutline();
     }, 1);
 
@@ -732,29 +677,11 @@ ReaderView.Prototype = function() {
       }, 100);
     }
 
-    // I this called only once?
-
-    // Ditch those scroll fixes
-    // new ScrollFix(this.contentView.el);
-    // if (this.figuresView) new ScrollFix(this.figuresView.el);
-    // if (this.citationsView) new ScrollFix(this.citationsView.el);
-    // if (this.infoView) new ScrollFix(this.infoView.el);
-
     $(window).resize(lazyOutline);
     
     return this;
   };
 
-  // Recompute Layout properties
-  // --------
-  // 
-  // This fixes some issues that can't be dealth with CSS
-
-  // this.updateLayout = function() {
-  //   // var docWidth = this.$('.document').width();
-  //   // 15 = margin for arrows, 42 ?? WTF
-  //   // this.contentView.$('.nodes > .content-node').css('width', docWidth - 15 - 42);
-  // },
 
   // Free the memory.
   // --------
