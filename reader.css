@@ -632,6 +632,7 @@ span.annotation.formula_reference, span.publication_reference {
   cursor: pointer;
 }
 
+
 /* Responsiveness */
 /* ---------------------------------------*/
 
@@ -660,10 +661,20 @@ span.annotation.formula_reference, span.publication_reference {
   display: none;
 }
 
-
+.content-node.heading .top {
+  display: none;
+}
 
 /* Mobile (iPad Portrait, iPhone) */
 @media (max-width: 850px) {
+
+  .content-node.heading .top {
+    display: block;
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    padding: 10px;
+  }
 
   .article .content-node.cover .title {
     font-size: 24px;
