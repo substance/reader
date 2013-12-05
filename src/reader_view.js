@@ -18,8 +18,9 @@ var addResourceHeader = function(docCtrl, nodeView) {
   var node = nodeView.node;
   var typeDescr = node.constructor.description;
 
-  // Don't render resource headers in info panel (except for person nodes)
-  if (docCtrl.view === "info" && node.type !== "person" && node.type !== "collaborator") {
+  // Don't render resource headers in info panel (except for contributor nodes)
+  // TODO: Do we really need 'collaborator'?
+  if (docCtrl.view === "info" && node.type !== "contributor" && node.type !== "collaborator") {
     return;
   }
 
@@ -251,7 +252,7 @@ var ReaderView = function(readerCtrl) {
 
   // Keep an index for resources
   this.resources = new Index(this.readerCtrl.__document, {
-    types: ["figure_reference", "citation_reference", "person_reference"],
+    types: ["figure_reference", "citation_reference", "contributor_reference"],
     property: "target"
   });
 
@@ -270,7 +271,7 @@ var ReaderView = function(readerCtrl) {
   // Resource references
   this.$el.on('click', '.annotation.figure_reference', _.bind(this.toggleFigureReference, this));
   this.$el.on('click', '.annotation.citation_reference', _.bind(this.toggleCitationReference, this));
-  this.$el.on('click', '.annotation.person_reference', _.bind(this.togglePersonReference, this));
+  this.$el.on('click', '.annotation.contributor_reference', _.bind(this.toggleContributorReference, this));
   this.$el.on('click', '.annotation.cross_reference', _.bind(this.followCrossReference, this));
 
   this.$el.on('click', '.document .content-node.heading', _.bind(this.setAnchor, this));
@@ -329,7 +330,7 @@ ReaderView.Prototype = function() {
     e.preventDefault();
   };
 
-  this.togglePersonReference = function(e) {
+  this.toggleContributorReference = function(e) {
     this.toggleResourceReference('info', e);
     e.preventDefault();
   };

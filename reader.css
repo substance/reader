@@ -548,7 +548,7 @@ span.annotation.formula_reference, span.publication_reference {
   cursor: pointer;
 }
 
-.content-node .person_reference {
+.content-node .contributor_reference {
   padding: 2px 5px;
   cursor: pointer;
 }
@@ -569,11 +569,11 @@ span.annotation.formula_reference, span.publication_reference {
 /* Hover states */
 .content-node .figure_reference:hover { background-color: rgba(145, 187, 4, 0.35); }
 .content-node .citation_reference:hover { background-color: rgba(11, 157, 217, 0.30); }
-.content-node .person_reference:hover { background-color: rgba(0,0,0, 0.05); }
+.content-node .contributor_reference:hover { background-color: rgba(0,0,0, 0.05); }
 
 .content-node .figure_reference.active { background: rgba(145, 187, 4, 0.7); }
 .content-node .citation_reference.active { background: rgba(11, 157, 217, 0.6); }
-.content-node .person_reference.active { background-color: #5c6570; color: white; }
+.content-node .contributor_reference.active { background-color: #5c6570; color: white; }
 
 /* Cross Reference */
 .content-node .cross_reference:hover {
