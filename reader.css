@@ -19,7 +19,6 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 }
 
 /* Surface specific styles */
-
 .content-node {
 
 }
@@ -188,7 +187,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   float: right;
   line-height: 25px;
   width: 50%;
-  font-size: 14px;
+  
   height: 100%;
   padding-left: 50px;
   padding-right: 50px;
@@ -205,13 +204,10 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   padding-right: 50px;
 }
 
-
 .article .resources .nodes > .content-node {
-  color: #333;
+  color: #505050;
   position: relative;
-  /* background: rgba(0,0,0,0.01); */
   background: #fff;
-  
   margin-bottom: 30px;
   padding: 0px;
 }
@@ -231,6 +227,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   position: relative;
   background: rgba(0,0,0,0.1);
 }
+
 
 /* Shared styles for selected and mouseover states
 ----------------------------------------------------------------------- */
@@ -282,8 +279,6 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 }
 
 
-
-
 /* Figures View
 ----------------------------------------------------------------------- */
 
@@ -296,6 +291,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   right: 0px;
   overflow-y: scroll;
   overflow-x: hidden;
+  font-size: 14px;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -307,6 +303,8 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 ----------------------------------------------------------------------- */
 
 .article .resources .surface.citations {
+  font-size: 14px;
+
   display: none;
   position: absolute;
   top: 0px;
@@ -549,7 +547,7 @@ span.annotation.formula_reference, span.publication_reference {
 }
 
 .content-node .contributor_reference {
-  padding: 2px 5px;
+  padding: 2px 1px;
   cursor: pointer;
 }
 
