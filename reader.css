@@ -547,7 +547,7 @@ span.annotation.formula_reference, span.publication_reference {
 }
 
 .content-node .contributor_reference {
-  padding: 2px 1px;
+  padding: 2px 5px;
   cursor: pointer;
 }
 
