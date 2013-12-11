@@ -23,6 +23,11 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
 }
 
+
+.hidden {
+  display: none;
+}
+
 .content-node .content {
   margin: 0px;
   background: white;
@@ -196,7 +201,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 }
 
 .article .resources .surface {
-  padding-top: 20px;
+  /*padding-top: 20px;*/
 }
 
 .article .nodes {
@@ -204,12 +209,21 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   padding-right: 50px;
 }
 
+.article .resources .nodes {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
 .article .resources .nodes > .content-node {
   color: #505050;
   position: relative;
   background: #fff;
-  margin-bottom: 30px;
+/*  margin-bottom: 30px;
+  margin-top: 30px;*/
+
   padding: 0px;
+  padding-top: 20px;
+  padding-bottom: 20px;
 }
 
 .article .resources .nodes > .content-node > .content {
@@ -432,6 +446,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   z-index: 100000;
   margin-bottom: 0px;
   margin-right: 0px;
+  padding: 0px;
 }
 
 #container .article .content-node.fullscreen .icon-resize-small {
@@ -633,10 +648,26 @@ span.annotation.formula_reference, span.publication_reference {
   background-color: rgba(0, 0, 0, 0);
 }
 
-
-
 .article .document .content-node.heading {
   cursor: pointer;
+}
+
+
+
+/* Resources Outline */
+/* ---------------------------------------*/
+
+.resources .lens-outline {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  left: auto;
+  bottom: 0px;
+  width: 30px;
+}
+
+.resources .lens-outline .node {
+  width: 20px;
 }
 
 
@@ -857,5 +888,6 @@ span.annotation.formula_reference, span.publication_reference {
   .article .lens-outline {
     display: none;
   }
+
 }
 

@@ -262,11 +262,22 @@ var ReaderView = function(readerCtrl) {
 
   this.outline = new Outline(this.contentView);
 
+
+  // Resource Outline
+  // --------
+
+  this.resourcesOutline = new Outline(this.figuresView);
+
   // DOM Events
   // --------
   // 
 
   this.contentView.$el.on('scroll', _.bind(this.onContentScroll, this));
+
+  // Resource content that is being scrolled
+  this.figuresView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
+  this.citationsView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
+  this.infoView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
 
   // Resource references
   this.$el.on('click', '.annotation.figure_reference', _.bind(this.toggleFigureReference, this));
@@ -372,7 +383,7 @@ ReaderView.Prototype = function() {
   };
 
 
-  // Toggle on-off a resource
+  // On Scroll update outline and mark active heading
   // --------
   //
 
@@ -380,6 +391,11 @@ ReaderView.Prototype = function() {
     var scrollTop = this.contentView.$el.scrollTop();
     this.outline.updateVisibleArea(scrollTop);
     this.markActiveHeading(scrollTop);
+  };
+
+  this.onResourceContentScroll = function() {
+    var scrollTop = this.resourcesOutline.surface.$el.scrollTop();
+    this.resourcesOutline.updateVisibleArea(scrollTop);
   };
 
 
@@ -619,6 +635,30 @@ ReaderView.Prototype = function() {
       selectedNode: state.node,
       highlightedNodes: nodes
     });
+
+
+    // Resources outline
+    // -------------------
+
+    if (state.context === "toc") {
+      // that.resourcesOutline.surface = this.tocView;
+      $(that.resourcesOutline.el).addClass('hidden');
+      return;
+    } else if (state.context === "figures") {
+      that.resourcesOutline.surface = this.figuresView;
+    } else if (state.context === "citations") {
+      that.resourcesOutline.surface = this.citationsView;
+    } else {
+      that.resourcesOutline.surface = this.infoView;
+    }
+
+    $(that.resourcesOutline.el).removeClass('hidden');
+
+    that.resourcesOutline.update({
+      context: state.context,
+      selectedNode: state.node,
+      highlightedNodes: [state.resource]
+    });
   };
 
   this.getResourceReferenceContainers = function() {
@@ -660,6 +700,8 @@ ReaderView.Prototype = function() {
 
     // After rendering make reader reflect the app state
     this.$('.document').append(that.outline.el);
+
+    this.$('.resources').append(that.resourcesOutline.el);
 
     // Await next UI tick to update layout and outline
     _.delay(function() {
