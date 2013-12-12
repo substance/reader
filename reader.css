@@ -343,7 +343,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   top: 0px;
   bottom: 0px;
   left: 50px;
-  right: 50px;
+  right: 0px;
 
   overflow: auto;
   -webkit-overflow-scrolling: touch;
@@ -681,6 +681,10 @@ span.annotation.formula_reference, span.publication_reference {
   left: auto;
   bottom: 0px;
   width: 30px;
+}
+
+#container.touchable .resources .lens-outline {
+  right: 5px;
 }
 
 .resources .lens-outline .node {
