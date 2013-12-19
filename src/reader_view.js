@@ -275,9 +275,10 @@ var ReaderView = function(readerCtrl) {
   this.contentView.$el.on('scroll', _.bind(this.onContentScroll, this));
 
   // Resource content that is being scrolled
-  this.figuresView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
-  this.citationsView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
-  this.infoView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
+  
+  if (this.figuresView) this.figuresView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
+  if (this.citationsView) this.citationsView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
+  if (this.infoView) this.infoView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
 
   // Resource references
   this.$el.on('click', '.annotation.figure_reference', _.bind(this.toggleFigureReference, this));
