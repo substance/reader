@@ -389,9 +389,11 @@ ReaderView.Prototype = function() {
   //
 
   this.onContentScroll = function() {
-    var scrollTop = this.contentView.$el.scrollTop();
-    this.outline.updateVisibleArea(scrollTop);
-    this.markActiveHeading(scrollTop);
+    window.requestAnimationFrame(_.bind(function() {
+      var scrollTop = this.contentView.$el.scrollTop();
+      this.outline.updateVisibleArea(scrollTop);
+      this.markActiveHeading(scrollTop);
+    }, this));
   };
 
   this.onResourceContentScroll = function() {
@@ -413,7 +415,11 @@ ReaderView.Prototype = function() {
     // Use first heading as default
     var activeNode = _.first(this.tocView.headings).id;
 
-    this.contentView.$('.content-node.heading').each(function() {
+    if(!document.headings) {
+      document.headings = this.contentView.$('.content-node.heading');
+    }
+
+    document.headings.each(function() {
       if (scrollTop >= $(this).position().top + CORRECTION) {
         activeNode = this.id;
       }
