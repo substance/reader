@@ -194,6 +194,9 @@ var ReaderView = function(readerCtrl) {
 
   var ArticleRenderer = this.readerCtrl.content.__document.constructor.Renderer;
 
+  // Cache
+  this.cache = {};
+
   // Surfaces
   // --------
 
@@ -272,6 +275,8 @@ var ReaderView = function(readerCtrl) {
   // --------
   // 
 
+  this.ticking = false;
+  this.lastScrollY = 0;
   this.contentView.$el.on('scroll', _.bind(this.onContentScroll, this));
 
   // Resource content that is being scrolled
@@ -306,7 +311,7 @@ ReaderView.Prototype = function() {
     this.jumpToNode("cover");
     $(document).scrollTop(0);
     return false;
-  }
+  };
 
   // Toggles on and off the zoom
   // --------
@@ -389,11 +394,21 @@ ReaderView.Prototype = function() {
   //
 
   this.onContentScroll = function() {
-    window.requestAnimationFrame(_.bind(function() {
-      var scrollTop = this.contentView.$el.scrollTop();
-      this.outline.updateVisibleArea(scrollTop);
-      this.markActiveHeading(scrollTop);
-    }, this));
+    this.lastScrollY = this.contentView.$el.scrollTop();
+    _.bind(this.requestTick,this)();
+  };
+
+  this.requestTick = function() {
+    if(!this.ticking) {
+      requestAnimationFrame(_.bind(this.updateViews, this));
+      this.ticking = true;
+    }
+  };
+
+  this.updateViews = function () {
+    this.outline.updateVisibleArea(this.lastScrollY);
+    this.markActiveHeading(this.lastScrollY);
+    this.ticking = false;
   };
 
   this.onResourceContentScroll = function() {
@@ -407,26 +422,34 @@ ReaderView.Prototype = function() {
   //
 
   this.markActiveHeading = function(scrollTop) {
-    var contentHeight = $('.nodes').height();
+    if(!this.cache.contentHeight) {
+      this.cache.contentHeight = $('.nodes').height();
+    }
+
+    if(!this.cache.contentViewHeight) {
+      this.cache.contentViewHeight = this.contentView.$el.height();
+    }
+
+    if(!this.cache.headingsOffsetTop) {
+      this.cache.headingsOffsetTop = {};
+      _.each(this.tocView.headings, function(heading) {
+        this.cache.headingsOffsetTop[heading.id] = document.getElementById(heading.id).offsetTop + CORRECTION;
+      }, this);
+    }
 
     // No headings?
     if (this.tocView.headings.length === 0) return;
 
     // Use first heading as default
     var activeNode = _.first(this.tocView.headings).id;
-
-    if(!document.headings) {
-      document.headings = this.contentView.$('.content-node.heading');
-    }
-
-    document.headings.each(function() {
-      if (scrollTop >= $(this).position().top + CORRECTION) {
-        activeNode = this.id;
+    _.each(this.tocView.headings, function(heading) {
+      if (scrollTop >= this.cache.headingsOffsetTop[heading.id]) {
+        activeNode = heading.id;
       }
-    });
+    }, this);
 
     // Edge case: select last item (once we reach the end of the doc)
-    if (scrollTop + this.contentView.$el.height() >= contentHeight) {
+    if (scrollTop + this.cache.contentViewHeight >= this.cache.contentHeight) {
       activeNode = _.last(this.tocView.headings).id;
     }
     this.tocView.setActiveNode(activeNode);
