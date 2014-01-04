@@ -398,7 +398,7 @@ ReaderView.Prototype = function() {
   
   this.onContentScroll = function() {
     this.lastScrollY = this.contentView.$el.scrollTop();
-    _.bind(this.requestTick,this)();
+    this.requestTick();
   };
 
   this.requestTick = function() {

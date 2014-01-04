@@ -813,6 +813,8 @@ span.annotation.formula_reference, span.publication_reference {
   }
 
   .article .document .surface.content .nodes {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
     padding-left: 0;
   }
 
