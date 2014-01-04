@@ -275,8 +275,6 @@ var ReaderView = function(readerCtrl) {
   // --------
   // 
 
-  this.ticking = false;
-  this.lastScrollY = 0;
   this.contentView.$el.on('scroll', _.bind(this.onContentScroll, this));
 
   // Resource content that is being scrolled
@@ -392,7 +390,12 @@ ReaderView.Prototype = function() {
   // On Scroll update outline and mark active heading
   // --------
   //
-
+  
+  // Keep track if requestAnimationFrame is already underway
+  this.ticking = false;
+  // Keep track of where the user scrolled to last
+  this.lastScrollY = 0;
+  
   this.onContentScroll = function() {
     this.lastScrollY = this.contentView.$el.scrollTop();
     _.bind(this.requestTick,this)();
@@ -747,7 +750,9 @@ ReaderView.Prototype = function() {
       that.updateOutline();
     }, 2000);
 
-    var lazyOutline = _.debounce(function() {
+    var onResize = _.debounce(function() {
+      // Invalidate cache on resize
+      that.cache = {};
       that.updateOutline();
     }, 1);
 
@@ -761,7 +766,7 @@ ReaderView.Prototype = function() {
       }, 100);
     }
 
-    $(window).resize(lazyOutline);
+    $(window).resize(onResize);
     
     return this;
   };
