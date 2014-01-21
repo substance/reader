@@ -5,6 +5,9 @@ var Controller = require("substance-application").Controller;
 var ReaderView = require("./reader_view");
 var util = require("substance-util");
 
+var DocumentSession = Document.Session;
+var Container = Document.Container;
+
 // Reader.Controller
 // -----------------
 //
@@ -21,18 +24,24 @@ var ReaderController = function(doc, state, options) {
   // Reader state
   // -------
 
-  this.content = new Document.Controller(doc, {view: "content"});
+  var nodeSurfaceProvider = new Container.DefaultNodeSurfaceProvider(doc);
+
+  // this.content = new Document.Controller(doc, {view: "content"});
+  this.content = new DocumentSession(new Container(doc, "content", nodeSurfaceProvider));
 
   if (doc.get('figures')) {
-    this.figures = new Document.Controller(doc, {view: "figures"});
+    // this.figures = new Document.Controller(doc, {view: "figures"});
+    this.figures = new DocumentSession(new Container(doc, "figures", nodeSurfaceProvider));
   }
 
-  if (doc.get('citations')) {
-    this.citations = new Document.Controller(doc, {view: "citations"});
-  }
+  // if (doc.get('citations')) {
+  //   this.figures = new DocumentSession(new Container(doc, "figures", nodeSurfaceProvider));
+  //   this.citations = new Document.Controller(doc, {view: "citations"});
+  // }
 
   if (doc.get('info')) {
-    this.info = new Document.Controller(doc, {view: "info"});
+    this.info = new DocumentSession(new Container(doc, "info", nodeSurfaceProvider));
+    // this.info = new Document.Controller(doc, {view: "info"});
   }
 
   this.state = state;
