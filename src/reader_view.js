@@ -12,8 +12,10 @@ var Index = Data.Graph.Index;
 var $$ = require("substance-application").$$;
 
 
-var CORRECTION = -100; // Extra offset from the top
-
+// a function defined below
+var __createRenderer;
+var __createSurface;
+var __addResourcePanel;
 
 var addResourceHeader = function(docCtrl, nodeView) {
   var node = nodeView.node;
@@ -99,14 +101,14 @@ var Renderer = function(reader) {
     }));
   }
 
-  if (reader.citationsView) {
-    children.push($$('a.context-toggle.citations', {
-      'href': '#',
-      'sbs-click': 'switchContext(citations)',
-      'title': 'Citations',
-      'html': '<i class="icon-link"></i><span> Citations</span>'
-    }));
-  }
+  // if (reader.citationsView) {
+  //   children.push($$('a.context-toggle.citations', {
+  //     'href': '#',
+  //     'sbs-click': 'switchContext(citations)',
+  //     'title': 'Citations',
+  //     'html': '<i class="icon-link"></i><span> Citations</span>'
+  //   }));
+  // }
 
   if (reader.infoView) {
     children.push($$('a.context-toggle.info', {
@@ -158,9 +160,9 @@ var Renderer = function(reader) {
     resourcesView.appendChild(reader.figuresView.render().el);
   }
   
-  if (reader.citationsView) {
-    resourcesView.appendChild(reader.citationsView.render().el);
-  }
+  // if (reader.citationsView) {
+  //   resourcesView.appendChild(reader.citationsView.render().el);
+  // }
 
   if (reader.infoView) {
     resourcesView.appendChild(reader.infoView.render().el);
@@ -184,7 +186,7 @@ var ReaderView = function(readerCtrl) {
 
   this.readerCtrl = readerCtrl;
 
-  var doc = this.readerCtrl.content.__document;
+  var doc = this.readerCtrl.__document;
 
   this.$el.addClass('article');
   this.$el.addClass(doc.schema.id); // Substance article or lens article?
@@ -193,63 +195,31 @@ var ReaderView = function(readerCtrl) {
   // Only relevant
   this.bodyScroll = {};
 
-  var ArticleRenderer = this.readerCtrl.content.__document.constructor.Renderer;
+  var ArticleRenderer = doc.constructor.Renderer;
 
   // Surfaces
   // --------
 
-  // A Substance.Document.Writer instance is provided by the controller
-  this.contentView = new Surface(this.readerCtrl.content, {
-    editable: false,
-    renderer: new ArticleRenderer(this.readerCtrl.content, {
-      // afterRender: addFocusControls
-    })
-  });
+  this.contentView = __createSurface(this, doc, "content");
 
   // Table of Contents 
   // --------
 
-  this.tocView = new TOC(this.readerCtrl);
-
+  this.tocView = new TOC(this.readerCtrl.contentCtrl);
   this.tocView.$el.addClass('resource-view');
 
-  // A Surface for the figures view
-  if (this.readerCtrl.figures && this.readerCtrl.figures.get('figures').nodes.length) {
-    this.figuresView = new Surface(this.readerCtrl.figures, {
-      editable: false,
-      renderer: new ArticleRenderer(this.readerCtrl.figures, {
-        afterRender: addResourceHeader
-      })
-    });
-    this.figuresView.$el.addClass('resource-view');
-  }
+  // Other resource panels
+  // --------
 
-  // A Surface for the citations view
-  if (this.readerCtrl.citations && this.readerCtrl.citations.get('citations').nodes.length) {
-    this.citationsView = new Surface(this.readerCtrl.citations, {
-      editable: false,
-      renderer: new ArticleRenderer(this.readerCtrl.citations, {
-        afterRender: addResourceHeader
-      })
-    });
-    this.citationsView.$el.addClass('resource-view');
-  }
+  // A Surface for the figures view
+  if (this.readerCtrl.hasFigures()) __addResourcePanel(this, doc, "figures");
 
   // A Surface for the info view
-  if (this.readerCtrl.info && this.readerCtrl.info.get('info').nodes.length) {
-    this.infoView = new Surface(this.readerCtrl.info, {
-      editable: false,
-      renderer: new ArticleRenderer(this.readerCtrl.info, {
-        afterRender: addResourceHeader
-      })
-    });
-    this.infoView.$el.addClass('resource-view');
-  }
+  if (this.readerCtrl.hasInfo()) __addResourcePanel(this, doc, "info");
 
   // Whenever a state change happens (e.g. user navigates somewhere)
   // the interface gets updated accordingly
   this.listenTo(this.readerCtrl, "state-changed", this.updateState);
-
 
   // Index for resources
   // --------
@@ -268,7 +238,6 @@ var ReaderView = function(readerCtrl) {
 
   this.outline = new Outline(this.contentView);
 
-
   // Resource Outline
   // --------
 
@@ -281,7 +250,6 @@ var ReaderView = function(readerCtrl) {
   this.contentView.$el.on('scroll', _.bind(this.onContentScroll, this));
 
   // Resource content that is being scrolled
-  
   if (this.figuresView) this.figuresView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
   if (this.citationsView) this.citationsView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
   if (this.infoView) this.infoView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
@@ -293,13 +261,10 @@ var ReaderView = function(readerCtrl) {
   this.$el.on('click', '.annotation.collaborator_reference', _.bind(this.toggleContributorReference, this));
 
   this.$el.on('click', '.annotation.cross_reference', _.bind(this.followCrossReference, this));
-
   this.$el.on('click', '.document .content-node.heading', _.bind(this.setAnchor, this));
-  
   this.$el.on('click', '.document .content-node.heading .top', _.bind(this.gotoTop, this));
 
   this.outline.$el.on('click', '.node', _.bind(this._jumpToNode, this));
-
 };
 
 
@@ -635,29 +600,57 @@ ReaderView.Prototype = function() {
 
   this.updateOutline = function() {
     var that = this;
+
+    // TODO: improve this. Using the sub-controllers that way feels bad.
+
     var state = this.readerCtrl.state;
-    var container = this.readerCtrl.content.container;
 
-    var nodes = this.getResourceReferenceContainers();
+    // HACK: avoid to call execute this when the ReaderController has
+    // already been disposed;
+    if (!state) return;
 
-    that.outline.update({
-      context: state.context,
-      selectedNode: state.node,
-      highlightedNodes: nodes
-    });
 
+    //   that.outline.update({
+    //     context: state.context,
+    //     selectedNode: state.node,
+    //     highlightedNodes: nodes
+    //   });
+
+    var contextId = this.readerCtrl.getContextId();
+
+    var outlineParams = {
+      context: contextId
+    };
+    var highlightedNodes;
+    if (state.resourceId !== undefined) {
+      highlightedNodes = this.readerCtrl.getResourceReferenceContainers(state.resourceId);
+      outlineParams["highlightedNodes"] = highlightedNodes;
+    }
+    else if (state.nodeId !== undefined) {
+      outlineParams["selectedNode"] = state.nodeId;
+    }
+    else if (state.id === "focus") {
+      var focusState = this.readerCtrl.focusCtrl.state;
+      highlightedNodes = this.readerCtrl.getResourceReferenceContainers(focusState.resourceId);
+      outlineParams["highlightedNodes"] = highlightedNodes;
+      outlineParams["context"] = focusState.contextId;
+    }
+
+    that.outline.update(outlineParams);
 
     // Resources outline
     // -------------------
 
-    if (state.context === "toc") {
+    if (state.contextId === "toc") {
       // that.resourcesOutline.surface = this.tocView;
       $(that.resourcesOutline.el).addClass('hidden');
       return;
-    } else if (state.context === "figures") {
+    } else if (state.contextId === "figures") {
       that.resourcesOutline.surface = this.figuresView;
-    } else if (state.context === "citations") {
-      that.resourcesOutline.surface = this.citationsView;
+    } else if (state.contextId === "remarks") {
+      that.resourcesOutline.surface = this.remarksView;
+    } else if (state.contextId === "errors") {
+      that.resourcesOutline.surface = this.errorsView;
     } else {
       that.resourcesOutline.surface = this.infoView;
     }
@@ -665,11 +658,51 @@ ReaderView.Prototype = function() {
     $(that.resourcesOutline.el).removeClass('hidden');
 
     that.resourcesOutline.update({
-      context: state.context,
-      selectedNode: state.node,
-      highlightedNodes: [state.resource]
+      context: state.contextId,
+      // selectedNode: state.node,
+      highlightedNodes: [state.resourceId]
     });
+
   };
+
+
+  // this.updateOutline = function() {
+  //   var that = this;
+  //   var state = this.readerCtrl.state;
+  //   var container = this.readerCtrl.content.container;
+
+  //   var nodes = this.getResourceReferenceContainers();
+
+  //   that.outline.update({
+  //     context: state.context,
+  //     selectedNode: state.node,
+  //     highlightedNodes: nodes
+  //   });
+
+
+  //   // Resources outline
+  //   // -------------------
+
+  //   if (state.context === "toc") {
+  //     // that.resourcesOutline.surface = this.tocView;
+  //     $(that.resourcesOutline.el).addClass('hidden');
+  //     return;
+  //   } else if (state.context === "figures") {
+  //     that.resourcesOutline.surface = this.figuresView;
+  //   } else if (state.context === "citations") {
+  //     that.resourcesOutline.surface = this.citationsView;
+  //   } else {
+  //     that.resourcesOutline.surface = this.infoView;
+  //   }
+
+  //   $(that.resourcesOutline.el).removeClass('hidden');
+
+  //   that.resourcesOutline.update({
+  //     context: state.context,
+  //     selectedNode: state.node,
+  //     highlightedNodes: [state.resource]
+  //   });
+  // };
 
   this.getResourceReferenceContainers = function() {
     var state = this.readerCtrl.state;
@@ -765,5 +798,48 @@ ReaderView.Prototype = function() {
 ReaderView.Prototype.prototype = View.prototype;
 ReaderView.prototype = new ReaderView.Prototype();
 ReaderView.prototype.constructor = ReaderView;
+
+// Private helpers
+// --------
+__createRenderer = function(doc, viewName) {
+  return new doc.constructor.Renderer(doc, viewName);
+};
+
+__createSurface = function(self, doc, viewName) {
+  var docCtrl = self.readerCtrl[viewName + "Ctrl"];
+  var renderer = __createRenderer(doc, viewName);
+  var surface = new Surface(docCtrl, renderer);
+
+  // HACK: it turned out that the Container implementation
+  // depends rather strongly on the actual view.
+  // I.e., selections are very related to what has actually been rendered -- and how.
+  // To break a cycle of dependencies we inject that implementation at this point
+  // Note: currently it is important to rebuild the container after the renderer has been run
+  // otherwise all views would be null.
+  // Maybe we could make the renderer smarter here, by providing the views
+  // even if they are not yet integrated by surface.
+  // TODO: try to find a cleaner solution
+  var __render__ = renderer.render;
+  renderer.render = function() {
+    var result = __render__.apply(renderer, arguments);
+    docCtrl.session.container.rebuild();
+    return result;
+  };
+  docCtrl.session.container.renderer = renderer;
+
+  return surface;
+};
+
+__addResourcePanel = function(self, doc, name) {
+  var viewName = name+"View";
+  // console.log('adding view', name+'View');
+
+  self[viewName] = __createSurface(self, doc, name);
+  var el = self[viewName].el;
+
+  el.classList.add(name);
+  el.classList.add('resource-view');
+  el.setAttribute("id", name);
+};
 
 module.exports = ReaderView;

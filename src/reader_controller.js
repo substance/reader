@@ -8,6 +8,8 @@ var util = require("substance-util");
 var DocumentSession = Document.Session;
 var Container = Document.Container;
 
+var SurfaceController = require("substance-surface").SurfaceController;
+
 // Reader.Controller
 // -----------------
 //
@@ -26,12 +28,16 @@ var ReaderController = function(doc, state, options) {
 
   var nodeSurfaceProvider = new Container.DefaultNodeSurfaceProvider(doc);
 
-  // this.content = new Document.Controller(doc, {view: "content"});
-  this.content = new DocumentSession(new Container(doc, "content", nodeSurfaceProvider));
+  this.contentCtrl = new SurfaceController(
+    new DocumentSession(new Container(doc, "content", nodeSurfaceProvider))
+  );
 
   if (doc.get('figures')) {
     // this.figures = new Document.Controller(doc, {view: "figures"});
-    this.figures = new DocumentSession(new Container(doc, "figures", nodeSurfaceProvider));
+    // this.figuresCtrl = new DocumentSession(new Container(doc, "figures", nodeSurfaceProvider));
+    this.figuresCtrl = new SurfaceController(
+      new DocumentSession(new Container(doc, "figures", nodeSurfaceProvider))
+    );
   }
 
   // if (doc.get('citations')) {
@@ -40,7 +46,11 @@ var ReaderController = function(doc, state, options) {
   // }
 
   if (doc.get('info')) {
-    this.info = new DocumentSession(new Container(doc, "info", nodeSurfaceProvider));
+    this.infoCtrl = new SurfaceController(
+      new DocumentSession(new Container(doc, "info", nodeSurfaceProvider))
+    );
+
+    // this.infoCtrl = new DocumentSession(new Container(doc, "info", nodeSurfaceProvider));
     // this.info = new Document.Controller(doc, {view: "info"});
   }
 
@@ -53,9 +63,59 @@ var ReaderController = function(doc, state, options) {
 
 ReaderController.Prototype = function() {
 
+  this.hasFigures = function() {
+    return this.figuresCtrl;
+  };
+
+  this.hasInfo = function() {
+    return this.infoCtrl;
+  };
+
   this.createView = function() {
     if (!this.view) this.view = new ReaderView(this);
     return this.view;
+  };
+
+  // Implements state transitions for the viewer
+  // --------
+  // 
+
+  // this.transition = function(newState, cb) {
+
+  //   // handle reflexiv transitions
+  //   if (newState.id === this.state.id) {
+  //     var skipTransition = false;
+
+  //     switch (newState.id) {
+  //     case "main":
+  //       skipTransition = (newState.contextId === this.state.contextId && newState.resourceId === this.state.resourceId && newState.nodeId === this.state.nodeId);
+  //       break;
+  //     case "focus":
+  //       skipTransition = true;
+  //       break;
+  //     }
+
+  //     if (skipTransition) return cb(null);
+  //   }
+
+  //   if (this.state.id === "focus") {
+  //     this.disposeChildController();
+  //     this.focusCtrl = null;
+  //   }
+
+  //   switch (newState.id) {
+  //   case "focus":
+  //     this.focusCtrl = new FocusController(this.document);
+  //     this.setChildController(this.focusCtrl);
+  //     break;
+  //   }
+
+  //   cb(null);
+  // };
+
+  // API used by WriterView:
+  this.getContextId = function() {
+    return this.state.contextId || "toc";
   };
 
   // Explicit context switch
