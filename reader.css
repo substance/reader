@@ -78,7 +78,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
 /* Switcher */
 
-.article .medial-strip {
+/*.article .medial-strip {
   overflow: hidden;
   width: 40px;
   position: absolute;
@@ -89,7 +89,18 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   bottom: 0px;
   background: #fff;
   z-index: 3000;
+}*/
+
+.article .medial-strip {
+  width: 40px;
+  position: absolute;
+  left: -18px;
+  top: 0px;
+  bottom: 0px;
+  background: #fff;
+  z-index: 3000;
 }
+
 
 .article .back-nav {
   display: block;

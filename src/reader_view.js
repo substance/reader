@@ -11,182 +11,29 @@ var Data = require("substance-data");
 var Index = Data.Graph.Index;
 var $$ = require("substance-application").$$;
 
+var CORRECTION = 0; // Extra offset from the top (e.g. when there's a fixed menu bar etc.)
+
 
 // a function defined below
 var __createRenderer;
 var __createSurface;
 var __addResourcePanel;
 
-var addResourceHeader = function(docCtrl, nodeView) {
-  var node = nodeView.node;
-  var typeDescr = node.constructor.description;
-
-  // Don't render resource headers in info panel (except for contributor nodes)
-  // TODO: Do we really need 'collaborator'?
-  if (docCtrl.view === "info" && node.type !== "contributor" && node.type !== "collaborator") {
-    return;
-  }
-
-  var children = [
-    $$('a.name', {
-      href: "#",
-      text: node.header ,
-      "sbs-click": "toggleResource("+node.id+")"
-    })
-  ];
-
-  var config = node.constructor.config;
-  if (config && config.zoomable) {
-    children.push($$('a.toggle-fullscreen', {
-      "href": "#",
-      "html": "<i class=\"icon-resize-full\"></i><i class=\"icon-resize-small\"></i>",
-      "sbs-click": "toggleFullscreen("+node.id+")"
-    }));
-  }
-
-  var resourceHeader = $$('.resource-header', {
-    children: children
-  });
-  nodeView.el.insertBefore(resourceHeader, nodeView.content);
-};
-
-
-// Renders the reader view
-// --------
-// 
-// .document
-// .context-toggles
-//   .toggle-toc
-//   .toggle-figures
-//   .toggle-citations
-//   .toggle-info
-// .resources
-//   .toc
-//   .surface.figures
-//   .surface.citations
-//   .info
-
-var Renderer = function(reader) {
-
-  var frag = document.createDocumentFragment();
-
-  // Prepare doc view
-  // --------
-
-  var docView = $$('.document');
-  docView.appendChild(reader.contentView.render().el);
-
-  // Prepare context toggles
-  // --------
-
-  var children = [];
-
-
-  //  && reader.tocView.headings.length > 2
-  if (reader.tocView) {
-    children.push($$('a.context-toggle.toc', {
-      'href': '#',
-      'sbs-click': 'switchContext(toc)',
-      'title': 'Text',
-      'html': '<i class="icon-align-left"></i><span> Text</span>'
-    }));
-  }
-
-  if (reader.figuresView) {
-    children.push($$('a.context-toggle.figures', {
-      'href': '#',
-      'sbs-click': 'switchContext(figures)',
-      'title': 'Figures',
-      'html': '<i class="icon-picture"></i><span> Figures</span>'
-    }));
-  }
-
-  // if (reader.citationsView) {
-  //   children.push($$('a.context-toggle.citations', {
-  //     'href': '#',
-  //     'sbs-click': 'switchContext(citations)',
-  //     'title': 'Citations',
-  //     'html': '<i class="icon-link"></i><span> Citations</span>'
-  //   }));
-  // }
-
-  if (reader.infoView) {
-    children.push($$('a.context-toggle.info', {
-      'href': '#',
-      'sbs-click': 'switchContext(info)',
-      'title': 'Article Info',
-      'html': '<i class="icon-info-sign"></i><span>Info</span>'
-    }));
-  }
-
-
-  var contextToggles = $$('.context-toggles', {
-    children: children
-  });
-
-
-  // Prepare resources view
-  // --------
-
-  var medialStrip = $$('.medial-strip');
-
-  var collection = reader.readerCtrl.options.collection
-  if (collection) {
-    medialStrip.appendChild($$('a.back-nav', {
-      'href': collection.url,
-      'title': 'Go back',
-      'html': '<i class=" icon-chevron-up"></i>'
-    }));
-  }
-
-  medialStrip.appendChild($$('.separator-line'));
-  medialStrip.appendChild(contextToggles);
-
-  frag.appendChild(medialStrip);
-  
-  // Wrap everything within resources view
-  var resourcesView = $$('.resources');
-
-
-  // resourcesView.appendChild(medialStrip);
-  
-
-  // Add TOC
-  // --------
- 
-  resourcesView.appendChild(reader.tocView.render().el);
-
-  if (reader.figuresView) {
-    resourcesView.appendChild(reader.figuresView.render().el);
-  }
-  
-  // if (reader.citationsView) {
-  //   resourcesView.appendChild(reader.citationsView.render().el);
-  // }
-
-  if (reader.infoView) {
-    resourcesView.appendChild(reader.infoView.render().el);
-  }
-
-  frag.appendChild(docView);
-  frag.appendChild(resourcesView);
-  return frag;
-};
-
 
 // Lens.Reader.View
 // ==========================================================================
 //
 
-var ReaderView = function(readerCtrl) {
+var ReaderView = function(readerCtrl, options) {
   View.call(this);
 
   // Controllers
   // --------
 
   this.readerCtrl = readerCtrl;
+  this.options = options || {};
 
-  var doc = this.readerCtrl.__document;
+  var doc = this.readerCtrl.document;
 
   this.$el.addClass('article');
   this.$el.addClass(doc.schema.id); // Substance article or lens article?
@@ -201,6 +48,7 @@ var ReaderView = function(readerCtrl) {
   // --------
 
   this.contentView = __createSurface(this, doc, "content");
+  this.contentView.el.classList.add("content");
 
   // Table of Contents 
   // --------
@@ -227,7 +75,7 @@ var ReaderView = function(readerCtrl) {
   // Keep in mind that Substance.Article uses collaborator_reference while the Lens article has
   // contributor_reference instances.
 
-  this.resources = new Index(this.readerCtrl.__document, {
+  this.resources = new Index(this.readerCtrl.document, {
     types: ["figure_reference", "citation_reference", "contributor_reference", "collaborator_reference", "person_reference"],
     property: "target"
   });
@@ -323,7 +171,7 @@ ReaderView.Prototype = function() {
   this.toggleResourceReference = function(context, e) {
     var state = this.readerCtrl.state;
     var aid = $(e.currentTarget).attr('id');
-    var a = this.readerCtrl.__document.get(aid);
+    var a = this.readerCtrl.document.get(aid);
 
     var nodeId = this.readerCtrl.content.container.getRoot(a.path[0]);
     var resourceId = a.target;
@@ -352,10 +200,9 @@ ReaderView.Prototype = function() {
 
   this.followCrossReference = function(e) {
     var aid = $(e.currentTarget).attr('id');
-    var a = this.readerCtrl.__document.get(aid);
+    var a = this.readerCtrl.document.get(aid);
     this.jumpToNode(a.target);
   };
-
 
   // On Scroll update outline and mark active heading
   // --------
@@ -369,9 +216,9 @@ ReaderView.Prototype = function() {
 
   this.onResourceContentScroll = function() {
     var scrollTop = this.resourcesOutline.surface.$el.scrollTop();
+    console.log('YOYO', scrollTop);
     this.resourcesOutline.updateVisibleArea(scrollTop);
   };
-
 
   // Clear selection
   // --------
@@ -513,16 +360,56 @@ ReaderView.Prototype = function() {
   // --------
   //
   // Only triggered by the explicit switch
-  // Implicit context switches happen someone clicks a figure reference
+  // Implicit context switches happen if someone clicks a figure reference
 
-  this.switchContext = function(context) {
-    // var currentContext = this.readerCtrl.state.context;
-    this.saveScroll();
-
-    // Which view actions are triggered here?
-    this.readerCtrl.switchContext(context);
-    this.recoverScroll();
+  this.switchContext = function(contextId) {
+    this.readerCtrl.switchState({
+      id: "main",
+      contextId: contextId
+    });
   };
+
+
+  this.updateState = function(state, oldState) {
+    // HACK: avoid to call execute this when the ReaderController has
+    // already been disposed;
+    if (!state) return;
+
+    // Set context on the main element
+    // -------
+
+    this.$el.removeClass();
+    this.$el.addClass("article substance-article "+this.selectionState);
+
+    this.contentView.$('.content-node.active').removeClass('active');
+
+    // Remove active state from annotations
+    this.$('.annotation.active').removeClass('active');
+
+    // Reset focus classes
+    this.$('.context-toggle')
+      .removeClass('focus')
+      .removeClass('left')
+      .removeClass('right');
+
+    // Note: by adding the context id to the main element
+    // there are css rules that make only one panel visible
+    this.$el.addClass("state-"+state.id);
+    this.$el.addClass(this.readerCtrl.getContextId());
+
+    // TODO: do we still need this?
+    if (state.nodeId !== undefined) {
+      this.contentView.$('#'+state.nodeId).addClass('active');
+    }
+
+    // According to the current context show active resource panel
+    // -------
+
+    this.updateResource();
+    this.updateOutline();
+  };
+
+
 
   // Update Reader State
   // --------
@@ -530,61 +417,58 @@ ReaderView.Prototype = function() {
   // Called every time the controller state has been modified
   // Search for readerCtrl.modifyState occurences
 
-  this.updateState = function(options) {
-    options = options || {};
-    var state = this.readerCtrl.state;
-    var that = this;
-
-    // Set context on the reader view
-    // -------
-
-    this.$el.removeClass('toc figures citations info');
-    this.contentView.$('.content-node.active').removeClass('active');
-    this.$el.addClass(state.context);
-  
-    if (state.node) {
-      this.contentView.$('#'+state.node).addClass('active');
-    }
-
-    // According to the current context show active resource panel
-    // -------
-
-    this.updateResource();
-  };
-
-
-  // Based on the current application state, highlight the current resource
-  // -------
-  // 
-  // Triggered by updateState
-
   this.updateResource = function() {
     var state = this.readerCtrl.state;
-    this.$('.resources .content-node.active').removeClass('active fullscreen');
-    this.contentView.$('.annotation.active').removeClass('active');
-    
+    // HACK: avoid to call execute this when the ReaderController has
+    // already been disposed;
+    if (!state) return;
 
-    if (state.resource) {
+    this.$('.resources .content-node.active').removeClass('active fullscreen');
+    this.$('.toggle-author').removeClass('active');
+    // this.contentView.$('.annotation.active').removeClass('active');
+
+    var annotations;
+    if (state.resourceId !== undefined) {
+
+      // TODO: This needs to be done delayed as the parent element must be injected in the DOM.
+      // Despite of this being a secret hack it is definitely not a good way to go.
+      // Instead, I would prefer if this could be done with the el already in the DOM.
+      // E.g., that the first implicit transition ('initialized') will introduce the view to the DOM
+      // and then `updateState` would not need to worry.
+      // This needs some refactoring on the app state API, as 'initialized' is not explicitly reached
+      // when a state is given.
+
+      var that = this;
+      _.delay(function() {
+        // TODO: do we really need that?
+        if (state.nodeId)  {
+          that.jumpToNode(state.nodeId);
+        }
+        if (state.resourceId) {
+          that.jumpToResource(state.resourceId);
+        }
+      }, 0);
+
       // Show selected resource
-      var $res = this.$('#'+state.resource);
+      var $res = this.$('#'+state.resourceId);
       $res.addClass('active');
+
       if (state.fullscreen) $res.addClass('fullscreen');
 
       // Mark all annotations that reference the resource
-      var annotations = this.resources.get(state.resource);
-      
+      annotations = this.resources.get(state.resourceId);
+
       _.each(annotations, function(a) {
         this.contentView.$('#'+a.id).addClass('active');
       }, this);
 
-      // Update outline
-    } else {
-      this.recoverScroll();
-      // Hide all resources (see above)
+      // This is only used to mark author references on the cover as active
+      // TODO: Use a smarter method as this is rather brute force
+      this.$('#toggle_'+state.resourceId).addClass('active');
+      this.jumpToResource(state.resourceId);
     }
-
-    this.updateOutline();
   };
+
 
   // Returns true when on a mobile device
   // --------
@@ -605,22 +489,18 @@ ReaderView.Prototype = function() {
 
     var state = this.readerCtrl.state;
 
+    console.log('updating outline', state);
+
     // HACK: avoid to call execute this when the ReaderController has
     // already been disposed;
     if (!state) return;
-
-
-    //   that.outline.update({
-    //     context: state.context,
-    //     selectedNode: state.node,
-    //     highlightedNodes: nodes
-    //   });
 
     var contextId = this.readerCtrl.getContextId();
 
     var outlineParams = {
       context: contextId
     };
+
     var highlightedNodes;
     if (state.resourceId !== undefined) {
       highlightedNodes = this.readerCtrl.getResourceReferenceContainers(state.resourceId);
@@ -662,47 +542,8 @@ ReaderView.Prototype = function() {
       // selectedNode: state.node,
       highlightedNodes: [state.resourceId]
     });
-
   };
 
-
-  // this.updateOutline = function() {
-  //   var that = this;
-  //   var state = this.readerCtrl.state;
-  //   var container = this.readerCtrl.content.container;
-
-  //   var nodes = this.getResourceReferenceContainers();
-
-  //   that.outline.update({
-  //     context: state.context,
-  //     selectedNode: state.node,
-  //     highlightedNodes: nodes
-  //   });
-
-
-  //   // Resources outline
-  //   // -------------------
-
-  //   if (state.context === "toc") {
-  //     // that.resourcesOutline.surface = this.tocView;
-  //     $(that.resourcesOutline.el).addClass('hidden');
-  //     return;
-  //   } else if (state.context === "figures") {
-  //     that.resourcesOutline.surface = this.figuresView;
-  //   } else if (state.context === "citations") {
-  //     that.resourcesOutline.surface = this.citationsView;
-  //   } else {
-  //     that.resourcesOutline.surface = this.infoView;
-  //   }
-
-  //   $(that.resourcesOutline.el).removeClass('hidden');
-
-  //   that.resourcesOutline.update({
-  //     context: state.context,
-  //     selectedNode: state.node,
-  //     highlightedNodes: [state.resource]
-  //   });
-  // };
 
   this.getResourceReferenceContainers = function() {
     var state = this.readerCtrl.state;
@@ -738,44 +579,25 @@ ReaderView.Prototype = function() {
   this.render = function() {
     var that = this;
 
-    var state = this.readerCtrl.state;
-    this.el.appendChild(new Renderer(this));
+    this.el.appendChild(_render(this));
 
-    // After rendering make reader reflect the app state
     this.$('.document').append(that.outline.el);
+    this.resourcesEl = this.el.querySelector(".resources");
+    this.resourcesEl.appendChild(that.resourcesOutline.el);
 
-    this.$('.resources').append(that.resourcesOutline.el);
-
-    // Await next UI tick to update layout and outline
-    _.delay(function() {
-      // Render outline that sticks on this.surface
-      that.updateState();
-      MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-    }, 1);
-
-    // Wait for stuff to be rendered (e.g. formulas)
-    // TODO: use a handler? MathJax.Hub.Queue(fn) does not work for some reason
-
-    _.delay(function() {
-      that.updateOutline();
-    }, 2000);
-
+    // Update the outline whenever the window is resized
     var lazyOutline = _.debounce(function() {
       that.updateOutline();
     }, 1);
-
-    // Jump marks for teh win
-    if (state.node) {
-      _.delay(function() {
-        that.jumpToNode(state.node);
-        if (state.resource) {
-          that.jumpToResource(state.resource);
-        }
-      }, 100);
-    }
-
     $(window).resize(lazyOutline);
-    
+
+    // Note: update outline can not be called here as this element has not been injected
+    // into the DOM yet, thus, no layout information is available.
+    // Calling that delayed does the trick.
+    _.delay(function() {
+      that.updateOutline();
+    }, 0);
+
     return this;
   };
 
@@ -793,6 +615,116 @@ ReaderView.Prototype = function() {
 
     this.stopListening();
   };
+
+
+
+  var _render = function(self) {
+    var frag = document.createDocumentFragment();
+
+    // Prepare doc view
+    // --------
+
+    var docView = $$('.document');
+    docView.appendChild(self.contentView.render().el);
+
+    // Prepare context toggles
+    // --------
+
+    var children = [];
+
+    //  && self.tocView.headings.length > 2
+    if (self.tocView) {
+      children.push($$('a.context-toggle.toc', {
+        'href': '#',
+        'sbs-click': 'switchContext(toc)',
+        'title': 'Text',
+        'html': '</i><i class="icon-align-left"></i><span> Text</span>'
+      }));
+    }
+
+    if (self.figuresView) {
+      children.push($$('a.context-toggle.figures', {
+        'href': '#',
+        'sbs-click': 'switchContext(figures)',
+        'title': 'Figures',
+        'html': '<i class="icon-picture"></i><span> Figures</span>'
+      }));
+    }
+
+    if (self.infoView) {
+      children.push($$('a.context-toggle.info', {
+        'href': '#',
+        'sbs-click': 'switchContext(info)',
+        'title': 'Article Info',
+        'html': '<i class="icon-info-sign"></i><span>Info</span>'
+      }));
+    }
+
+
+    var contextToggles = $$('.context-toggles', {
+      children: children
+    });
+
+
+    // Prepare resources view
+    // --------
+
+    var medialStrip = $$('.medial-strip');
+
+    if (self.options["back"]) {
+      var backEl = $$('a.back-nav', {
+        'href': '#',
+        // Don't know why... but this is sometimes not working... i.e., does not dispatch to the
+        // given method. I am loosing trust in this mechanism and will use bare-metal event handlers.
+        // 'sbs-click': 'back()',
+        'title': 'Go back',
+        'html': '<i class=" icon-chevron-up"></i>'
+      });
+      backEl.onclick = function(e) {
+        self.options.back();
+        e.preventDefault();
+      };
+      medialStrip.appendChild(backEl);
+    }
+
+    medialStrip.appendChild($$('.separator-line'));
+    medialStrip.appendChild(contextToggles);
+
+    // Wrap everything within resources view
+    var resourcesView = $$('.resources');
+    resourcesView.appendChild(medialStrip);
+
+    // Add TOC
+    // --------
+
+    resourcesView.appendChild(self.tocView.render().el);
+
+    if (self.figuresView) {
+      resourcesView.appendChild(self.figuresView.render().el);
+    }
+
+    if (self.infoView) {
+      resourcesView.appendChild(self.infoView.render().el);
+    }
+
+    frag.appendChild(docView);
+    frag.appendChild(resourcesView);
+
+    return frag;
+  };
+
+  var __findParentElement = function(el, selector) {
+    var current = el;
+    while(current !== undefined) {
+      if ($(current).is(selector)) {
+        return current;
+      }
+      current = current.parentElement;
+    }
+    return null;
+  };
+
+
 };
 
 ReaderView.Prototype.prototype = View.prototype;

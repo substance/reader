@@ -15,49 +15,18 @@ var SurfaceController = require("substance-surface").SurfaceController;
 //
 // Controls the Reader.View
 
-var ReaderController = function(doc, state, options) {
+var ReaderController = function(doc, options) {
 
   // Private reference to the document
-  this.__document = doc;
+  this.document = doc;
 
   // E.g. context information
   this.options = options || {};
 
-  // Reader state
-  // -------
+  // this.state = state;
 
-  var nodeSurfaceProvider = new Container.DefaultNodeSurfaceProvider(doc);
-
-  this.contentCtrl = new SurfaceController(
-    new DocumentSession(new Container(doc, "content", nodeSurfaceProvider))
-  );
-
-  if (doc.get('figures')) {
-    // this.figures = new Document.Controller(doc, {view: "figures"});
-    // this.figuresCtrl = new DocumentSession(new Container(doc, "figures", nodeSurfaceProvider));
-    this.figuresCtrl = new SurfaceController(
-      new DocumentSession(new Container(doc, "figures", nodeSurfaceProvider))
-    );
-  }
-
-  // if (doc.get('citations')) {
-  //   this.figures = new DocumentSession(new Container(doc, "figures", nodeSurfaceProvider));
-  //   this.citations = new Document.Controller(doc, {view: "citations"});
-  // }
-
-  if (doc.get('info')) {
-    this.infoCtrl = new SurfaceController(
-      new DocumentSession(new Container(doc, "info", nodeSurfaceProvider))
-    );
-
-    // this.infoCtrl = new DocumentSession(new Container(doc, "info", nodeSurfaceProvider));
-    // this.info = new Document.Controller(doc, {view: "info"});
-  }
-
-  this.state = state;
-
-  // Current explicitly set context
-  this.currentContext = "toc";
+  // // Current explicitly set context
+  // this.currentContext = "toc";
 
 };
 
@@ -72,9 +41,55 @@ ReaderController.Prototype = function() {
   };
 
   this.createView = function() {
-    if (!this.view) this.view = new ReaderView(this);
+    if (!this.view) {
+      this.view = new ReaderView(this, this.options);
+    }
     return this.view;
   };
+
+
+  this.initialize = function(newState, cb) {
+    var doc = this.document;
+
+    this.lastContext = "toc";
+
+    // Needed?
+    // this.annotator = new RichtextAnnotator();
+
+    // Reader state
+    // -------
+
+    // Note: the sub-controllers exist over the whole life-cycle of this controller
+    // i.e., they are not disposed until this controller is disposed
+
+    var nodeSurfaceProvider = new Container.DefaultNodeSurfaceProvider(doc);
+
+    this.contentCtrl = new SurfaceController(
+      new DocumentSession(new Container(doc, "content", nodeSurfaceProvider))
+    );
+
+    if (doc.get('figures')) {
+      this.figuresCtrl = new SurfaceController(
+        new DocumentSession(new Container(doc, "figures", nodeSurfaceProvider))
+      );
+    }
+
+    if (doc.get('info')) {
+      this.infoCtrl = new SurfaceController(
+        new DocumentSession(new Container(doc, "info", nodeSurfaceProvider))
+      );
+    }
+
+    this.referenceIndex = doc.indexes["references"] || doc.addIndex("references", {
+      types: ["figure_reference", "contributor_reference", "remark_reference", "error_reference"],
+      property: "target"
+    });
+
+    this.createView().render();
+
+    cb(null);
+  };
+
 
   // Implements state transitions for the viewer
   // --------
@@ -118,35 +133,7 @@ ReaderController.Prototype = function() {
     return this.state.contextId || "toc";
   };
 
-  // Explicit context switch
-  // --------
-  // 
 
-  this.switchContext = function(context) {
-    // Remember scrollpos of previous context
-    this.currentContext = context;
-
-    this.modifyState({
-      context: context,
-      node: null,
-      resource: null
-    });
-  };
-
-  this.modifyState = function(state) {
-    Controller.prototype.modifyState.call(this, state);
-  };
-
-  // TODO: Transition to ao new solid API
-  // --------
-  // 
-
-  this.getActiveControllers = function() {
-    var result = [];
-    result.push(["article", this]);
-    result.push(["reader", this.content]);
-    return result;
-  };
 };
 
 
