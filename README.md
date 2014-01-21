@@ -1,6 +1,6 @@
 # Substance Reader
 
-**Substance Reader** is just a custom integration of eLife Lens. See [here](http://lens.substance.io) for more infos:
+The 0.2.x series is compatible with eLife Lens 1.x. See [here](http://lens.substance.io) for more infos:
 
 ### Website integration
 
