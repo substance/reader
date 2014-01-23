@@ -13,7 +13,6 @@ var $$ = require("substance-application").$$;
 
 var CORRECTION = 0; // Extra offset from the top (e.g. when there's a fixed menu bar etc.)
 
-
 // a function defined below
 var __createRenderer;
 var __createSurface;
@@ -42,8 +41,6 @@ var ReaderView = function(readerCtrl, options) {
   // Only relevant
   this.bodyScroll = {};
 
-  var ArticleRenderer = doc.constructor.Renderer;
-
   // Surfaces
   // --------
 
@@ -65,10 +62,6 @@ var ReaderView = function(readerCtrl, options) {
   // A Surface for the info view
   if (this.readerCtrl.hasInfo()) __addResourcePanel(this, doc, "info");
 
-  // Whenever a state change happens (e.g. user navigates somewhere)
-  // the interface gets updated accordingly
-  this.listenTo(this.readerCtrl, "state-changed", this.updateState);
-
   // Index for resources
   // --------
   // 
@@ -76,7 +69,7 @@ var ReaderView = function(readerCtrl, options) {
   // contributor_reference instances.
 
   this.resources = new Index(this.readerCtrl.document, {
-    types: ["figure_reference", "citation_reference", "contributor_reference", "collaborator_reference", "person_reference"],
+    types: ["figure_reference", "citation_reference", "contributor_reference"],
     property: "target"
   });
 
@@ -105,18 +98,45 @@ var ReaderView = function(readerCtrl, options) {
   // Resource references
   this.$el.on('click', '.annotation.figure_reference', _.bind(this.toggleFigureReference, this));
   this.$el.on('click', '.annotation.citation_reference', _.bind(this.toggleCitationReference, this));
-  this.$el.on('click', '.annotation.contributor_reference', _.bind(this.toggleContributorReference, this));
-  this.$el.on('click', '.annotation.collaborator_reference', _.bind(this.toggleContributorReference, this));
+    
+  this.$el.on('click', '.resources .content-node .toggle-resource', _.bind(this.toggleResource, this));
+  this.$el.on('click', '.authors .toggle-author', _.bind(this.toggleAuthor, this));
 
   this.$el.on('click', '.annotation.cross_reference', _.bind(this.followCrossReference, this));
   this.$el.on('click', '.document .content-node.heading', _.bind(this.setAnchor, this));
-  this.$el.on('click', '.document .content-node.heading .top', _.bind(this.gotoTop, this));
+  
+  // this.$el.on('click', '.document .content-node.heading .top', _.bind(this.gotoTop, this));
 
   this.outline.$el.on('click', '.node', _.bind(this._jumpToNode, this));
 };
 
 
 ReaderView.Prototype = function() {
+
+  // Toggles on and off the zoom
+  // --------
+  // 
+
+  this.toggleAuthor = function(e) {
+    var resourceId = e.currentTarget.getAttribute('data-id');
+    var state = this.readerCtrl.state;
+    
+    if (state.resourceId === resourceId) {
+      // Reset
+      this.readerCtrl.switchState({
+        id: "main",
+        contextId: "toc"
+      });
+    } else {
+      // Highlight
+      this.readerCtrl.switchState({
+        id: "main",
+        contextId: "info",
+        resourceId: resourceId
+      });
+    }
+    return false;
+  };
   
   this.setAnchor = function(e) {
     this.toggleNode('toc', $(e.currentTarget).attr('id'));
@@ -163,34 +183,23 @@ ReaderView.Prototype = function() {
     e.preventDefault();
   };
 
-  this.toggleContributorReference = function(e) {
-    this.toggleResourceReference('info', e);
-    e.preventDefault();
-  };
 
   this.toggleResourceReference = function(context, e) {
     var state = this.readerCtrl.state;
     var aid = $(e.currentTarget).attr('id');
     var a = this.readerCtrl.document.get(aid);
-
-    var nodeId = this.readerCtrl.content.container.getRoot(a.path[0]);
     var resourceId = a.target;
 
-    if (resourceId === state.resource) {
-      this.readerCtrl.modifyState({
-        context: this.readerCtrl.currentContext,
-        node: null,
-        resource:  null
+    if (resourceId === state.resourceId) {
+      this.readerCtrl.switchState({
+        contextId: this.readerCtrl.currentContext || "toc" //, // ,
+        // resourceId:  undefined
       });
     } else {
-      this.saveScroll();
-      this.readerCtrl.modifyState({
-        context: context,
-        node: nodeId,
-        resource: resourceId
+      this.readerCtrl.switchState({
+        contextId: context,
+        resourceId: resourceId
       });
-
-      this.jumpToResource(resourceId);
     }
   };
 
@@ -216,7 +225,6 @@ ReaderView.Prototype = function() {
 
   this.onResourceContentScroll = function() {
     var scrollTop = this.resourcesOutline.surface.$el.scrollTop();
-    console.log('YOYO', scrollTop);
     this.resourcesOutline.updateVisibleArea(scrollTop);
   };
 
@@ -250,20 +258,20 @@ ReaderView.Prototype = function() {
   // --------
   //
 
-  this.toggleResource = function(id) {
+  this.toggleResource = function(e) {
+    var resourceId = $(e.currentTarget).parent().parent().attr('id');
     var state = this.readerCtrl.state;
-    var node = state.node;
+
+    var newState = {
+      contextId: state.contextId,
+    };
+
     // Toggle off if already on
-    if (state.resource === id) {
-      id = null;
-      node = null;
+    if (state.resourceId !== resourceId) {
+      newState.resourceId = resourceId;
     }
 
-    this.readerCtrl.modifyState({
-      fullscreen: false,
-      resource: id,
-      node: node
-    });
+    this.readerCtrl.switchState(newState);
   };
 
   // Jump to the given node id
@@ -304,22 +312,23 @@ ReaderView.Prototype = function() {
   //
 
   this.toggleNode = function(context, nodeId) {
-    var state = this.readerCtrl.state;
+    console.log('TODO: implement toggle node');
+    // var state = this.readerCtrl.state;
 
-    if (state.node === nodeId && state.context === context) {
-      // Toggle off -> reset, preserve the context
-      this.readerCtrl.modifyState({
-        context: this.readerCtrl.currentContext,
-        node: null,
-        resource: null
-      });
-    } else {
-      this.readerCtrl.modifyState({
-        context: context,
-        node: nodeId,
-        resource: null
-      });
-    }
+    // if (state.node === nodeId && state.context === context) {
+    //   // Toggle off -> reset, preserve the context
+    //   this.readerCtrl.modifyState({
+    //     context: this.readerCtrl.currentContext,
+    //     node: null,
+    //     resource: null
+    //   });
+    // } else {
+    //   this.readerCtrl.modifyState({
+    //     context: context,
+    //     node: nodeId,
+    //     resource: null
+    //   });
+    // }
   };
 
   // Get scroll position of active panel
@@ -363,12 +372,19 @@ ReaderView.Prototype = function() {
   // Implicit context switches happen if someone clicks a figure reference
 
   this.switchContext = function(contextId) {
+    this.readerCtrl.currentContext = contextId;
     this.readerCtrl.switchState({
       id: "main",
       contextId: contextId
     });
   };
 
+
+  // Update Reader State
+  // --------
+  // 
+  // Called every time the controller state has been modified
+  // Search for readerCtrl.modifyState occurences
 
   this.updateState = function(state, oldState) {
     // HACK: avoid to call execute this when the ReaderController has
@@ -388,9 +404,7 @@ ReaderView.Prototype = function() {
 
     // Reset focus classes
     this.$('.context-toggle')
-      .removeClass('focus')
-      .removeClass('left')
-      .removeClass('right');
+      .removeClass('focus');
 
     // Note: by adding the context id to the main element
     // there are css rules that make only one panel visible
@@ -409,13 +423,10 @@ ReaderView.Prototype = function() {
     this.updateOutline();
   };
 
-
-
-  // Update Reader State
-  // --------
-  // 
-  // Called every time the controller state has been modified
-  // Search for readerCtrl.modifyState occurences
+  // Based on the current application state, highlight the current resource
+  // -------
+  //
+  // Triggered by updateState
 
   this.updateResource = function() {
     var state = this.readerCtrl.state;
@@ -425,6 +436,7 @@ ReaderView.Prototype = function() {
 
     this.$('.resources .content-node.active').removeClass('active fullscreen');
     this.$('.toggle-author').removeClass('active');
+
     // this.contentView.$('.annotation.active').removeClass('active');
 
     var annotations;
@@ -456,6 +468,7 @@ ReaderView.Prototype = function() {
       if (state.fullscreen) $res.addClass('fullscreen');
 
       // Mark all annotations that reference the resource
+
       annotations = this.resources.get(state.resourceId);
 
       _.each(annotations, function(a) {
@@ -473,9 +486,9 @@ ReaderView.Prototype = function() {
   // Returns true when on a mobile device
   // --------
 
-  this.isMobile = function() {
+  // this.isMobile = function() {
 
-  };
+  // };
 
   // Whenever the app state changes
   // --------
@@ -488,8 +501,6 @@ ReaderView.Prototype = function() {
     // TODO: improve this. Using the sub-controllers that way feels bad.
 
     var state = this.readerCtrl.state;
-
-    console.log('updating outline', state);
 
     // HACK: avoid to call execute this when the ReaderController has
     // already been disposed;
@@ -536,6 +547,7 @@ ReaderView.Prototype = function() {
     }
 
     $(that.resourcesOutline.el).removeClass('hidden');
+
 
     that.resourcesOutline.update({
       context: state.contextId,
@@ -723,8 +735,6 @@ ReaderView.Prototype = function() {
     }
     return null;
   };
-
-
 };
 
 ReaderView.Prototype.prototype = View.prototype;
@@ -764,7 +774,6 @@ __createSurface = function(self, doc, viewName) {
 
 __addResourcePanel = function(self, doc, name) {
   var viewName = name+"View";
-  // console.log('adding view', name+'View');
 
   self[viewName] = __createSurface(self, doc, name);
   var el = self[viewName].el;

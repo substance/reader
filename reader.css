@@ -18,6 +18,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   height: 100%;
 }
 
+
 /* Surface specific styles */
 .content-node {
 
@@ -38,7 +39,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
 .article .document {
   line-height: 28.5px;
-  font-size: 18px;
+  font-size: 16px;
   position: relative;
   float: left;
   overflow: hidden;
@@ -150,7 +151,6 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   line-height: 40px;
   font-size: 22px;
   color: #aaa;
-  font-family: 'Avenir LT W01 85 Heavy', 'Montserrat', 'Source Sans Pro';
 }
 
 .article .context-toggles .context-toggle i {
@@ -198,6 +198,9 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 /* Resources Panel 
 ======================================================================= */
 
+.article .resources .delete-resource {
+  display: none;
+}
 
 .article .resources {
   float: right;
@@ -229,18 +232,12 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   color: #505050;
   position: relative;
   background: #fff;
-/*  margin-bottom: 30px;
-  margin-top: 30px;*/
 
   padding: 0px;
   padding-top: 20px;
   padding-bottom: 20px;
 }
 
-.article .resources .nodes > .content-node > .content {
-  border: 1px solid #ddd;
-  border-top: none;
-}
 
 .article .resources .content-node .resource-header:hover {
   background: rgba(0,0,0,0.15);
@@ -324,6 +321,10 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   display: block;
 }
 
+.substance-article .content-node .toggle-resource {
+  cursor: pointer;
+}
+
 /* Citations View
 ----------------------------------------------------------------------- */
 
@@ -383,30 +384,6 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
 .article.info .resources .resource-view.info {
   display: block;
-}
-
-
-/* Consistent Resource Header for figures captions and person cards 
------------------------------------------------------------------------ */
-
-.article .resources .resource-header .name {
-  display: block;
-  min-height: 80px;
-  
-  color: #444;
-  font-family: 'Avenir LT W01 85 Medium', 'Montserrat', 'Source Sans Pro';
-  font-size: 16px;
-  line-height: 21px;
-  padding: 10px 20px;
-}
-
-
-.article .resources .content-node .reference-count {
-  font-size: 13px;
-  position: absolute;
-  right: 20px;
-  top: 40px;
-  text-align: right;
 }
 
 
@@ -474,11 +451,8 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   bottom: 0px;
   left: 0px;
   right: 0px;
-
   overflow: auto;
 }
-
-
 
 /* Info panel overrides 
 ----------------------------------------------------------------------- */
@@ -488,127 +462,20 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   padding: 20px;
 }
 
-
 /* Annotations 
 ----------------------------------------------------------------------- */
 
 .article span.annotation {
-  -webkit-transition-property: background, color;
-  -moz-transition-property: background, color;
-  transition-property: background, color;
-
-  -webkit-transition-duration: 0.1s;
-  -moz-transition-duration: 0.1s;
-  transition-duration: 0.1s;
 }
-
-span.annotation.formula_reference, span.publication_reference {
-  padding-left: 3px; padding-right: 3px;
-}
-
-.article span.emphasis, .article em {
-  font-style: italic;
-}
-
-.article span.superscript, .article span.subscript, .article sup, .article sub {
-  vertical-align: baseline;
-  position: relative;
-  top: -0.4em;
-  font-size: 12px;
-}
-
-.article span.subscript, .article sub {
-  top: 0.4em;
-}
-
-.article span.strong, .article strong {
-  font-weight: bold;
-}
-
-.article span.underline {
-  text-decoration: underline;
-}
-
-
-.content-node .idea { background-color: rgba(102, 182, 32, 0.3); }
-.content-node .question { background-color: rgba(16, 167, 222, 0.3); }
-.content-node .error { background-color: rgba(237, 96, 48, 0.3); }
-
-.content-node .link { color: #1B6685; font-weight: bold; }
-.content-node .link:hover, .content-node .link.active { color: rgba(11, 157, 217, 1); }
-
-/* Inline Code Annotations */
-
-.content-node .code {
-  font-family: Consolas, "Liberation Mono", Courier, monospace;
-  background: #eee;
-  font-size: 13px;
-  padding: 2px 3px;
-  -webkit-font-smoothing: subpixel-antialiased;
-}
-
-/* Highlighted states */
-
-.content-node .idea.highlight { background-color: rgba(102, 182, 32, 0.6); }
-.content-node .question.highlight { background-color: rgba(16, 167, 222, 0.6);}
-.content-node .error.highlight { background-color: rgba(237, 96, 48, 0.6); }
-
-/* Selected states */
-.content-node .content span.selected { background: rgba(0,0,0,0.08); }
-.content-node .content .idea.selected { background-color: rgba(102, 182, 32, 0.4); }
-.content-node .content .question.selected { background-color: rgba(16, 167, 222, 0.4);}
-.content-node .content .error.selected { background-color: rgba(237, 96, 48, 0.4); }
-
-/* Em, Strong, Link */
-.content-node .emphasis { font-style: italic; }
-.content-node .strong { font-weight: bold; }
-
 
 /* Figure Reference */
-.content-node .figure_reference {
-  background: rgba(145, 187, 4, 0.15);
-  border-bottom: 1px solid rgba(145, 187, 4, 0.8);
-  color: #495A11;
-  cursor: pointer;
+
+.content-node .figure_reference { 
+  padding: 0 2px;
+  cursor: pointer; 
 }
-
-.content-node .contributor_reference, .content-node .collaborator_reference {
-  padding: 2px 1px;
-  cursor: pointer;
-}
-
-.content-node .contributor_reference, .content-node .collaborator_reference {
-  padding: 2px 1px;
-  cursor: pointer;
-}
-
-.content-node .citation_reference { 
-  background: rgba(11, 157, 217, 0.075);
-  color: #1B6685;
-  border-bottom: 1px solid rgba(11, 157, 217, 0.4);
-  cursor: pointer;
-}
-
-.content-node .cross_reference {
-  background: rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
-  cursor: pointer;
-}
-
-/* Hover states */
-.content-node .figure_reference:hover { background-color: rgba(145, 187, 4, 0.35); }
-.content-node .citation_reference:hover { background-color: rgba(11, 157, 217, 0.30); }
-.content-node .contributor_reference:hover { background-color: rgba(0,0,0, 0.05); }
-
-.content-node .figure_reference.active { background: rgba(145, 187, 4, 0.7); }
-.content-node .citation_reference.active { background: rgba(11, 157, 217, 0.6); }
-.content-node .contributor_reference.active { background-color: #5c6570; color: white; }
-
-/* Cross Reference */
-.content-node .cross_reference:hover {
-  background-color: rgba(0, 0, 0, 0.10);
-}
-
+.content-node .citation_reference { cursor: pointer; }
+.content-node .cross_reference { cursor: pointer; }
 
 /* Reader-specific overrides for content nodes
 ======================================================================= */
@@ -619,15 +486,19 @@ span.annotation.formula_reference, span.publication_reference {
 .surface.content .nodes > .content-node {
   padding-top: 10px;
   padding-bottom: 15px;
-  padding-left: 40px;
-  padding-right: 40px;
+  padding-left: 30px;
+  padding-right: 50px;
   word-wrap: break-word;
 }
 
 /* Some extra cover spacing */
 .surface.content .nodes > .content-node.cover {
   padding-top: 20px;
-  padding-bottom: 60px;
+}
+
+.substance-article .content-node.cover .content .authors .toggle-author.active {
+  background: rgba(0,0,0,0.7);
+  color: rgba(255,255,255, 1);
 }
 
 
@@ -635,20 +506,55 @@ span.annotation.formula_reference, span.publication_reference {
 /* For the resources panel
 ----------------------------------------------------------------------- */
 
+.content-node {
 
-.resources .content-node.image div img {
-  width: auto;
 }
 
-.resources .content-node.paragraph .content-node.image div img {
-  width: auto;
+/* Wraps all resource details */
+.content-node .resource-body {
+  padding: 20px;
+  overflow: auto;
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+  border-bottom: 1px solid #eee;
 }
 
 /* padding for the content */
 .resources .nodes > .content-node > .content {
-  padding: 20px;
-
+  /*padding: 20px;*/
 }
+
+/* Contributor View*/
+
+.resources .content-node.contributor .name .content {
+  background: rgba(0,0,0,0.1);
+  padding: 20px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Active Style */
+
+.resources .content-node.contributor.active .name .content {
+  background: rgba(0,0,0,0.7);
+  color: white;
+}
+
+/* Figure View */
+
+.content-node.figure .label .content {
+  background: rgba(0,0,0,0.1);
+  padding: 20px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.content-node.figure.active .label .content,
+.focus-panel .content-node.figure .label .content {
+  background: rgba(145, 187, 4, 1);
+  color: white;
+}
+
 
 /* For the resources panel */
 .resources .info .nodes > .content-node.paragraph > .content > .content-node {
@@ -657,7 +563,7 @@ span.annotation.formula_reference, span.publication_reference {
 
 .article .document .surface.content::-webkit-scrollbar {
   width: 2px;
-  height: 2px; 
+  height: 2px;
 }
 
 .article .document .surface.content::-webkit-scrollbar-thumb {
@@ -681,12 +587,6 @@ span.annotation.formula_reference, span.publication_reference {
 }
 
 
-.article .document .content-node.heading {
-  cursor: pointer;
-}
-
-
-
 /* Resources Outline */
 /* ---------------------------------------*/
 
@@ -708,9 +608,9 @@ span.annotation.formula_reference, span.publication_reference {
 }
 
 
+
 /* Responsiveness */
 /* ---------------------------------------*/
-
 
 
 /* Hide fullscreen toggle for small screens */
@@ -740,8 +640,36 @@ span.annotation.formula_reference, span.publication_reference {
   display: none;
 }
 
+.surface.content .nodes .content-node.heading {
+  padding-bottom: 0px;
+}
+
+.surface.content .nodes .content-node.heading.level-1 {
+  /*padding-top: 20px;*/
+}
+
+
 /* Mobile (iPad Portrait, iPhone) */
 @media (max-width: 850px) {
+
+  /* Smaller headers */
+  .content-node.heading.level-1 .content {
+    font-size: 18px;
+  }
+
+  .content-node.heading.level-2 .content {
+    font-size: 16px;
+  }
+
+  .content-node.heading.level-3 .content {
+    font-size: 16px;
+  }
+
+  .content-node.heading.level-4 .content {
+    font-size: 16px;
+  }
+
+
 
   .content-node.heading .top {
     display: block;
@@ -925,6 +853,4 @@ span.annotation.formula_reference, span.publication_reference {
   .article .lens-outline {
     display: none;
   }
-
 }
-

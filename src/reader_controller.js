@@ -1,10 +1,10 @@
 "use strict";
 
+var _ = require("underscore");
 var Document = require("substance-document");
 var Controller = require("substance-application").Controller;
 var ReaderView = require("./reader_view");
 var util = require("substance-util");
-
 var DocumentSession = Document.Session;
 var Container = Document.Container;
 
@@ -22,11 +22,7 @@ var ReaderController = function(doc, options) {
 
   // E.g. context information
   this.options = options || {};
-
-  // this.state = state;
-
-  // // Current explicitly set context
-  // this.currentContext = "toc";
+  console.log("state", this.state);
 
 };
 
@@ -40,6 +36,9 @@ ReaderController.Prototype = function() {
     return this.infoCtrl;
   };
 
+  // Initial view creation
+  // --------
+
   this.createView = function() {
     if (!this.view) {
       this.view = new ReaderView(this, this.options);
@@ -47,14 +46,13 @@ ReaderController.Prototype = function() {
     return this.view;
   };
 
+  // Initial controller state
+  // --------
 
   this.initialize = function(newState, cb) {
     var doc = this.document;
 
-    this.lastContext = "toc";
-
-    // Needed?
-    // this.annotator = new RichtextAnnotator();
+    this.currentContext = newState.contextId;
 
     // Reader state
     // -------
@@ -94,9 +92,9 @@ ReaderController.Prototype = function() {
   // Implements state transitions for the viewer
   // --------
   // 
+  // We use default implementation for now
 
   // this.transition = function(newState, cb) {
-
   //   // handle reflexiv transitions
   //   if (newState.id === this.state.id) {
   //     var skipTransition = false;
@@ -105,34 +103,44 @@ ReaderController.Prototype = function() {
   //     case "main":
   //       skipTransition = (newState.contextId === this.state.contextId && newState.resourceId === this.state.resourceId && newState.nodeId === this.state.nodeId);
   //       break;
-  //     case "focus":
-  //       skipTransition = true;
-  //       break;
   //     }
 
   //     if (skipTransition) return cb(null);
   //   }
 
-  //   if (this.state.id === "focus") {
-  //     this.disposeChildController();
-  //     this.focusCtrl = null;
-  //   }
-
-  //   switch (newState.id) {
-  //   case "focus":
-  //     this.focusCtrl = new FocusController(this.document);
-  //     this.setChildController(this.focusCtrl);
-  //     break;
-  //   }
-
   //   cb(null);
   // };
 
-  // API used by WriterView:
+  this.afterTransition = function(oldState) {
+    if (this.view) {
+      this.view.updateState(this.state, oldState);
+    }
+  };
+
+  var contextMapping = {
+    "figure_reference": "figures",
+    "person_reference": "info",
+    "remark_reference": "remarks",
+    "error_reference": "errors"
+  };
+
+  // API used by ReaderView:
   this.getContextId = function() {
     return this.state.contextId || "toc";
   };
 
+  this.getResourceReferenceContainers = function(resourceId) {
+    // A reference is an annotation node. We want to highlight
+    // all (top-level) nodes that contain a reference to the currently activated resource
+    // For that we take all references pointing to the resource
+    // and find the root of the node on which the annotation sticks on.
+    var references = this.referenceIndex.get(resourceId);
+    var container = this.contentCtrl.session.container;
+    var nodes = _.uniq(_.map(references, function(ref) {
+      return container.lookupRootNode(ref.path[0]);
+    }));
+    return nodes;
+  };
 
 };
 
