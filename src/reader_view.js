@@ -192,7 +192,7 @@ ReaderView.Prototype = function() {
 
     if (resourceId === state.resourceId) {
       this.readerCtrl.switchState({
-        contextId: this.readerCtrl.currentContext || "toc" //, // ,
+        contextId: this.readerCtrl.currentContext || "toc"
         // resourceId:  undefined
       });
     } else {
@@ -280,10 +280,27 @@ ReaderView.Prototype = function() {
 
   this.jumpToNode = function(nodeId) {
     var $n = $('#'+nodeId);
-    if ($n.length > 0) {
-      var topOffset = $n.position().top+CORRECTION;
-      this.contentView.$el.scrollTop(topOffset);
-    }
+
+    if ($n.length <= 0) return;
+
+    var topOffset = $n.position().top+CORRECTION;
+    this.contentView.$el.scrollTop(topOffset);
+  };
+
+  // Determines whether parts of an element are visible on screen or not
+  // --------
+  // 
+  // Only consideres vertical bounds
+
+  this.isElementInViewport = function(el) {
+    var rect = el.getBoundingClientRect();
+    var windowHeight = $(window).height();
+
+    var topEdgeVisible = rect.top >= 0 && rect.top <= windowHeight;
+    var bottomEdgeVisible = rect.bottom >= 0 && rect.bottom <= windowHeight;
+    var topEdgeAboveAndBottomEdgeBelow = rect.top < 0 && rect.bottom > 0;
+
+    return topEdgeVisible || bottomEdgeVisible || topEdgeAboveAndBottomEdgeBelow;
   };
 
   // Jump to the given resource id
@@ -292,9 +309,11 @@ ReaderView.Prototype = function() {
 
   this.jumpToResource = function(nodeId) {
     var $n = $('#'+nodeId);
-    if ($n.length > 0) {
-      var topOffset = $n.position().top;
+    if ($n.length <= 0) return;
 
+    // Check if node is already visible on the screen
+    if (!this.isElementInViewport($n[0])) {
+      var topOffset = $n.position().top;
       // TODO: Brute force for now
       // Make sure to find out which resource view is currently active
       if (this.figuresView) this.figuresView.$el.scrollTop(topOffset);
@@ -478,7 +497,7 @@ ReaderView.Prototype = function() {
       // This is only used to mark author references on the cover as active
       // TODO: Use a smarter method as this is rather brute force
       this.$('#toggle_'+state.resourceId).addClass('active');
-      this.jumpToResource(state.resourceId);
+      // this.jumpToResource(state.resourceId);
     }
   };
 
