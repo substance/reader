@@ -7,7 +7,6 @@ var ReaderView = require("./reader_view");
 var util = require("substance-util");
 var DocumentSession = Document.Session;
 var Container = Document.Container;
-
 var SurfaceController = require("substance-surface").SurfaceController;
 
 // Reader.Controller
@@ -22,8 +21,6 @@ var ReaderController = function(doc, options) {
 
   // E.g. context information
   this.options = options || {};
-  console.log("state", this.state);
-
 };
 
 ReaderController.Prototype = function() {
