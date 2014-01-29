@@ -19,7 +19,7 @@ var __createSurface;
 var __addResourcePanel;
 
 
-// Lens.Reader.View
+// Substance.Reader.View
 // ==========================================================================
 //
 
@@ -35,11 +35,15 @@ var ReaderView = function(readerCtrl, options) {
   var doc = this.readerCtrl.document;
 
   this.$el.addClass('article');
-  this.$el.addClass(doc.schema.id); // Substance article or lens article?
+  this.$el.addClass(doc.schema.id); // Substance article or lens-article?
 
   // Stores latest body scroll positions per context
-  // Only relevant
-  this.bodyScroll = {};
+  // Only relevant for mobile
+  this.bodyScroll = {
+    "figures": 0,
+    "info": 0,
+    "toc": 0
+  };
 
   // Surfaces
   // --------
@@ -169,10 +173,9 @@ ReaderView.Prototype = function() {
     return false;
   };
 
-  // Toggle Resource Reference
+  // When clicking on a resource reference in the main body
   // --------
   //
-
   this.toggleFigureReference = function(e) {
     this.toggleResourceReference('figures', e);
     e.preventDefault();
@@ -183,13 +186,13 @@ ReaderView.Prototype = function() {
     e.preventDefault();
   };
 
-
   this.toggleResourceReference = function(context, e) {
     var state = this.readerCtrl.state;
     var aid = $(e.currentTarget).attr('id');
     var a = this.readerCtrl.document.get(aid);
     var resourceId = a.target;
 
+    this.saveScroll();
     if (resourceId === state.resourceId) {
       this.readerCtrl.switchState({
         contextId: this.readerCtrl.currentContext || "toc"
@@ -303,24 +306,24 @@ ReaderView.Prototype = function() {
     return topEdgeVisible || bottomEdgeVisible || topEdgeAboveAndBottomEdgeBelow;
   };
 
+
   // Jump to the given resource id
   // --------
   //
 
-  this.jumpToResource = function(nodeId) {
+  this.jumpToResource = function(nodeId, forceJump) {
     var $n = $('#'+nodeId);
+    var topOffset = $n.position().top;
+
     if ($n.length <= 0) return;
 
     // Check if node is already visible on the screen
-    if (!this.isElementInViewport($n[0])) {
-      var topOffset = $n.position().top;
-      // TODO: Brute force for now
+    if (!this.isElementInViewport($n[0]) || forceJump) {
       // Make sure to find out which resource view is currently active
       if (this.figuresView) this.figuresView.$el.scrollTop(topOffset);
       if (this.citationsView) this.citationsView.$el.scrollTop(topOffset);
       if (this.infoView) this.infoView.$el.scrollTop(topOffset);
-
-      // Brute force for mobile
+      // TODO: Brute force for now
       $(document).scrollTop(topOffset);
     }
   };
@@ -366,14 +369,9 @@ ReaderView.Prototype = function() {
   // TODO: retrieve from cookie to persist scroll pos over reload?
 
   this.recoverScroll = function() {
-    var targetScroll = this.bodyScroll[this.readerCtrl.state.context];
-
-    if (targetScroll) {
-      $(document).scrollTop(targetScroll);
-    } else {
-      // Scroll to top
-      // $(document).scrollTop(0);
-    }
+    var targetScroll = this.bodyScroll[this.readerCtrl.state.contextId];
+    console.log('recover scroll for', this.readerCtrl.state.contextId, 'at', targetScroll);
+    $(document).scrollTop(targetScroll);
   };
 
   // Save current scroll position
@@ -381,7 +379,8 @@ ReaderView.Prototype = function() {
   // 
 
   this.saveScroll = function() {
-    this.bodyScroll[this.readerCtrl.state.context] = this.getScroll();
+    this.bodyScroll[this.readerCtrl.state.contextId] = this.getScroll();
+    console.log('saved scroll for', this.readerCtrl.state.contextId, 'at', this.getScroll());
   };
 
   // Explicit context switch
@@ -391,11 +390,20 @@ ReaderView.Prototype = function() {
   // Implicit context switches happen if someone clicks a figure reference
 
   this.switchContext = function(contextId) {
+    this.saveScroll();
+
+    // var that = this;
+    // _.delay(function() {
+      
+    // }, 100)
+
     this.readerCtrl.currentContext = contextId;
     this.readerCtrl.switchState({
       id: "main",
       contextId: contextId
     });
+
+
   };
 
 
@@ -438,8 +446,13 @@ ReaderView.Prototype = function() {
     // According to the current context show active resource panel
     // -------
 
-    this.updateResource();
+    this.updateResource(oldState);
     this.updateOutline();
+
+    // Call recoverScroll only if oldState = toc and !state.resourceId or target contextId is toc
+    if ((oldState.contextId === "toc" && !state.resourceId) || state.contextId === "toc") {
+      this.recoverScroll();
+    }
   };
 
   // Based on the current application state, highlight the current resource
@@ -447,8 +460,10 @@ ReaderView.Prototype = function() {
   //
   // Triggered by updateState
 
-  this.updateResource = function() {
+  this.updateResource = function(oldState) {
     var state = this.readerCtrl.state;
+    var that = this;
+
     // HACK: avoid to call execute this when the ReaderController has
     // already been disposed;
     if (!state) return;
@@ -468,17 +483,18 @@ ReaderView.Prototype = function() {
       // and then `updateState` would not need to worry.
       // This needs some refactoring on the app state API, as 'initialized' is not explicitly reached
       // when a state is given.
-
-      var that = this;
+      
       _.delay(function() {
         // TODO: do we really need that?
         if (state.nodeId)  {
           that.jumpToNode(state.nodeId);
         }
         if (state.resourceId) {
-          that.jumpToResource(state.resourceId);
+          // Force jump when coming from toc context
+          var forceJump = oldState.contextId === "toc";
+          that.jumpToResource(state.resourceId, forceJump);
         }
-      }, 0);
+      });
 
       // Show selected resource
       var $res = this.$('#'+state.resourceId);
@@ -497,17 +513,9 @@ ReaderView.Prototype = function() {
       // This is only used to mark author references on the cover as active
       // TODO: Use a smarter method as this is rather brute force
       this.$('#toggle_'+state.resourceId).addClass('active');
-      // this.jumpToResource(state.resourceId);
     }
   };
 
-
-  // Returns true when on a mobile device
-  // --------
-
-  // this.isMobile = function() {
-
-  // };
 
   // Whenever the app state changes
   // --------
@@ -520,7 +528,6 @@ ReaderView.Prototype = function() {
     // TODO: improve this. Using the sub-controllers that way feels bad.
 
     var state = this.readerCtrl.state;
-
     // HACK: avoid to call execute this when the ReaderController has
     // already been disposed;
     if (!state) return;
@@ -567,14 +574,12 @@ ReaderView.Prototype = function() {
 
     $(that.resourcesOutline.el).removeClass('hidden');
 
-
     that.resourcesOutline.update({
       context: state.contextId,
       // selectedNode: state.node,
       highlightedNodes: [state.resourceId]
     });
   };
-
 
   this.getResourceReferenceContainers = function() {
     var state = this.readerCtrl.state;
@@ -592,15 +597,6 @@ ReaderView.Prototype = function() {
       return nodeId;
     }));
     return nodes;
-  };
-
-  // Annotate current selection
-  // --------
-  //
-
-  this.annotate = function(type) {
-    this.readerCtrl.content.annotate(type);
-    return false;
   };
 
   // Rendering
@@ -632,7 +628,6 @@ ReaderView.Prototype = function() {
     return this;
   };
 
-
   // Free the memory.
   // --------
   //
@@ -642,12 +637,16 @@ ReaderView.Prototype = function() {
     if (this.figuresView) this.figuresView.dispose();
     if (this.citationsView) this.citationsView.dispose();
     if (this.infoView) this.infoView.dispose();
+
+    // Dispose outlines
+    this.resourcesOutline.dispose();
+    this.outline.dispose();
+
+    // Dispose resources index
     this.resources.dispose();
 
     this.stopListening();
   };
-
-
 
   var _render = function(self) {
     var frag = document.createDocumentFragment();

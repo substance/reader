@@ -602,12 +602,6 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   right: 5px;
 }
 
-.resources .lens-outline .node {
-  width: 20px;
-}
-
-
-
 /* Responsiveness */
 /* ---------------------------------------*/
 
@@ -649,9 +643,9 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
 
 
-@media (max-width: 1200px) {
+@media (max-width: 1100px) {
   .article .content-node.cover .title {
-    font-size: 24px;
+    font-size: 28px;
   }
 
   .surface.content .nodes > .content-node {
