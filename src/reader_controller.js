@@ -26,11 +26,11 @@ var ReaderController = function(doc, options) {
 ReaderController.Prototype = function() {
 
   this.hasFigures = function() {
-    return this.figuresCtrl;
+    return this.figuresCtrl && this.figuresCtrl.container.nodes.length > 0;
   };
 
   this.hasInfo = function() {
-    return this.infoCtrl;
+    return this.infoCtrl && this.infoCtrl.container.nodes.length > 0;
   };
 
   // Initial view creation
@@ -86,27 +86,8 @@ ReaderController.Prototype = function() {
   };
 
 
-  // Implements state transitions for the viewer
+  // Triggers updateState after transition has finished
   // --------
-  // 
-  // We use default implementation for now
-
-  // this.transition = function(newState, cb) {
-  //   // handle reflexiv transitions
-  //   if (newState.id === this.state.id) {
-  //     var skipTransition = false;
-
-  //     switch (newState.id) {
-  //     case "main":
-  //       skipTransition = (newState.contextId === this.state.contextId && newState.resourceId === this.state.resourceId && newState.nodeId === this.state.nodeId);
-  //       break;
-  //     }
-
-  //     if (skipTransition) return cb(null);
-  //   }
-
-  //   cb(null);
-  // };
 
   this.afterTransition = function(oldState) {
     if (this.view) {

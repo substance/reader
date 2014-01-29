@@ -648,8 +648,11 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 }
 
 
-/* Mobile (iPad Portrait, iPhone) */
-@media (max-width: 850px) {
+
+@media (max-width: 1200px) {
+  .article .content-node.cover .title {
+    font-size: 24px;
+  }
 
   /* Smaller headers */
   .content-node.heading.level-1 .content {
@@ -668,6 +671,16 @@ out (on iOS 5.1), or flicker (on iOS 6). */
     font-size: 16px;
   }
 
+  .surface.content .nodes > .content-node {
+    padding-left: 15px;
+    padding-right: 15px;
+    word-wrap: break-word;
+  }
+}
+
+
+/* Mobile (iPad Portrait, iPhone) */
+@media (max-width: 850px) {
 
 
   .content-node.heading .top {
@@ -676,10 +689,6 @@ out (on iOS 5.1), or flicker (on iOS 6). */
     right: 10px;
     top: 5px;
     padding: 10px;
-  }
-
-  .article .content-node.cover .title {
-    font-size: 24px;
   }
 
   .article .content-node.cover .authors .text {
@@ -720,7 +729,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
     height: auto;
     position: relative;
     z-index: 100;
-    padding-top: 50px;
+    padding-top: 80px;
     border-right: none;
   }
 
@@ -742,7 +751,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   }
 
   #container .article .resources {
-    padding-top: 50px;
+    padding-top: 80px;
     background: #fff;
     position: relative;
     width: 100%;
@@ -797,15 +806,15 @@ out (on iOS 5.1), or flicker (on iOS 6). */
     right: 0px;
     left: 0px;
     bottom: auto;
-
+    /*background: #efefef;*/
     margin-left: 0px;
-    height: 40px;
+    height: 60px;
     width: auto;
     border-bottom: 1px solid #ddd;
   }
 
   .article .medial-strip .context-toggles {
-    background: #fff;
+    background: #efefef;
     position: absolute;
     left: 0px;
     right: 0px;
@@ -815,8 +824,10 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
   .article .medial-strip .context-toggles .context-toggle {
     float: left;
-    padding-top: 5px;
-    padding-bottom: 5px;
+/*    padding-top: 5px;
+    padding-bottom: 5px;*/
+    width: 70px;
+    padding: 10px 5px;
     text-align: center;
     line-height: 24px;
   }
@@ -826,9 +837,8 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   }
 
   .article .medial-strip .context-toggles .context-toggle span {
-    display: inline;
-    padding-left: 5px;
-    font-size: 16px;
+    display: block;
+    font-size: 15px;
   }
 
   .article.toc .context-toggles .context-toggle.toc {
