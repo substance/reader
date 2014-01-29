@@ -356,7 +356,7 @@ ReaderView.Prototype = function() {
   // Get scroll position of active panel
   // --------
   // 
-  // Content, Figures, Citations, Info
+  // Content, Figures, Info
 
   this.getScroll = function() {
     // Only covers the mobile mode!
@@ -370,7 +370,6 @@ ReaderView.Prototype = function() {
 
   this.recoverScroll = function() {
     var targetScroll = this.bodyScroll[this.readerCtrl.state.contextId];
-    console.log('recover scroll for', this.readerCtrl.state.contextId, 'at', targetScroll);
     $(document).scrollTop(targetScroll);
   };
 
@@ -380,7 +379,6 @@ ReaderView.Prototype = function() {
 
   this.saveScroll = function() {
     this.bodyScroll[this.readerCtrl.state.contextId] = this.getScroll();
-    console.log('saved scroll for', this.readerCtrl.state.contextId, 'at', this.getScroll());
   };
 
   // Explicit context switch
@@ -391,19 +389,11 @@ ReaderView.Prototype = function() {
 
   this.switchContext = function(contextId) {
     this.saveScroll();
-
-    // var that = this;
-    // _.delay(function() {
-      
-    // }, 100)
-
     this.readerCtrl.currentContext = contextId;
     this.readerCtrl.switchState({
       id: "main",
       contextId: contextId
     });
-
-
   };
 
 
