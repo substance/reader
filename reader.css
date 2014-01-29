@@ -38,7 +38,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
 .article .document {
   line-height: 28.5px;
-  font-size: 16px;
+  /*font-size: 16px;*/
   position: relative;
   float: left;
   overflow: hidden;
@@ -213,9 +213,9 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   /*overflow: auto;*/
 }
 
-.article .resources .surface {
-  /*padding-top: 20px;*/
-}
+/*.article .resources .surface {
+  padding-top: 80px;
+}*/
 
 .article .nodes {
   padding-left: 50px;
@@ -529,7 +529,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   background: rgba(0,0,0,0.1);
   padding: 20px;
   font-weight: 600;
-  font-size: 16px;
+  /*font-size: 16px;*/
 }
 
 /* Active Style */
@@ -545,7 +545,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   background: rgba(0,0,0,0.1);
   padding: 20px;
   font-weight: 600;
-  font-size: 16px;
+  /*font-size: 16px;*/
 }
 
 .content-node.figure.active .label .content,
@@ -654,23 +654,6 @@ out (on iOS 5.1), or flicker (on iOS 6). */
     font-size: 24px;
   }
 
-  /* Smaller headers */
-  .content-node.heading.level-1 .content {
-    font-size: 18px;
-  }
-
-  .content-node.heading.level-2 .content {
-    font-size: 16px;
-  }
-
-  .content-node.heading.level-3 .content {
-    font-size: 16px;
-  }
-
-  .content-node.heading.level-4 .content {
-    font-size: 16px;
-  }
-
   .surface.content .nodes > .content-node {
     padding-left: 15px;
     padding-right: 15px;
@@ -683,6 +666,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 @media (max-width: 850px) {
 
 
+
   .content-node.heading .top {
     display: block;
     position: absolute;
@@ -690,11 +674,6 @@ out (on iOS 5.1), or flicker (on iOS 6). */
     top: 5px;
     padding: 10px;
   }
-
-  .article .content-node.cover .authors .text {
-    font-size: 16px;
-  }
-
 
   html body.reader {
     height: auto;
@@ -751,7 +730,6 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   }
 
   #container .article .resources {
-    padding-top: 80px;
     background: #fff;
     position: relative;
     width: 100%;
@@ -762,6 +740,10 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
     z-index: 300;
     word-wrap: break-word;
+  }
+
+  #container .article .resources .surface {
+    padding-top: 80px;
   }
 
   #container .article .resources .nodes {
@@ -800,21 +782,19 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   }
 
   .article .medial-strip {
-    background: white;
+    background: #252525;
     position: fixed;
     top: 0px;
     right: 0px;
     left: 0px;
     bottom: auto;
-    /*background: #efefef;*/
     margin-left: 0px;
     height: 60px;
     width: auto;
-    border-bottom: 1px solid #ddd;
   }
 
   .article .medial-strip .context-toggles {
-    background: #efefef;
+    background: #151515;
     position: absolute;
     left: 0px;
     right: 0px;
@@ -824,41 +804,37 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
   .article .medial-strip .context-toggles .context-toggle {
     float: left;
-/*    padding-top: 5px;
-    padding-bottom: 5px;*/
     width: 70px;
-    padding: 10px 5px;
+    padding: 0px 5px;
+    padding-top: 7px;
     text-align: center;
     line-height: 24px;
+    color: rgba(255,255,255, 0.3);
   }
 
   .article .medial-strip .context-toggles .context-toggle:hover {
-    color: rgba(0,0,0,0.6);
+    color: rgba(255,255,255,0.8);
   }
 
   .article .medial-strip .context-toggles .context-toggle span {
     display: block;
-    font-size: 15px;
+    font-size: 13px;
   }
 
   .article.toc .context-toggles .context-toggle.toc {
-    color: rgba(0,0,0,1);
+    color: rgba(255,255,255,1);
   }
 
   .article.figures .context-toggles .context-toggle.figures {
-    color: rgba(0,0,0,1);
+    color: rgba(255,255,255,1);
   }
 
   .article.citations .context-toggles .context-toggle.citations {
-    color: rgba(0,0,0,1);
-  }
-
-  .article.toc .context-toggles .context-toggle.toc {
-
+    color: rgba(255,255,255,1);
   }
 
   .article.info .context-toggles .context-toggle.info {
-    color: rgba(0,0,0,1);
+    color: rgba(255,255,255,1);
   }
 
   .article .medial-strip .back-nav {
