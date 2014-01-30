@@ -47,6 +47,8 @@ ReaderController.Prototype = function() {
   // --------
 
   this.initialize = function(newState, cb) {
+    console.log('readercontroller#initialize called');
+    
     var doc = this.document;
 
     this.currentContext = newState.contextId;
@@ -97,7 +99,7 @@ ReaderController.Prototype = function() {
 
   var contextMapping = {
     "figure_reference": "figures",
-    "person_reference": "info",
+    "contributor_reference": "info",
     "remark_reference": "remarks",
     "error_reference": "errors"
   };

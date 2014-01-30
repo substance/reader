@@ -3,77 +3,94 @@
     {
       "repository": "https://github.com/substance/application.git",
       "folder": "node_modules/substance-application",
-      "branch": "0.1.x"
+      "branch": "appstates"
     },
     {
       "repository": "https://github.com/substance/chronicle.git",
       "folder": "node_modules/substance-chronicle",
-      "branch": "0.2.x"
+      "branch": "indexeddb"
     },
     {
       "repository": "https://github.com/substance/commander.git",
       "folder": "node_modules/substance-commander",
-      "branch": "0.1.x"
+      "branch": "0.2.x"
     },
     {
-      "repository": "https://github.com/substance/data.git",
+      "repository": "https://github.com/michael/data.git",
       "folder": "node_modules/substance-data",
-      "branch": "0.8.x"
+      "branch": "0.9.x"
     },
     {
       "repository": "https://github.com/substance/document.git",
       "folder": "node_modules/substance-document",
-      "branch": "0.6.x"
+      "branch": "refactor"
     },
     {
       "repository": "https://github.com/substance/article.git",
       "folder": "node_modules/substance-article",
-      "branch": "0.3.x"
+      "branch": "refactor"
     },
     {
       "repository": "https://github.com/substance/nodes.git",
       "folder": "node_modules/substance-nodes",
-      "branch": "0.3.x"
+      "branch": "refactor"
     },
     {
       "repository": "https://github.com/elifesciences/lens-outline.git",
       "folder": "node_modules/lens-outline",
-      "branch": "0.2.x"
+      "branch": "refactor"
+    },
+    {
+      "repository": "https://github.com/substance/library.git",
+      "folder": "node_modules/substance-library",
+      "branch": "refactor"
     },
     {
       "repository": "https://github.com/substance/toc.git",
       "folder": "node_modules/substance-toc",
-      "branch": "0.1.x"
+      "branch": "refactor"
+    },
+    {
+      "repository": "https://github.com/substance/converter.git",
+      "folder": "node_modules/substance-converter",
+      "branch": "pandoc_1_12_1"
     },
     {
       "repository": "https://github.com/substance/operator.git",
       "folder": "node_modules/substance-operator",
-      "branch": "0.2.x"
+      "branch": "0.3.x"
     },
     {
       "repository": "https://github.com/substance/regexp.git",
       "folder": "node_modules/substance-regexp",
-      "branch": "0.1.x"
+      "branch": "0.2.x"
     },
     {
-      "repository": "https://github.com/substance/surface.git",
+      "repository": "https://github.com/michael/substance-surface.git",
       "folder": "node_modules/substance-surface",
+      "branch": "prototype"
+    },
+    {
+      "repository": "https://github.com/substance/test.git",
+      "folder": "node_modules/substance-test",
       "branch": "0.3.x"
     },
     {
       "repository": "https://github.com/substance/util.git",
       "folder": "node_modules/substance-util",
-      "branch": "0.2.x"
+      "branch": "0.3.x"
     },
     {
       "repository": "https://github.com/substance/reader.git",
       "folder": ".",
-      "branch": "0.2.x"
+      "branch": "0.3.x"
     }
   ],
   "node_modules": {
     "underscore": "1.5.x",
-    "express": "3.3.x"
+    "express": "3.3.x",
+    "substance-store": "0.1.x",
+    "mocha": "1.12.x"
   },
   "npm": {
     "engines": {
@@ -82,6 +99,7 @@
     }
   },
   "styles": {
+    "styles/substance.css": "styles/substance.css",
     "styles/surface.css": "node_modules/substance-surface/styles/surface.css",
     "styles/lens-outline.css": "node_modules/lens-outline/outline.css",
 
@@ -90,24 +108,38 @@
     "styles/nodes/heading.css": "node_modules/substance-article/nodes/heading/heading.css",
     "styles/nodes/list.css": "node_modules/substance-article/nodes/list/list.css",
     "styles/nodes/image.css": "node_modules/substance-article/nodes/image/image.css",
-    "styles/nodes/formula.css": "node_modules/substance-article/nodes/formula/formula.css",
     "styles/nodes/codeblock.css": "node_modules/substance-article/nodes/codeblock/codeblock.css",
-    "styles/nodes/collaborator.css": "node_modules/substance-article/nodes/collaborator/collaborator.css",
+    "styles/nodes/contributor.css": "node_modules/substance-article/nodes/contributor/contributor.css",
 
     "styles/nodes/table.css": "node_modules/substance-article/nodes/table/table.css",
     "styles/nodes/figure.css": "node_modules/substance-article/nodes/figure/figure.css",
     "styles/nodes/cover.css": "node_modules/substance-article/nodes/cover/cover.css",
-    "styles/nodes/description.css": "node_modules/substance-article/nodes/description.css",
 
+    "styles/nodes/code.css": "node_modules/substance-article/nodes/code/code.css",
+    "styles/nodes/cross_reference.css": "node_modules/substance-article/nodes/cross_reference/cross_reference.css",
+    "styles/nodes/emphasis.css": "node_modules/substance-article/nodes/emphasis/emphasis.css",
+    "styles/nodes/figure_reference.css": "node_modules/substance-article/nodes/figure_reference/figure_reference.css",
+    "styles/nodes/idea.css": "node_modules/substance-article/nodes/idea/idea.css",
+    "styles/nodes/remark_reference.css": "node_modules/substance-article/nodes/remark_reference/remark_reference.css",
+    "styles/nodes/error_reference.css": "node_modules/substance-article/nodes/error_reference/error_reference.css",
+    "styles/nodes/link.css": "node_modules/substance-article/nodes/link/link.css",
+    "styles/nodes/math.css": "node_modules/substance-article/nodes/math/math.css",
+    "styles/nodes/strong.css": "node_modules/substance-article/nodes/strong/strong.css",
+    "styles/nodes/subscript.css": "node_modules/substance-article/nodes/subscript/subscript.css",
+    "styles/nodes/superscript.css": "node_modules/substance-article/nodes/superscript/superscript.css",
+
+    "styles/library.css": "node_modules/substance-library/library.css",
     "styles/toc.css": "node_modules/substance-toc/toc.css",
-    "styles/reader.css": "reader.css",
-    "styles/substance.css":  "styles/substance.css"
+    "styles/reader.css": "styles/reader.css"
   },
   "assets": {
+    "lib/jquery-2.0.3.min.map": "lib/jquery-2.0.3.min.map",
     "lib/jquery-2.0.3.min.js": "lib/jquery-2.0.3.min.js",
+    "styles/print.css":  "styles/print.css",
     "styles/font-awesome.css": "styles/font-awesome.css",
     "styles/fonts": "styles/fonts",
-    "data": "data"
+    "data": "data",
+    "LICENSE": "LICENSE"
   },
   "bundle": {
     "name": "substance",

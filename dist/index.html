@@ -2,21 +2,11 @@
 <html xmlns:mml="http://www.w3.org/1998/Math/MathML">
   <head>
     <title>Substance Reader</title>
-    <link href='http://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
     <link href='styles/font-awesome.css' rel='stylesheet' type='text/css'/>
 
     <link href='substance.css' rel='stylesheet' type='text/css'/>
 
     <script src="lib/jquery-2.0.3.min.js"></script>
-
-    <!-- MathJax -->
-    <script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-      "HTML-CSS": { linebreaks: { automatic: true } },
-             SVG: { linebreaks: { automatic: true } }
-    });
-    </script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
     <script src='substance.js'></script>
 
@@ -31,18 +21,20 @@
       //
       // Injects itself into body
 
-      var app = new Substance({
-        // Endpoint must have CORS enabled, or file is served from the same domain as the app
-        document_url: "data/lorem_ipsum.json"
-      });
-
-      $(function() {
-        app.start();
+      $.get("data/content.json")
+      .done(function(data) {
+          var app = new Substance({
+            document: data
+          });
+          app.start();
+      })
+      .fail(function(err) {
+        $('body').html(JSON.stringify(err));
       });
 
     </script>
   </head>
-  <body>
+  <body class="current-view reader">
     
   </body>
 </html>

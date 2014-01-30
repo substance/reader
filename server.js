@@ -7,7 +7,8 @@ var fs = require("fs");
 
 var app = express();
 var commonJSServer = new CommonJSServer(__dirname);
-commonJSServer.boot({alias: "lens", source: "./src/substance.js"});
+
+commonJSServer.boot({alias: "substance", source: "./src/substance.js"});
 
 var port = process.env.PORT || 4001;
 app.use(express.cookieParser());

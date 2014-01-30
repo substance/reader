@@ -1,1403 +1,9 @@
-/* Surface
--------------------------------------------------------------------------------*/
-
-.surface {
-  position: relative;
-}
-
-/* Very important dude */
-/* Makes sure .nodes is used as a reference for absolute positioning */
-.surface .nodes {
-  position: relative;
-}
-
-/* Generic node styles */
-.surface .content-node {
-  position: relative;
-}
-
-.surface .nodes > .content-node {
-  /*margin: 0 60px;*/
-}
-
-
-/* Cursor
--------------------------------------------------------------------------------*/
-
-.surface .cursor {
-  position: absolute;
-  top: 0px;
-  height: 20px;
-  width: 2px;
-  background: #00ACEA;
-}
-
-/*
-  blinking from http://codepen.io/hofweber/pen/vbJHc
-  thanks patch!
-*/
-
-.surface .cursor {
-  -webkit-animation: blink 1.2s step-end infinite;
-     -moz-animation: blink 1.2s step-end infinite;
-      -ms-animation: blink 1.2s step-end infinite;
-       -o-animation: blink 1.2s step-end infinite;
-          animation: blink 1.2s step-end infinite;
-}
-
-@-webkit-keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
-   @-moz-keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
-    @-ms-keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
-     @-o-keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
-        @keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
-
-/*
-Outline
---------------------------------------- */
-
-.lens-outline {
-  background: #fff;
-  position: absolute;
-  left: 0px;
-  width:50px;
-  top: 0px;
-  bottom: 0px;
-}
-
-.lens-outline .node.cover {
-  /*background: #5c6570;*/
-  /*opacity: 1;*/
-}
-
-.lens-outline .node .arrow {
-  display: none;
-  position: absolute;
-  top: -7px;
-  left: -17px;
-  
-  width: 0; 
-  height: 0; 
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-left: 8px solid black;
-}
-
-.lens-outline .node.selected .arrow {
-  display: block;
-}
-
-.lens-outline .visible-area {
-  position: absolute;
-  cursor: pointer;
-  top: 40px;
-  left: 0px;
-  right: 0px;
-  height: 80px;
-  z-index: 2000;
-  background-color: rgba(0,0,0, 0.2);
-}
-
-.lens-outline .visible-area:hover {
-  background-color: rgba(0,0,0, 0.25); 
-}
-
-.lens-outline .node {
-  margin: 0 5px;
-  width: 40px;
-  background: rgba(0,0,0, 0.4);
-  opacity: 0.15;
-  cursor: pointer;
-}
-
-.lens-outline .node:hover {
-  opacity: 0.4;
-}
-
-.lens-outline .node.highlighted:hover {
-  opacity: 1.0;
-}
-
-.lens-outline .text {
-}
-
-.lens-outline .heading {
-  background: rgba(0,0,0, 0.5);
-}
-
-
-.lens-outline .node.selected {
-  opacity: 1.0;
-}
-
-.node.highlighted {
-  background: #5c6570;
-  opacity: 0.7;
-}
-
-/* Greenish highlighted nodes (figures) */
-
-.lens-outline.figures .node.highlighted {
-  opacity: 0.7;
-  background: rgba(145, 187, 4, 1);
-}
-
-/* Blueish highlighted nodes (citations) */
-
-.lens-outline.citations .node.highlighted {
-  opacity: 0.7;
-  background: rgba(11, 157, 217, 1);
-}
-
-.lens-outline.figures .node.selected {
-  opacity: 1;
-  background: rgba(145, 187, 4, 1);
-}
-
-/* Blueish highlighted nodes (citations) */
-
-.lens-outline.citations .node.selected {
-  opacity: 1;
-  background: rgba(11, 157, 217, 1);
-}
-
-
-
-/* Textish Styles
--------------------------------------------------------------------------------*/
-
-
-.content-node.text .content {
-  white-space: pre-wrap;
-  white-space: -moz-pre-wrap;
-  white-space: -pre-wrap;
-}
-/* Paragraph Node
--------------------------------------------------------------------------------*/
-
-.content-node.paragraph {
-}
-
-.content-node.paragraph .content {
-  min-height: 28px;
-}
-
-.content-node.paragraph .content-node.text {
-  padding: 0px;
-  display:inline;
-  width: auto;
-}
-
-.content-node.paragraph .content-node.text div {
-  display:inline;
-  width: auto;
-}
-
-.content-node.paragraph .content-node.image div img {
-  display:inline;
-  width: auto;
-}
-
-.content-node.paragraph .content-node.formula.inline {
-  display: inline;
-  padding: 0px;
-}
-
-/* Heading Node
--------------------------------------------------------------------------------*/
-
-.content-node.heading {
-}
-
-.content-node.heading .content {
-  min-height: 40px;
-}
-
-.content-node.heading { }
-
-.content-node.heading .content {
-  font-family: 'Montserrat';
-  font-weight: bold;
-  line-height: 40px;
-}
-
-.content-node.heading.level-1 .content {
-  font-size: 24px;
-}
-
-.content-node.heading.level-2 .content {
-  font-size: 20px;
-}
-
-.content-node.heading.level-3 .content {
-  font-size: 17px;
-}
-
-/* List Node
--------------------------------------------------------------------------------*/
-
-.content-node.list {
-  padding: 10px 0px;
-  padding-top: 0px;
-}
-
-.content-node .listitem {
-  padding: 2px 0px;
-  padding-left: 20px;
-  position: relative;
-}
-
-.content-node .listitem .bullet {
-  position: absolute;
-  left: 0px;
-  top: 14px;
-  width: 4px;
-  height: 4px;
-  background: #bbb;
-}
-
-.content-node.list .content {
-  min-height: 30px;
-}
-
-.content-node.list { }
-
-.content-node.list .content {
-
-}
-
-.content-node.list.level-2 .content {
-  font-size: 20px;
-}
-
-.content-node.list.level-3 .content {
-  font-size: 17px;
-}
-/* Image Node
--------------------------------------------------------------------------------*/
-
-.content-node.image { }
-
-
-.content-node.image .content {
-  padding: 0px;
-}
-
-.content-node.image div.image-char {
-  width: 100%;
-}
-
-.content-node.image div.selected .overlay {
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
-  background: rgba(0,169, 255, 0.25);
-}
-
-.content-node.image div img {
-  width: 100%;
-}
-.document .content-node.formula {
-  padding: 30px 60px;
-  padding-left: 100px;
-  min-height: 80px;
-  text-align: center;
-}
-
-.document .content-node.formula .label {
-  position: absolute;
-  right: 50px;
-  top: 0px;
-  bottom: 0px;
-  line-height: 90px;
-}
-
-/* TODO: This must be smarter */
-.document .content-node .MathJax_Display {
-  margin: 0;
-  padding: 20px;
-  overflow: auto;
-}
-
-/* Codeblock Node
--------------------------------------------------------------------------------*/
-
-.content-node.codeblock > .content {
-  border: 1px dashed #ddd;
-  line-height: 20px;
-  padding: 10px 10px;
-}
-
-.content-node.codeblock > .content {
-  font-family: 'Source Code Pro', 'Menlo', monospace;
-  font-size: 14px;
-  color: #777;
-  min-height: 28px;
-}
-
-.content-node.collaborator {
-  /*padding-right: 60px;*/
-  
-
-}
-
-.content-node.collaborator .content {
-  overflow: auto;
-}
-
-.content-node.collaborator .image {
-  /*background: blue;*/
-  width: 200px;
-  padding-right: 20px;
-  /*height: 200px;*/
-  float: left;
-}
-
-.content-node.collaborator .label {
-  padding-top: 20px;
-  color: rgba(0,0,0,0.6);
-}
-
-.content-node.collaborator .organization {
-  font-size: 18px;
-  
-}
-
-.content-node.collaborator .image img {
-  width: 100%;
-}
-
-
-/* Table */
-
-.substance-article .content-node.table > .content {
-  padding: 20px;
-  width: 100%;
-  overflow: auto;
-  text-align: center;
-}
-
-.substance-article .content-node.table .caption {
-  padding-top: 20px;
-}
-
-.substance-article .content-node.table table {
-  position: relative;
-  border-collapse: collapse;
-  border-spacing: 0;
-  margin-bottom: 20px;
-  margin: 0 auto;
-}
-
-.substance-article .content-node.table table thead tr {
-  background: #eee;
-  border: 1px solid lightgrey;
-}
-
-.substance-article .content-node.table table thead th {
-  padding: 5px;
-  font-weight: bold;
-}
-
-.substance-article .content-node.table table tbody td {
-  padding: 5px;
-  font-size: 12px;
-  border: 1px solid lightgrey;
-}
-
-.substance-article .content-node.table .footers {
-  padding: 0 20px;
-  padding-top: 10px;
-  font-size: 12px;
-  background: #fff;
-}
-
-/* Figure Node
--------------------------------------------------------------------------------*/
-
-.substance-article .content-node.figure { 
-}
-
-.substance-article .content-node.figure div.image-wrapper {
-  text-align: center;
-  padding-bottom: 20px;
-}
-
-.substance-article .content-node.figure div .image-wrapper img {
-  width: 100%;
-}
-.substance-article .content-node.cover {
-  margin-bottom: 50px;
-}
-
-.substance-article .content-node.cover .content {
-  background: none;
-}
-
-.substance-article .content-node.cover .title {
-  font-family: 'Avenir LT W01 85 Heavy', 'Montserrat', 'Source Sans Pro';
-  line-height: 1.3em;
-  margin-bottom: 50px;
-  font-size: 40px;
-}
-
-.substance-article .content-node.cover .content .authors {
-  color: rgba(0,0,0, 0.7);
-  overflow: auto;
-}
-
-.substance-article .content-node.cover .authors .text {
-  float: left;
-  padding: 0px;
-  margin: 0px;
-  font-size: 20px;
-  margin-right: 10px;
-  margin-bottom: 8px;
-  color: rgba(0,0,0, 0.7);
-}
-
-/* Description Node
--------------------------------------------------------------------------------*/
-
-.content-node.description .content .topic {
-  line-height: 40px;
-  font-family: 'Montserrat';
-  font-weight: bold;
-  margin-bottom: 12px;
-}
-
-/*
-TOC 
---------------------------------------- */
-
-
-.resource-view.toc .heading-ref {
-  cursor: pointer;
-  display: block;
-  color: rgba(0,0,0,0.5);
-  font-size: 17px;
-  padding: 4px 10px;
-  line-height: 20px;
-  font-family: 'Avenir LT W01 85 Heavy', 'Montserrat', 'Source Sans Pro';
-  margin-right: 10px;
-  border: 1px solid transparent;
-}
-
-.resource-view.toc .heading-ref.active {
-  color: rgba(0,0,0,0.9);
-  background: #fff;
-  border: 1px solid #eee;
-}
-
-.resource-view.toc .heading-ref.level-2 {
-  padding-left: 30px;
-  font-size: 13px;
-}
-
-.resource-view.toc .heading-ref.level-3 {
-  padding-left: 60px;
-  font-size: 13px;
-}
-
-.resource-view.toc .heading-ref.level-4 {
-  padding-left: 80px;
-  font-size: 12px;
-}
-
-.resource-view.toc .heading-ref.level-5 {
-  padding-left: 100px;
-  font-size: 12px;
-}
-
-.resource-view.toc .heading-ref:hover {
-  color: rgba(0,0,0,1.0);
-}
-
-/* Fix weird behavior
--------------------------------------------------------------------------------*/
-
-/*
-When using event delegation if the parent element has a click handler, when
-the user touches anything inside this element, the whole region will gray 
-out (on iOS 5.1), or flicker (on iOS 6). */
-
-* {
-  -webkit-tap-highlight-color:transparent;
-}
-
-
-/* Article
--------------------------------------------------------------------------------*/
-
-.article {
-  height: 100%;
-}
-
-/* Surface specific styles */
-
-.content-node {
-
-}
-
-.content-node .content {
-  margin: 0px;
-  background: white;
-}
-
-/* Main content panel 
-======================================================================= */
-
-.article .document {
-  line-height: 28.5px;
-  font-size: 18px;
-  position: relative;
-  float: left;
-  overflow: hidden;
-  height: 100%;
-  width: 50%;
-  border-right: 1px solid #ddd;
-}
-
-.article .document .surface.content {
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  right: 0px;
-  left: 0px;
-  overflow-y: scroll;
-  overflow-x: hidden;
-
-  /*overflow: auto;*/
-  -webkit-overflow-scrolling: touch;
-}
-
-.article .document .surface.content .nodes {
-  min-height: 100%;
-  padding-left: 40px;
-  padding-right: 0px;
-  background: #FFFFFF;
-}
-
-
-/* Back Navigation 
-=======================================================================*/
-
-
-
-/* Context Toggles 
-=======================================================================*/
-
-/* Switcher */
-
-.article .medial-strip {
-  overflow: hidden;
-  width: 40px;
-  position: absolute;
-  left: -18px;
-  top: 0px;
-  bottom: 0px;
-  background: #fff;
-  z-index: 3000;
-}
-
-.article .back-nav {
-  display: block;
-  overflow: hidden;
-  width: 40px;
-  position: absolute;
-  top: 20px;
-  z-index: 5000;
-  /*left: -20px;*/
-  /*top: 10px;*/
-  font-size: 22px;
-
-  /*z-index: 3000;*/
-  background: #fff;
-  /*padding: 10px 0px;*/
-  color: #aaa;
-  padding: 10px 10px;
-}
-
-
-.article .back-nav:hover {
-  color: #333;
-}
-
-
-.article .medial-strip .separator-line {
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  left: 20px;
-  width: 1px;
-  background: #ddd;
-  z-index: 4000;
-}
-
-.article .context-toggles {
-  position: absolute;
-  top: 100px;
-  left: 0px;
-  right: 0px;
-  
-  background: #fff;
-  z-index: 5000;
-}
-
-
-.article .context-toggles .context-toggle {
-  cursor: pointer;
-  display: block;
-  /*float: left;*/
-  z-index: 5000;
-  padding: 0 10px;
-  line-height: 40px;
-  font-size: 22px;
-  color: #aaa;
-  font-family: 'Avenir LT W01 85 Heavy', 'Montserrat', 'Source Sans Pro';
-}
-
-.article .context-toggles .context-toggle i {
-
-}
-
-.article .context-toggles .context-toggle span {
-  display: none;
-}
-
-.article .context-toggles .context-toggle:hover {
-  color: #555;
-}
-
-/*Active states depend on the global reader context */
-
-/*.article .context-toggles .context-toggle.figures:hover {
-  color: rgba(145, 187, 4, 1);
-}
-
-.article .context-toggles .context-toggle.citations:hover {
-  color: rgba(11, 157, 217, 1);
-}
-*/
-
-
-.article.figures .context-toggles .context-toggle.figures {
-  /*color: rgba(145, 187, 4, 1);*/
-  color: #111; 
-}
-
-.article.citations .context-toggles .context-toggle.citations {
-  /*color: rgba(11, 157, 217, 1);*/
-  color: #111; 
-}
-
-.article.toc .context-toggles .context-toggle.toc {
-  color: #111;
-}
-
-.article.info .context-toggles .context-toggle.info {
-  color: #111;
-}
-
-
-/* Resources Panel 
-======================================================================= */
-
-
-.article .resources {
-  float: right;
-  line-height: 20px;
-  width: 50%;
-  font-size: 14px;
-  height: 100%;
-  padding-left: 50px;
-  padding-right: 50px;
-  position: relative;
-  /*overflow: auto;*/
-}
-
-.article .resources .surface {
-  padding-top: 60px;
-}
-
-.article .nodes {
-  padding-left: 50px;
-  padding-right: 50px;
-}
-
-
-.article .resources .nodes > .content-node {
-  color: #333;
-  position: relative;
-  /* background: rgba(0,0,0,0.01); */
-  background: #fff;
-  
-  margin-bottom: 30px;
-  padding: 0px;
-}
-
-.article .resources .nodes > .content-node > .content {
-  border: 1px solid #ddd;
-  border-top: none;
-}
-
-.article .resources .content-node .resource-header:hover {
-  background: rgba(0,0,0,0.15);
-}
-
-/* Clickable header */
-.article .resources .content-node .resource-header {
-  min-height: 80px;
-  position: relative;
-  background: rgba(0,0,0,0.1);
-}
-
-/* Shared styles for selected and mouseover states
------------------------------------------------------------------------ */
-
-/* Active resource */
-.article .resources .content-node.active .resource-header .name {
-  color: #fff;
-}
-
-/* active figure */
-.article .resources .figures .content-node.active {
-  /*border-color: rgba(145, 187, 4, 1);*/
-}
-
-.article .resources .figures .content-node.active .resource-header {
-  background: rgba(145, 187, 4, 1);
-}
-
-.article .resources .figures .content-node.active .resource-header a {
-  /*color: rgba(145, 187, 4, 1);*/
-}
-
-
-/* active citation */
-
-.article .resources .citations .content-node.active {
-  /*border-color: rgba(11, 157, 217, 1);*/
-}
-
-.article .resources .citations .content-node.active .resource-header {
-  background: rgba(11, 157, 217, 1);
-}
-
-.article .resources .citations .content-node.active .resource-header a {
-  /*color: rgba(11, 157, 217, 1);*/
-}
-
-/* active person */
-.article .resources .info .content-node.active {
-  /*border-color: #5c6570;*/
-}
-
-.article .resources .info .content-node.active .resource-header {
-  border-color: #5c6570;
-}
-
-.article .resources .info .content-node.active .resource-header a {
-  /*color: #5c6570;*/
-}
-
-
-
-
-/* Figures View
------------------------------------------------------------------------ */
-
-.article .resources .surface.figures {
-  display: none;
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-
-.article.figures .resources .resource-view.figures {
-  display: block;
-}
-
-/* Citations View
------------------------------------------------------------------------ */
-
-.article .resources .surface.citations {
-  display: none;
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-
-.article.citations .resources .resource-view.citations {
-  display: block;
-}
-
-/* TOC View
------------------------------------------------------------------------ */
-
-.resource-view.toc {
-  display: none;
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  left: 50px;
-  right: 50px;
-
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-top: 60px;
-}
-
-.article.toc .resources .resource-view.toc {
-  display: block;
-}
-
-
-/* Info View
------------------------------------------------------------------------ */
-
-.article .resources .surface.info {
-  display: none;
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-
-.article.info .resources .resource-view.info {
-  display: block;
-}
-
-
-/* Consistent Resource Header for figures captions and person cards 
------------------------------------------------------------------------ */
-
-.article .resources .resource-header .name {
-  display: block;
-  min-height: 80px;
-  
-  color: #444;
-  font-family: 'Avenir LT W01 85 Medium', 'Montserrat', 'Source Sans Pro';
-  font-size: 16px;
-  line-height: 21px;
-  padding: 10px 20px;
-}
-
-
-.article .resources .content-node .reference-count {
-  font-size: 13px;
-  position: absolute;
-  right: 20px;
-  top: 40px;
-  text-align: right;
-}
-
-
-/* Resource Fullscreen Mode 
-======================================================================= */
-
-
-/* Styles for fullscreen toggle on resource cards */
-
-.article .resources .content-node .resource-header .toggle-fullscreen {
-  position: absolute;
-  right: 0px;
-  top: 0px;
-  font-size: 30px;
-  bottom: 0px;
-  text-align: center;
-  line-height: 81px;
-  color: rgba(0,0,0, 0.2);
-  width: 81px;
-}
-
-.article .resources .content-node .resource-header .toggle-fullscreen:hover {
-  color: rgba(0,0,0, 0.5);
-}
-
-/* Active state adjustments */
-
-.article .resources .content-node.active .resource-header .toggle-fullscreen {
-  color: rgba(255,255,255, 0.5);
-}
-
-.article .resources .content-node.active .resource-header .toggle-fullscreen:hover {
-  color: rgba(255,255,255, 1);
-}
-
-
-/* Hide resize small icon by default */
-#container .article .content-node .icon-resize-small {
-  display: none;
-}
-
-#container .article .content-node.fullscreen {
-  position: fixed;
-  top: 0px;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
-  z-index: 100000;
-  margin-bottom: 0px;
-  margin-right: 0px;
-}
-
-#container .article .content-node.fullscreen .icon-resize-small {
-  display: inline;
-}
-
-#container .article .content-node.fullscreen .icon-resize-full {
-  display: none;
-}
-
-#container .article .content-node.fullscreen > .content {
-  position: absolute;
-  top: 80px;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
-
-  overflow: auto;
-}
-
-
-
-/* Info panel overrides 
------------------------------------------------------------------------ */
-
-
-#container .article .surface.info .content-node.caption .content {
-  padding: 20px;
-}
-
-
-/* Annotations 
------------------------------------------------------------------------ */
-
-.article span.annotation {
-  -webkit-transition-property: background, color;
-  -moz-transition-property: background, color;
-  transition-property: background, color;
-
-  -webkit-transition-duration: 0.1s;
-  -moz-transition-duration: 0.1s;
-  transition-duration: 0.1s;
-}
-
-span.annotation.formula_reference, span.publication_reference {
-  padding-left: 3px; padding-right: 3px;
-}
-
-.article span.emphasis, .article em {
-  font-style: italic;
-}
-
-.article span.superscript, .article span.subscript, .article sup, .article sub {
-  vertical-align: baseline;
-  position: relative;
-  top: -0.4em;
-  font-size: 12px;
-}
-
-.article span.subscript, .article sub {
-  top: 0.4em;
-}
-
-.article span.strong, .article strong {
-  font-weight: bold;
-}
-
-.article span.underline {
-  text-decoration: underline;
-}
-
-
-.content-node .idea { background-color: rgba(102, 182, 32, 0.3); }
-.content-node .question { background-color: rgba(16, 167, 222, 0.3); }
-.content-node .error { background-color: rgba(237, 96, 48, 0.3); }
-
-.content-node .link { color: #1B6685; font-weight: bold; }
-.content-node .link:hover, .content-node .link.active { color: rgba(11, 157, 217, 1); }
-
-/* Inline Code Annotations */
-
-.content-node .code {
-  font-family: Consolas, "Liberation Mono", Courier, monospace;
-  background: #eee;
-  font-size: 13px;
-  padding: 2px 3px;
-  -webkit-font-smoothing: subpixel-antialiased;
-}
-
-/* Highlighted states */
-
-.content-node .idea.highlight { background-color: rgba(102, 182, 32, 0.6); }
-.content-node .question.highlight { background-color: rgba(16, 167, 222, 0.6);}
-.content-node .error.highlight { background-color: rgba(237, 96, 48, 0.6); }
-
-/* Selected states */
-.content-node .content span.selected { background: rgba(0,0,0,0.08); }
-.content-node .content .idea.selected { background-color: rgba(102, 182, 32, 0.4); }
-.content-node .content .question.selected { background-color: rgba(16, 167, 222, 0.4);}
-.content-node .content .error.selected { background-color: rgba(237, 96, 48, 0.4); }
-
-/* Em, Strong, Link */
-.content-node .emphasis { font-style: italic; }
-.content-node .strong { font-weight: bold; }
-
-
-/* Figure Reference */
-.content-node .figure_reference {
-  background: rgba(145, 187, 4, 0.15);
-  border-bottom: 1px solid rgba(145, 187, 4, 0.8);
-  color: #495A11;
-  cursor: pointer;
-}
-
-.content-node .person_reference {
-  padding: 2px 5px;
-  cursor: pointer;
-}
-
-.content-node .citation_reference { 
-  background: rgba(11, 157, 217, 0.075);
-  color: #1B6685;
-  border-bottom: 1px solid rgba(11, 157, 217, 0.4);
-  cursor: pointer;
-}
-
-.content-node .cross_reference {
-  background: rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
-  cursor: pointer;
-}
-
-/* Hover states */
-.content-node .figure_reference:hover { background-color: rgba(145, 187, 4, 0.35); }
-.content-node .citation_reference:hover { background-color: rgba(11, 157, 217, 0.30); }
-.content-node .person_reference:hover { background-color: rgba(0,0,0, 0.1); }
-
-.content-node .figure_reference.active { background: rgba(145, 187, 4, 0.7); }
-.content-node .citation_reference.active { background: rgba(11, 157, 217, 0.6); }
-.content-node .person_reference.active { background-color: rgba(0,0,0, 0.8); color: white; }
-
-/* Cross Reference */
-.content-node .cross_reference:hover {
-  background-color: rgba(0, 0, 0, 0.10);
-}
-
-
-/* Reader-specific overrides for content nodes
-======================================================================= */
-
-/* For the main content area 
------------------------------------------------------------------------ */
-
-.surface.content .nodes > .content-node {
-  padding-top: 10px;
-  padding-bottom: 15px;
-  padding-left: 40px;
-  padding-right: 40px;
-  word-wrap: break-word;
-}
-
-/* Some extra cover spacing */
-.surface.content .nodes > .content-node.cover {
-  padding-top: 60px;
-  padding-bottom: 60px;
-}
-
-
-
-
-/* Hide focus toggles for cover
------------------------------------------------------------------------ */
-
-/*.surface.content .nodes > .content-node.cover .focus {
-  display: none;
-}
-
-.surface.content .nodes > .content-node .focus {
-  display: none;
-}*/
-
-/* For the resources panel
------------------------------------------------------------------------ */
-
-/* padding for the content */
-.resources .nodes > .content-node > .content {
-  padding: 20px;
-
-}
-
-/* For the resources panel */
-.resources .info .nodes > .content-node.paragraph > .content > .content-node {
-  padding: 20px 0;
-}
-
-.article .document .surface.content::-webkit-scrollbar {
-  width: 2px;
-  height: 2px; 
-}
-
-.article .document .surface.content::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0);
-}
-
-
-
-.article .document .content-node.heading {
-  cursor: pointer;
-}
-
-/* Responsiveness */
-/* ---------------------------------------*/
-
-
-/*@media all and (orientation:portrait) {
-
-}*/
-
-#container.touchable .toggle-fullscreen {
-  /* Hide document outline for touch devices */
-  display: none;
-}
-
-#container.touchable .article .document .surface.content {
-  right: 20px;
-}
-
-/*#container.touchable .article .document .surface.content .nodes {
-  padding-left: 0px;
-}*/
-
-/*#container.touchable .lens-outline {
-  background: transparent;
-  left: auto;
-  right: 30px;
-  width: 12px;
-  overflow: hidden;
-}*/
-
-
-/* Only hide for IOS devices because of scrolling issues! */
-#container.touchable.ios .lens-outline .visible-area {
-  display: none;
-}
-
-#container.touchable .lens-outline .node:hover {
-  opacity: 0.15;
-}
-
-#container.touchable .lens-outline .arrow {
-  display: none;
-}
-
-/* Smaller screens */
-/*@media (max-width: 70.5em) {
-  .article .document {
-    width: 55%;
-  }
-
-  .article .resources {
-    width: 45%;
-  }
-}*/
-
-
-/* Mobile (iPad Portrait, iPhone) */
-@media (max-width: 50.5em) {
-
-  /* body.reader {
-    overflow: auto;
-    height: auto;
-  }
-
-  body.reader #container {
-    overflow: auto;
-    height: auto;
-  }
-
-  body.reader #main {
-    height: auto;
-  }*/
-
-  /* Reset back */
-  #container.touchable .article .document .surface.content {
-    right: 0px;
-  }
-
-  .surface.content .nodes > .content-node {
-    padding-top: 10px;
-    padding-bottom: 15px;
-    padding-left: 20px;
-    padding-right: 20px;
-    word-wrap: break-word;
-  }
-
-  .article .document .surface.content .nodes {
-    padding-left: 40px;
-  }
-
-  .article .document {
-    /*width: 100%;*/
-    width: auto;
-    height: auto;
-    position: absolute;
-    left: 0px;
-    right: 0px;
-    bottom: 50px;
-    top: 0px;
-    /* font-size: 24px;
-    line-height: 30px; */
-    z-index: 100;
-  }
-
-  .article.toc .document {
-    z-index: 200;
-  }
-
-  #container .article .resources {
-    background: #fff;
-    position: absolute;
-    width: auto;
-    height: auto;
-    left: 0px;
-    right: 0px;
-    bottom: 50px;
-    top: 0px;
-
-    padding-left: 20px;
-    padding-right: 20px;
-
-    z-index: 100;
-    word-wrap: break-word;
-  }
-
-  #container .article .resources .nodes {
-    padding: 0px 20px;
-  }
-
-  .article .document .surface.content .nodes {
-    padding-left: 0;
-  }
-
-  #container .article .resources .resource-view {
-    display: none;
-  }
-
-  #container .article.figures .resources .resource-view.figures {
-    display: block;
-    z-index: 200;
-  }
-
-  #container .article.info .resources .resource-view.info {
-    display: block;
-    z-index: 200;
-  }
-
-  #container .article.citations .resources .resource-view.citations {
-    display: block;
-    z-index: 200;
-  }
-
-  .article .resources .medial-strip {
-    background: #252525;
-    /*border-bottom: 1px solid #ddd;*/
-    position: fixed;
-    top: auto;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
-    height: 50px;
-    width: auto;
-  }
-
-  .article .resources .medial-strip .context-toggles {
-    background: #252525;
-    /*line-height: 80px;*/
-    position: absolute;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
-    top: 0px;
-    /*padding: 5px 20px;*/
-  }
-
-  .article .resources .medial-strip .context-toggles .context-toggle {
-    float: left;
-    height: 50px;
-    width: 80px;
-    padding-top: 8px;
-    color: rgba(255,255,255,0.4);
-    text-align: center;
-    line-height: 17px;
-    /*background: green;*/
-  }
-
-  .article .resources .medial-strip .context-toggles .context-toggle span {
-    display: block;
-    font-size: 11px;
-  }
-
-  .article.figures .context-toggles .context-toggle.figures {
-    /*color: rgba(145, 187, 4, 1);*/
-    color: white;
-    background: #000;
-  }
-
-  .article.citations .context-toggles .context-toggle.citations {
-    /*color: rgba(11, 157, 217, 1);*/
-    color: white;
-    background: #000;
-  }
-
-  .article.toc .context-toggles .context-toggle.toc {
-    color: white;
-    background: #000;
-  }
-
-  .article.info .context-toggles .context-toggle.info {
-    color: white;
-    background: #000;
-  }
-
-
-
-
-
-
-  .article .resources .medial-strip .back-nav {
-    display: none;
-  }
-
-  .article .lens-outline {
-    display: none;
-  }
-}
-
-
 /*
   Typography / Basics
 ---------------------------------------------*/
 
 * {
-  margin: 0;
+        margin: 0;
 }
 
 body {
@@ -1435,52 +41,17 @@ body.reader #container {
   height: 100%;
 }
 
-
-/*#container .browser-not-supported {
-  text-align: center;
-  padding-top: 200px;
-  width: 500px;
-  margin: 0 auto;
-  font-size: 20px;
-  line-height: 30px;
-}
-
-#container .browser-not-supported h1 {
-  font-family: 'Avenir LT W01 85 Heavy', 'Montserrat', 'Source Sans Pro';
-  font-size: 30px;
-}
-
-#container .browser-not-supported p {
-  padding: 30px 0;
-}
-
-#container .browser-not-supported a {
-  background: #444;
-  padding: 2px 10px;
-  color: #fff;
-  font-family: 'Avenir LT W01 85 Heavy', 'Montserrat', 'Source Sans Pro';
-}
-
-#container .browser-not-supported a:hover {
-  background: #000;
-}
-*/
-
-
-
 body, textarea, p, input {
-  font-family: 'Source Sans Pro', Helvetica, Arial, Verdana, sans-serif;
-  color: #505050;
+  font-family: 'Open Sans', 'Source Sans Pro', Helvetica, Arial, Verdana, sans-serif;
+  /*color: #505050;*/
+  font-size: 15px;
+  color: rgba(0,0,0,0.75);
 }
 
 a {
   color: #1B6685;
   font-weight: normal;
   text-decoration: none;
-  -moz-transition: background-color 100ms linear, color 100ms linear, opacity 100ms linear;
-  -o-transition: background-color 100ms linear, color 100ms linear, opacity 100ms linear;
-  -webkit-transition: background-color 100ms linear, color 100ms linear, opacity 100ms linear;
-  transition: background-color 100ms linear, color 100ms linear, opacity 100ms linear;
 }
 
 a:hover {
@@ -1554,13 +125,1732 @@ body.reader #main {
   height: 100%;
 }
 
-#container .loading {
+
+
+/* Loading bar */
+
+
+.spinner-wrapper {
+  position: fixed;
+  display: none;
+  left: 50%;
+  margin-left: -75px;
+  width: 150px;
+  top: 40%;
+  z-index: 5000;
   font-family: 'Avenir LT W01 85 Heavy', 'Montserrat', 'Source Sans Pro';
-  position: absolute;
-  top: 15px;
-  left: 70px;
-  right: 0px;
-  height: 49px;
-  line-height: 50px;
+}
+
+body.loading .spinner-wrapper {
+  display: block;
+}
+
+.spinner-wrapper .spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;  
+  background: #444;
+  -webkit-animation: rotateplane 1.2s infinite ease-in-out;
+  animation: rotateplane 1.2s infinite ease-in-out;
+}
+
+.spinner-wrapper .message {
+  color: #444;
+  text-align: center;
   font-size: 12px;
+  padding-top: 20px;
+}
+
+@-webkit-keyframes rotateplane {
+  0% { -webkit-transform: perspective(120px) }
+  50% { -webkit-transform: perspective(120px) rotateY(180deg) }
+  100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg) }
+}
+
+@keyframes rotateplane {
+  0% {
+    transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+    -webkit-transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+  } 50% {
+    transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+    -webkit-transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+  } 100% {
+    transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+    -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+  }
+}
+
+#MathJax_Message {
+  display: none;
+}
+/* Surface
+-------------------------------------------------------------------------------*/
+
+.surface {
+  position: relative;
+}
+
+/* Very important dude */
+/* Makes sure .nodes is used as a reference for absolute positioning */
+.surface .nodes {
+  position: relative;
+}
+
+/* Generic node styles */
+.surface .content-node {
+  position: relative;
+}
+
+.surface .nodes > .content-node {
+  /*margin: 0 60px;*/
+}
+
+
+/* Cursor
+-------------------------------------------------------------------------------*/
+
+.surface .cursor {
+  position: absolute;
+  top: 0px;
+  height: 20px;
+  width: 2px;
+  background: #00ACEA;
+}
+
+/*
+  blinking from http://codepen.io/hofweber/pen/vbJHc
+  thanks patch!
+*/
+
+.surface .cursor {
+  -webkit-animation: blink 1.2s step-end infinite;
+     -moz-animation: blink 1.2s step-end infinite;
+      -ms-animation: blink 1.2s step-end infinite;
+       -o-animation: blink 1.2s step-end infinite;
+          animation: blink 1.2s step-end infinite;
+}
+
+@-webkit-keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
+   @-moz-keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
+    @-ms-keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
+     @-o-keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
+        @keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
+
+/*
+Outline
+--------------------------------------- */
+
+.lens-outline {
+  background: #fff;
+  position: absolute;
+  left: 0px;
+  width:30px;
+  top: 0px;
+  bottom: 0px;
+}
+
+.lens-outline .node.cover {
+
+}
+
+.lens-outline .node .arrow {
+  display: none;
+  position: absolute;
+  top: -7px;
+  left: -17px;
+  
+  width: 0; 
+  height: 0; 
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 8px solid black;
+}
+
+.lens-outline .node.selected .arrow {
+  display: block;
+}
+
+.lens-outline .visible-area {
+  position: absolute;
+  cursor: pointer;
+  top: 40px;
+  left: 0px;
+  right: 0px;
+  height: 80px;
+  z-index: 2000;
+  background-color: rgba(0,0,0, 0.2);
+}
+
+.lens-outline:hover .visible-area {
+  background-color: rgba(0,0,0, 0.25); 
+}
+
+.lens-outline .visible-area:hover {
+  background-color: rgba(0,0,0, 0.3); 
+}
+
+.lens-outline .node {
+  margin: 0px 0px;
+  width: 30px;
+  background: rgba(0,0,0, 0.4);
+  opacity: 0.15;
+  cursor: pointer;
+}
+
+.lens-outline .text {
+}
+
+.lens-outline .heading {
+  background: rgba(0,0,0, 0.5);
+}
+
+.lens-outline .node.selected {
+  opacity: 1.0;
+}
+
+.node.highlighted {
+  background: #5c6570;
+  opacity: 0.7;
+}
+
+/* Greenish highlighted nodes (figures) */
+
+.lens-outline.figures .node.highlighted {
+  opacity: 0.7;
+  background: rgba(145, 187, 4, 1);
+}
+
+/* Blueish highlighted nodes (citations) */
+
+.lens-outline.citations .node.highlighted {
+  opacity: 0.7;
+  background: rgba(11, 157, 217, 1);
+}
+
+.lens-outline.remarks .node.highlighted {
+  opacity: 0.7;
+  background: rgba(46,199,161, 1);
+}
+
+.lens-outline.errors .node.highlighted {
+  opacity: 0.7;
+  background: rgba(228, 67, 34, 1);  
+}
+
+
+.lens-outline.figures .node.selected {
+  opacity: 1;
+  background: rgba(145, 187, 4, 1);
+}
+
+/* Blueish highlighted nodes (citations) */
+
+.lens-outline.citations .node.selected {
+  opacity: 1;
+  background: rgba(11, 157, 217, 1);
+}
+
+
+
+/* Textish Styles
+-------------------------------------------------------------------------------*/
+
+
+.content-node.text .content {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+}
+/* Paragraph Node
+-------------------------------------------------------------------------------*/
+
+.content-node.paragraph {
+}
+
+.content-node.paragraph .content {
+  min-height: 28px;
+}
+
+.content-node.paragraph .content-node.text {
+  padding: 0px;
+  display:inline;
+  width: auto;
+}
+
+.content-node.paragraph .content-node.text div {
+  display:inline;
+  width: auto;
+}
+
+.content-node.paragraph .content-node.image div img {
+  display:inline;
+  width: auto;
+}
+
+.content-node.paragraph .content-node.formula.inline {
+  display: inline;
+  padding: 0px;
+}
+
+/* Heading Node
+-------------------------------------------------------------------------------*/
+
+.content-node.heading {
+}
+
+.content-node.heading .content {
+  /*min-height: 40px;*/
+}
+
+.content-node.heading { }
+
+.content-node.heading .content {
+  color: #1f1f1f;
+  font-weight: 600;
+  line-height: 40px;
+}
+
+.content-node.heading.level-1 .content {
+  font-size: 20px;
+}
+
+.content-node.heading.level-2 .content {
+  font-size: 18px;
+}
+
+.content-node.heading.level-3 .content {
+  font-size: 16px;
+}
+
+.content-node.heading.level-4 .content {
+  font-size: 15px;
+}
+
+/* List Node
+-------------------------------------------------------------------------------*/
+
+.content-node.list {
+  padding: 10px 0px;
+  padding-top: 0px;
+}
+
+.content-node .list-item {
+  padding: 2px 0px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.content-node .list-item .bullet {
+  position: absolute;
+  left: 0px;
+  top: 15px;
+  width: 4px;
+  height: 4px;
+  background: #bbb;
+}
+
+/*p:before {
+  content:"Read this: ";
+}*/
+
+
+
+
+
+/*.content-node .listitem .bullet {
+  position: absolute;
+  left: 0px;
+  top: 14px;
+  width: 4px;
+  height: 4px;
+  background: #bbb;
+}
+
+.content-node.list .content {
+  min-height: 30px;
+}*/
+
+/*.content-node.list { }
+
+.content-node.list .content {
+
+}
+
+.content-node.list.level-2 .content {
+  font-size: 20px;
+}
+
+.content-node.list.level-3 .content {
+  font-size: 17px;
+}*/
+/* Image Node
+-------------------------------------------------------------------------------*/
+
+.content-node.image { }
+
+
+.content-node.image .content {
+  padding: 0px;
+}
+
+.content-node.image div.image-char {
+  width: 100%;
+}
+
+.content-node.image div.selected .overlay {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  background: rgba(0,169, 255, 0.25);
+}
+
+.content-node.image div img {
+  width: 100%;
+}
+/* Codeblock Node
+-------------------------------------------------------------------------------*/
+
+.content-node.codeblock > .content {
+  border: 1px dashed #ddd;
+  line-height: 20px;
+  padding: 10px 10px;
+}
+
+.content-node.codeblock > .content {
+  font-family: 'Monaco', 'Source Code Pro', 'Menlo', monospace;
+  font-size: 12px;
+  color: #777;
+  min-height: 28px;
+}
+
+.content-node.contributor {
+  
+}
+
+/* Displayed as card header */
+.content-node.contributor .name {
+  position: relative;
+}
+
+
+.content-node.contributor .content {
+  overflow: auto;
+}
+
+.content-node.contributor .image {
+  width: 200px;
+  padding-right: 20px;
+  float: left;
+}
+
+.content-node.contributor .label {
+  font-size: 14px;
+  padding-top: 20px;
+  color: rgba(0,0,0,0.6);
+}
+
+.content-node.contributor .organization {
+  font-size: 18px;
+}
+
+.content-node.contributor .image img {
+  width: 100%;
+}
+
+
+/* Table */
+
+.substance-article .content-node.table > .content {
+  padding: 20px;
+  width: 100%;
+  overflow: auto;
+  text-align: center;
+}
+
+.substance-article .content-node.table .caption {
+  padding-top: 20px;
+}
+
+.substance-article .content-node.table table {
+  position: relative;
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin-bottom: 20px;
+  margin: 0 auto;
+}
+
+.substance-article .content-node.table table thead tr {
+  background: #eee;
+  border: 1px solid lightgrey;
+}
+
+.substance-article .content-node.table table thead th {
+  padding: 5px;
+  font-weight: bold;
+}
+
+.substance-article .content-node.table table tbody td {
+  padding: 5px;
+  font-size: 12px;
+  border: 1px solid lightgrey;
+}
+
+.substance-article .content-node.table .footers {
+  padding: 0 20px;
+  padding-top: 10px;
+  font-size: 12px;
+  background: #fff;
+}
+
+/* Figure Node
+-------------------------------------------------------------------------------*/
+
+.substance-article .content-node.figure { 
+}
+
+.substance-article .content-node.figure div.image-wrapper {
+  text-align: center;
+  padding-bottom: 20px;
+}
+
+.substance-article .content-node.figure div .image-wrapper img {
+  width: 100%;
+}
+
+.substance-article .content-node.figure .label {
+  position: relative;
+}
+.substance-article .content-node.cover {
+}
+
+.substance-article .content-node.cover .content {
+  background: none;
+}
+
+
+.substance-article .content-node.cover .published-on {
+  
+}
+
+.substance-article .content-node.cover .title {
+  /*padding-top: 20px;*/
+  white-space: pre-wrap;
+  line-height: 1.3em;
+  margin-bottom: 20px;
+  font-size: 40px;
+  font-weight: 600;
+  color: #1F1F1F;
+}
+
+.substance-article .content-node.cover .content .authors {
+  color: rgba(0,0,0, 0.7);
+  overflow: auto;
+}
+
+.substance-article .content-node.cover .content .authors .toggle-author {
+  display: block;
+  float: left;
+  padding: 0 2px;
+  line-height: 20px;
+  margin-right: 10px;
+  margin-bottom: 8px;
+}
+.content-node .code {
+  font-family: Consolas, "Liberation Mono", Courier, monospace;
+  background: #f5f5f5;
+  font-size: 13px;
+  padding: 2px 3px;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+/* Cross Reference */
+
+.content-node .cross_reference {
+  background: rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.content-node .cross_reference:hover {
+  background-color: rgba(0, 0, 0, 0.10);
+}
+
+span.emphasis, em {
+  font-style: italic;
+}
+.content-node .figure_reference {
+  padding: 1px 0px;
+  border-bottom: 1px solid rgba(145, 187, 4, 0.8);
+  /*border: 1px solid transparent;*/
+  color: rgba(145, 187, 4, 1);
+}
+
+
+
+
+.content-node .figure_reference:hover { 
+  /*border-style: solid;*/
+  /*border: 1px dotted rgba(145, 187, 4, 0.8);*/
+  /*background: rgba(145, 187, 4, 0.1);*/
+  border-color: rgba(171, 217, 17, 1);
+  color: rgba(171, 217, 17, 1);
+}
+
+.content-node .figure_reference.active {
+  color: white;
+  background: rgba(145, 187, 4, 1);
+  border-color: transparent;
+}
+/* Issue Reference */
+.content-node .idea {
+  background: rgba(150,190,15, 0.3);
+  /*color: rgba(28,163,219, 1);*/
+}
+
+.content-node .idea:hover {
+  background: rgba(150,190,15, 0.3); 
+}
+
+.content-node .idea.active { 
+  color: white;
+  background: rgba(150,190,15, 1);
+}
+
+
+.content-node .remark_reference {
+  background: rgba(46,199,161, 0.2);
+  color: #496F65;
+}
+
+.content-node .remark_reference:hover {
+  background: rgba(46,199,161, 0.3); 
+}
+
+.content-node .remark_reference.active { 
+  color: white;
+  background: rgba(46,199,161, 1);
+}
+.content-node .error_reference {
+  color: #925346;
+  background: rgba(228, 67, 34, 0.17);
+}
+
+.content-node .error_reference:hover {
+  background: rgba(228, 67, 34, 0.25); 
+}
+
+.content-node .error_reference.active { 
+  color: white;
+  background: rgba(228, 67, 34, 1);
+}
+/* Link annotation */
+.content-node .link { color: #1B6685; }
+.content-node .link:hover, .content-node .link.active { color: rgba(11, 157, 217, 1); }
+
+
+span.strong, strong {
+  font-weight: 600;
+  color: #1f1f1f;
+}
+span.subscript, sub {
+  vertical-align: baseline;
+  position: relative;
+  top: 0.4em;
+  font-size: 12px;
+}
+span.superscript, sup {
+  vertical-align: baseline;
+  position: relative;
+  top: -0.4em;
+  font-size: 12px;
+}
+
+
+/* Library View
+======================================= */
+
+
+.library-view {
+  overflow: auto;
+}
+
+/* Library Info
+--------------------------------------- */
+
+
+.library-view .library-info {
+  background: #2d3538;
+}
+
+.library-view .library-info .inner {
+  margin: 0px auto;
+  max-width: 700px;
+  padding: 20px;
+  color: rgba(255,255,255,0.8);
+}
+
+.library-view .library-info .title {
+  font-weight: 600;
+  font-size: 25px;
+  padding: 20px 0;
+}
+
+.library-view .library-info .description {
+  /*font-size: 20px;*/
+  color: rgba(255,255,255,0.6);
+  padding-bottom: 20px;
+}
+
+.library-view .library-info .links {
+  padding-bottom: 20px;
+}
+
+.library-view .library-info .links a {
+  color: rgba(255,255,255,0.8);
+}
+
+.library-view .library-info .links a:hover {
+  color: rgba(255,255,255,1);
+}
+
+
+/* Collections
+--------------------------------------- */
+
+.library-view .collections {
+  padding: 20px;
+  overflow: auto;
+  /*font-size: 14px;*/
+  background: white;
+  margin: 0px auto;
+  max-width: 700px;
+}
+
+.library-view .collection {
+  position: relative;
+  opacity: 0.9;
+  display: block;
+  padding: 20px 0px;
+  padding-right: 20px;
+  margin-bottom: 20px;
+}
+
+.library-view .collection .teaser {
+  position: absolute;
+  top: 40px;
+  right: 0px;
+  width: 100px;
+  border-radius: 50px;
+}
+
+.library-view .collection .name {
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.library-view .collection .description {
+  color: rgba(0,0,0, 0.7);
+  padding: 10px 0;
+  margin-right: 100px;
+  max-width: 700px;
+  /*font-size: 18px;*/
+}
+
+.library-view .collection .count {
+  /*font-size: 16px;*/
+  font-style: italic;
+  color: rgba(0,0,0, 0.5);
+}
+
+
+/* Collection View
+======================================= */
+
+.collection-view {
+   background: white;
+}
+
+
+/* Collection metadata */
+
+.collection-view .collection {
+
+  position: relative;
+  display: block;
+  /*padding: 40px;*/
+  /*padding-top: 20px;*/
+  /*margin-left: 30px;*/
+  /*margin-right: 20px;
+  margin-bottom: 20px;*/
+  background: #f1f1f1;
+  border-bottom: 1px solid #ddd;
+}
+
+.collection-view .collection .inner {
+  position: relative;
+  max-width: 700px;
+  padding: 40px 20px;
+  margin: 0 auto;
+}
+
+.collection-view .collection .teaser {
+  position: absolute;
+  top: 40px;
+  right: 20px;
+  width: 100px;
+  border-radius: 50px;
+}
+
+.collection-view .collection .path {
+  font-weight: 600;
+  font-size: 25px;
+}
+
+.collection-view .collection .path a {
+  font-weight: 600;
+}
+
+.collection-view .collection .sep {
+  padding: 0px 10px;
+}
+
+.collection-view .collection .description {
+  color: rgba(0,0,0, 0.6);
+  padding: 10px 0;
+  margin-right: 120px;
+  font-size: 16px;
+}
+
+/* Records stuff */
+
+.collection-view .records {
+  max-width: 700px;
+  padding: 40px 0px;
+  margin: 0px auto;
+}
+
+.collection-view .record {
+  position: relative;
+  display: block;
+  background: white;
+  padding: 20px 20px;
+}
+
+.collection-view .record a.title {
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 30px;
+}
+
+.collection-view .record .date {
+  /*font-size: 16px;*/
+  color: #777;
+  font-style: italic;
+}
+
+.collection-view .record .authors {
+  color: #555;
+  /*font-size: 18px;*/
+  padding: 5px 0;
+}
+
+/* HACKY'DI'HACK: needs a designer */
+.collection-view .record .controls {
+  position:absolute;
+  top: 1em;
+  right: 0px;
+  opacity: 0.1;
+}
+
+.collection-view .record:hover .controls {
+  opacity: 0.8;
+}
+
+/*
+TOC 
+--------------------------------------- */
+
+
+.resource-view.toc .heading-ref {
+  cursor: pointer;
+  display: block;
+  color: rgba(0,0,0,0.5);
+  font-size: 16px;
+  padding: 4px 10px;
+  line-height: 20px;
+  font-weight: 600;
+  margin-right: 10px;
+  border: 1px solid transparent;
+}
+
+.resource-view.toc .heading-ref.active {
+  color: rgba(0,0,0,0.9);
+  background: #fff;
+  border: 1px solid #eee;
+}
+
+.resource-view.toc .heading-ref.level-2 {
+  padding-left: 20px;
+  font-size: 14px;
+}
+
+.resource-view.toc .heading-ref.level-3 {
+  padding-left: 40px;
+  font-size: 14px;
+}
+
+.resource-view.toc .heading-ref.level-4 {
+  padding-left: 60px;
+  font-size: 14px;
+}
+
+.resource-view.toc .heading-ref.level-5 {
+  padding-left: 80px;
+  font-size: 14px;
+}
+
+.resource-view.toc .heading-ref:hover {
+  color: rgba(0,0,0,1.0);
+}
+
+/* Fix weird behavior
+-------------------------------------------------------------------------------*/
+
+/*
+When using event delegation if the parent element has a click handler, when
+the user touches anything inside this element, the whole region will gray 
+out (on iOS 5.1), or flicker (on iOS 6). */
+
+* {
+  -webkit-tap-highlight-color:transparent;
+}
+
+
+/* Article
+-------------------------------------------------------------------------------*/
+
+.article {
+  height: 100%;
+}
+
+
+/* Surface specific styles */
+.content-node {
+
+}
+
+.hidden {
+  display: none;
+}
+
+.content-node .content {
+  margin: 0px;
+  background: white;
+}
+
+/* Main content panel 
+======================================================================= */
+
+.article .document {
+  line-height: 28.5px;
+  /*font-size: 16px;*/
+  position: relative;
+  float: left;
+  overflow: hidden;
+  height: 100%;
+  width: 50%;
+  border-right: 1px solid #ddd;
+}
+
+.article .document .surface.content {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  right: 0px;
+  left: 0px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  /*overflow: auto;*/
+  -webkit-overflow-scrolling: touch;
+}
+
+.article .document .surface.content .nodes {
+  min-height: 100%;
+  padding-left: 40px;
+  padding-right: 0px;
+  background: #FFFFFF;
+}
+
+
+/* Back Navigation 
+=======================================================================*/
+
+
+
+/* Context Toggles 
+=======================================================================*/
+
+/* Switcher */
+
+/*.article .medial-strip {
+  overflow: hidden;
+  width: 40px;
+  position: absolute;
+  left: 50%;
+  margin-left: -18px; 
+
+  top: 0px;
+  bottom: 0px;
+  background: #fff;
+  z-index: 3000;
+}*/
+
+.article .medial-strip {
+  width: 40px;
+  position: absolute;
+  left: -18px;
+  top: 0px;
+  bottom: 0px;
+  background: #fff;
+  z-index: 3000;
+}
+
+
+.article .back-nav {
+  display: block;
+  overflow: hidden;
+  width: 40px;
+  position: absolute;
+  top: 20px;
+  z-index: 5000;
+  font-size: 22px;
+  background: #fff;
+  color: #aaa;
+  padding: 10px 10px;
+}
+
+
+.article .back-nav:hover {
+  color: #333;
+}
+
+
+.article .medial-strip .separator-line {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 20px;
+  width: 1px;
+  background: #ddd;
+  z-index: 4000;
+}
+
+.article .context-toggles {
+  position: absolute;
+  top: 100px;
+  left: 0px;
+  right: 0px;
+  
+  background: #fff;
+  z-index: 5000;
+}
+
+
+.article .context-toggles .context-toggle {
+  cursor: pointer;
+  display: block;
+  z-index: 5000;
+  padding: 0 10px;
+  line-height: 40px;
+  font-size: 22px;
+  color: #aaa;
+}
+
+.article .context-toggles .context-toggle i {
+
+}
+
+.article .context-toggles .context-toggle span {
+  display: none;
+}
+
+.article .context-toggles .context-toggle:hover {
+  color: #555;
+}
+
+/*Active states depend on the global reader context */
+
+/*.article .context-toggles .context-toggle.figures:hover {
+  color: rgba(145, 187, 4, 1);
+}
+
+.article .context-toggles .context-toggle.citations:hover {
+  color: rgba(11, 157, 217, 1);
+}
+*/
+
+
+.article.figures .context-toggles .context-toggle.figures {
+  color: #111; 
+}
+
+.article.citations .context-toggles .context-toggle.citations {
+  /*color: rgba(11, 157, 217, 1);*/
+  color: #111; 
+}
+
+.article.toc .context-toggles .context-toggle.toc {
+  color: #111;
+}
+
+.article.info .context-toggles .context-toggle.info {
+  color: #111;
+}
+
+
+/* Resources Panel 
+======================================================================= */
+
+.article .delete-resource {
+  display: none;
+}
+
+.article .resources {
+  float: right;
+  line-height: 25px;
+  width: 50%;
+  
+  height: 100%;
+  padding-left: 50px;
+  padding-right: 50px;
+  position: relative;
+  /*overflow: auto;*/
+}
+
+/*.article .resources .surface {
+  padding-top: 80px;
+}*/
+
+.article .nodes {
+  padding-left: 50px;
+  padding-right: 50px;
+}
+
+.article .resources .nodes {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+.article .resources .nodes > .content-node {
+  color: #505050;
+  position: relative;
+  background: #fff;
+
+  padding: 0px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+
+.article .resources .content-node .resource-header:hover {
+  background: rgba(0,0,0,0.15);
+}
+
+/* Clickable header */
+.article .resources .content-node .resource-header {
+  min-height: 80px;
+  position: relative;
+  background: rgba(0,0,0,0.1);
+}
+
+
+/* Shared styles for selected and mouseover states
+----------------------------------------------------------------------- */
+
+/* Active resource */
+.article .resources .content-node.active .resource-header .name {
+  color: #fff;
+}
+
+/* active figure */
+.article .resources .figures .content-node.active {
+  /*border-color: rgba(145, 187, 4, 1);*/
+}
+
+.article .resources .figures .content-node.active .resource-header {
+  background: rgba(145, 187, 4, 1);
+}
+
+.article .resources .figures .content-node.active .resource-header a {
+  /*color: rgba(145, 187, 4, 1);*/
+}
+
+
+/* active citation */
+
+.article .resources .citations .content-node.active {
+  /*border-color: rgba(11, 157, 217, 1);*/
+}
+
+.article .resources .citations .content-node.active .resource-header {
+  background: rgba(11, 157, 217, 1);
+}
+
+.article .resources .citations .content-node.active .resource-header a {
+  /*color: rgba(11, 157, 217, 1);*/
+}
+
+/* active person */
+.article .resources .info .content-node.active {
+  /*border-color: #5c6570;*/
+}
+
+.article .resources .info .content-node.active .resource-header {
+  border-color: #5c6570;
+}
+
+.article .resources .info .content-node.active .resource-header a {
+  /*color: #5c6570;*/
+}
+
+
+/* Figures View
+----------------------------------------------------------------------- */
+
+.article .resources .surface.figures {
+  display: none;
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  font-size: 14px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.article.figures .resources .resource-view.figures {
+  display: block;
+}
+
+.substance-article .content-node .toggle-resource {
+  cursor: pointer;
+}
+
+/* Citations View
+----------------------------------------------------------------------- */
+
+.article .resources .surface.citations {
+  font-size: 14px;
+
+  display: none;
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.article.citations .resources .resource-view.citations {
+  display: block;
+}
+
+/* TOC View
+----------------------------------------------------------------------- */
+
+.resource-view.toc {
+  display: none;
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 50px;
+  right: 0px;
+
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-top: 60px;
+}
+
+.article.toc .resources .resource-view.toc {
+  display: block;
+}
+
+
+/* Info View
+----------------------------------------------------------------------- */
+
+.article .resources .surface.info {
+  display: none;
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.article.info .resources .resource-view.info {
+  display: block;
+}
+
+
+/* Resource Fullscreen Mode 
+======================================================================= */
+
+
+/* Styles for fullscreen toggle on resource cards */
+
+.article .resources .content-node .resource-header .toggle-fullscreen {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  font-size: 30px;
+  bottom: 0px;
+  text-align: center;
+  line-height: 81px;
+  color: rgba(0,0,0, 0.2);
+  width: 81px;
+}
+
+.article .resources .content-node .resource-header .toggle-fullscreen:hover {
+  color: rgba(0,0,0, 0.5);
+}
+
+/* Active state adjustments */
+
+.article .resources .content-node.active .resource-header .toggle-fullscreen {
+  color: rgba(255,255,255, 0.5);
+}
+
+.article .resources .content-node.active .resource-header .toggle-fullscreen:hover {
+  color: rgba(255,255,255, 1);
+}
+
+
+/* Hide resize small icon by default */
+#container .article .content-node .icon-resize-small {
+  display: none;
+}
+
+#container .article .content-node.fullscreen {
+  position: fixed;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  z-index: 100000;
+  margin-bottom: 0px;
+  margin-right: 0px;
+  padding: 0px;
+}
+
+#container .article .content-node.fullscreen .icon-resize-small {
+  display: inline;
+}
+
+#container .article .content-node.fullscreen .icon-resize-full {
+  display: none;
+}
+
+#container .article .content-node.fullscreen > .content {
+  position: absolute;
+  top: 80px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  overflow: auto;
+}
+
+/* Info panel overrides 
+----------------------------------------------------------------------- */
+
+
+#container .article .surface.info .content-node.caption .content {
+  padding: 20px;
+}
+
+/* Annotations 
+----------------------------------------------------------------------- */
+
+.article span.annotation {
+}
+
+/* Figure Reference */
+
+.content-node .figure_reference { 
+  padding: 0 2px;
+  cursor: pointer; 
+}
+.content-node .citation_reference { cursor: pointer; }
+.content-node .cross_reference { cursor: pointer; }
+
+/* Reader-specific overrides for content nodes
+======================================================================= */
+
+/* For the main content area 
+----------------------------------------------------------------------- */
+
+.surface.content .nodes > .content-node {
+  padding-top: 10px;
+  padding-bottom: 15px;
+  padding-left: 30px;
+  padding-right: 50px;
+  word-wrap: break-word;
+}
+
+/* Some extra cover spacing */
+.surface.content .nodes > .content-node.cover {
+  padding-top: 20px;
+}
+
+.substance-article .content-node.cover .content .authors .toggle-author.active {
+  background: rgba(0,0,0,0.7);
+  color: rgba(255,255,255, 1);
+}
+
+
+
+/* For the resources panel
+----------------------------------------------------------------------- */
+
+.content-node {
+
+}
+
+/* Wraps all resource details */
+.resources .content-node .resource-body {
+  padding: 20px;
+  overflow: auto;
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}
+
+/* padding for the content */
+.resources .nodes > .content-node > .content {
+  /*padding: 20px;*/
+}
+
+/* Contributor View*/
+
+.resources .content-node.contributor .name .content {
+  background: rgba(0,0,0,0.1);
+  padding: 20px;
+  font-weight: 600;
+  /*font-size: 16px;*/
+}
+
+/* Active Style */
+
+.resources .content-node.contributor.active .name .content {
+  background: rgba(0,0,0,0.7);
+  color: white;
+}
+
+/* Figure View */
+
+.resources .content-node.figure .label .content {
+  background: rgba(0,0,0,0.1);
+  padding: 20px;
+  font-weight: 600;
+  /*font-size: 16px;*/
+}
+
+.content-node.figure.active .label .content,
+.focus-panel .content-node.figure .label .content {
+  background: rgba(145, 187, 4, 1);
+  color: white;
+}
+
+
+/* For the resources panel */
+.resources .info .nodes > .content-node.paragraph > .content > .content-node {
+  padding: 20px 0;
+}
+
+.article .document .surface.content::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+
+.article .document .surface.content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0);
+}
+
+
+/* Disable native scrollbar for resources except TOC */
+
+.article .resources .surface.figures::-webkit-scrollbar,
+.article .resources .surface.citations::-webkit-scrollbar,
+.article .resources .surface.info::-webkit-scrollbar {
+  width: 2px;
+  height: 2px; 
+}
+
+.article .resources .surface.figures::-webkit-scrollbar-thumb,
+.article .resources .surface.citations::-webkit-scrollbar-thumb,
+.article .resources .surface.info::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0);
+}
+
+
+/* Resources Outline */
+/* ---------------------------------------*/
+
+.resources .lens-outline {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  left: auto;
+  bottom: 0px;
+  width: 30px;
+}
+
+#container.touchable .resources .lens-outline {
+  right: 5px;
+}
+
+/* Responsiveness */
+/* ---------------------------------------*/
+
+
+/* Hide fullscreen toggle for small screens */
+#container.touchable .toggle-fullscreen {
+  display: none;
+}
+
+#container.touchable .article .document .surface.content {
+  right: 20px;
+}
+
+
+/* Only hide for IOS devices because of scrolling issues! */
+#container.touchable.ios .lens-outline .visible-area {
+  display: none;
+}
+
+#container.touchable .lens-outline .node:hover {
+  opacity: 0.15;
+}
+
+#container.touchable .lens-outline .arrow {
+  display: none;
+}
+
+.content-node.heading .top {
+  display: none;
+}
+
+.surface.content .nodes .content-node.heading {
+  padding-bottom: 0px;
+}
+
+.surface.content .nodes .content-node.heading.level-1 {
+  /*padding-top: 20px;*/
+}
+
+
+
+@media (max-width: 1100px) {
+  .article .content-node.cover .title {
+    font-size: 28px;
+  }
+
+  .surface.content .nodes > .content-node {
+    padding-left: 15px;
+    padding-right: 15px;
+    word-wrap: break-word;
+  }
+}
+
+
+/* Mobile (iPad Portrait, iPhone) */
+@media (max-width: 850px) {
+
+
+
+  .content-node.heading .top {
+    display: block;
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    padding: 10px;
+  }
+
+  html body.reader {
+    height: auto;
+    overflow: visible;
+    position: relative;
+  }
+
+  /* Hide fullscreen toggle for small screens */
+  #container .toggle-fullscreen {
+    display: none;
+  }
+
+  /* Reset back */
+  #container.touchable .article .document .surface.content {
+    right: 0px;
+  }
+
+  .surface.content .nodes > .content-node {
+    padding-top: 10px;
+    padding-bottom: 15px;
+    padding-left: 20px;
+    padding-right: 20px;
+    word-wrap: break-word;
+  }
+
+  .article .document .surface.content .nodes {
+    padding-left: 40px;
+  }
+
+  .article .document {
+    width: 100%;
+    height: auto;
+    position: relative;
+    z-index: 100;
+    padding-top: 80px;
+    border-right: none;
+  }
+
+
+  .article .document .surface.content {
+    position: absolute;
+    position: relative;
+    overflow: visible;
+  }
+
+  .article .resources .surface.resource-view {
+    position: absolute;
+    position: relative;
+    overflow: visible;
+  }
+
+  .article.toc .document {
+    z-index: 200;
+  }
+
+  #container .article .resources {
+    background: #fff;
+    position: relative;
+    width: 100%;
+    height: auto;
+
+    padding-left: 0px;
+    padding-right: 0px;
+
+    z-index: 300;
+    word-wrap: break-word;
+  }
+
+  #container .article .resources .surface {
+    padding-top: 80px;
+  }
+
+  #container .article .resources .nodes {
+    padding: 0px 20px;
+  }
+
+  .article .document .surface.content .nodes {
+    padding-left: 0;
+  }
+
+  #container .article .resources .resource-view {
+    display: none;
+  }
+
+  #container .article.figures .resources .resource-view.figures {
+    display: block;
+    z-index: 200;
+  }
+
+  /* Hide document when in resource mode */
+  #container .article.figures .document,
+  #container .article.citations .document,
+  #container .article.info .document
+  {
+    display: none;
+  }
+
+  #container .article.info .resources .resource-view.info {
+    display: block;
+    z-index: 200;
+  }
+
+  #container .article.citations .resources .resource-view.citations {
+    display: block;
+    z-index: 200;
+  }
+
+  .article .medial-strip {
+    background: #252525;
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    left: 0px;
+    bottom: auto;
+    margin-left: 0px;
+    height: 60px;
+    width: auto;
+  }
+
+  .article .medial-strip .context-toggles {
+    background: #151515;
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    top: 0px;
+  }
+
+  .article .medial-strip .context-toggles .context-toggle {
+    float: left;
+    width: 70px;
+    padding: 0px 5px;
+    padding-top: 7px;
+    text-align: center;
+    line-height: 24px;
+    color: rgba(255,255,255, 0.3);
+  }
+
+  .article .medial-strip .context-toggles .context-toggle:hover {
+    color: rgba(255,255,255,0.8);
+  }
+
+  .article .medial-strip .context-toggles .context-toggle span {
+    display: block;
+    font-size: 13px;
+  }
+
+  .article.toc .context-toggles .context-toggle.toc {
+    color: rgba(255,255,255,1);
+  }
+
+  .article.figures .context-toggles .context-toggle.figures {
+    color: rgba(255,255,255,1);
+  }
+
+  .article.citations .context-toggles .context-toggle.citations {
+    color: rgba(255,255,255,1);
+  }
+
+  .article.info .context-toggles .context-toggle.info {
+    color: rgba(255,255,255,1);
+  }
+
+  .article .medial-strip .back-nav {
+    display: none;
+  }
+
+  .article .lens-outline {
+    display: none;
+  }
 }
