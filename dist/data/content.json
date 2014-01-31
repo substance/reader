@@ -14,7 +14,8 @@
         "citations"
       ],
       "authors": [
-        "contributor_1"
+        "contributor_1",
+        "contributor_2"
       ],
       "published_on": "2013-08-02T22:00:00.000Z",
       "guid": "challenging-the-pdf",
@@ -61,6 +62,7 @@
       "type": "view",
       "id": "figures",
       "nodes": [
+        "figure_0e51617a008094838943650223b2bff8",
         "figure_1",
         "figure_2",
         "figure_3"
@@ -85,7 +87,8 @@
       "type": "view",
       "id": "info",
       "nodes": [
-        "contributor_1"
+        "contributor_1",
+        "contributor_2"
       ]
     },
     "heading_1": {
@@ -103,7 +106,7 @@
     "text_3": {
       "type": "text",
       "id": "text_3",
-      "content": "It has always been clear to us that the main challenge of Substance was in creating a reliable web-based authoring experience. Before we could release a complete solution we have to solve that problem at heart."
+      "content": "It has always been clear to us that the main challenge of Substance was in creating a reliable web-based authoring experience. Before we could release a complete solution we would need to solve that problem at heart."
     },
     "heading_3": {
       "type": "heading",
@@ -131,43 +134,53 @@
       "image": "http://about.substance.io/images/michael_avatar.jpg",
       "email": "michael@substance.io"
     },
+    "contributor_2": {
+      "type": "contributor",
+      "id": "contributor_2",
+      "source_id": "",
+      "name": "Oliver Buchtala",
+      "role": "author",
+      "organization": "Substance Software GmbH",
+      "image": "http://about.substance.io/images/oliver_avatar.jpg",
+      "email": "oliver@substance.io"
+    },
     "caption_figure_1": {
       "type": "text",
       "id": "caption_figure_1",
       "source_id": null,
-      "content": "The Substance Composer is a professional writing environment targeting scientists, journalists and book authors. For the first time you can write an article without having to scroll back and forth for the referenced figures. Create and collaboratively discuss issues that stick on a particular text-fragment."
+      "content": "Oliver has worked in various fields of Computer Science. He loves and masters code generation, parsers and lately, Javascript. Back in 2010, he helped with the initial design of the Substance Document Model. Today he's involved in every aspect of development, with a focus on infrastructure and system architecture."
     },
     "figure_1": {
       "type": "figure",
       "id": "figure_1",
       "url": "http://about.substance.io/images/oliver.jpg",
-      "label": "Figure 1",
+      "label": "Oliver Buchtala",
       "caption": "caption_figure_1"
     },
     "caption_figure_2": {
       "type": "text",
       "id": "caption_figure_2",
       "source_id": null,
-      "content": "A Substance document can handle multiple views on its content nodes."
+      "content": "The Substance Composer is a professional writing environment targeting scientists, journalists and book authors. For the first time you can write an article without having to scroll back and forth for the referenced figures. You can also create and and collaboratively discuss issues that stick on a particular text-fragment. Don't get irritated by the browser's address bar, the final product will run locally as a native application on your operating system."
     },
     "figure_2": {
       "type": "figure",
       "id": "figure_2",
       "url": "http://f.cl.ly/items/2P3i3x17450I0v2i1C0a/Screen%20Shot%202014-01-30%20at%2010.40.06.png",
-      "label": "Figure 2",
+      "label": "Substance Composer",
       "caption": "caption_figure_2"
     },
     "caption_figure_3": {
       "type": "text",
       "id": "caption_figure_3",
       "source_id": null,
-      "content": "Markup produced by the Substance Surface."
+      "content": "The Substance Reader is used to publish your documents online.It lets you explore figures and figure descriptions – without losing your place in the article text. While most online articles simply replicate print, provides an interactive reading experience."
     },
     "figure_3": {
       "type": "figure",
       "id": "figure_3",
       "url": "http://f.cl.ly/items/3Q0s053U0l3z2x0D241t/Screen%20Shot%202014-01-30%20at%2010.37.56.png",
-      "label": "Figure 3",
+      "label": "Substance Reader",
       "caption": "caption_figure_3"
     },
     "remark_1": {
@@ -222,26 +235,13 @@
       "type": "text",
       "id": "339a5e45176056dd710bf008c163631c",
       "source_id": "",
-      "content": "Substance was initiated in late 2010, an attempt to bring content-oriented authoring to the web. Users should be able to focus on their writing, leaving the layout part to the system entirely. The content produced should be exposed as data, which would allow digital digital documents to be queried like a database. The project was rather small at the beginning. It was fun to experiment with web-based editing and try pushing it to the boundaries. With the help of Samo Korosec, I got a first release ready around February 2011. The initial feedback was great. More than 5000 people signed up within the first three months. They wanted more. I wanted more. But Substance wasn't ready for production use. I was aware of that and tried hard to make it solid. And I failed, many times. While the idea is so simple, it turned out the execution is incredibly hard."
-    },
-    "link_b8238f350dba4a71df91b948edf67d64": {
-      "type": "link",
-      "id": "link_b8238f350dba4a71df91b948edf67d64",
-      "path": [
-        "339a5e45176056dd710bf008c163631c",
-        "content"
-      ],
-      "range": [
-        844,
-        859
-      ],
-      "url": "https://docs.gfoogle.com/a/substance.io/presentation/d/1jHzaEdaOUs2ZX5L5b92ub-cyAXewFhu2HAKHg_qmE4g"
+      "content": "Substance was initiated in late 2010, as an attempt to bring content-oriented authoring to the web. Users should be able to focus on their writing, leaving the layout part to the authoring system entirely. The content produced should be exposed as data, which allows digital documents to be queried like a database. With the help of Samo Korosec our designer in chief, we got a first release ready around February 2011. The initial feedback was great. More than 5000 people signed up within the first three months. At that time Substance was an experiment and not yet ready for production use. Since then we are working hard to  change that."
     },
     "24abe29340b1869ff8194d8c44defcc6": {
       "type": "text",
       "id": "24abe29340b1869ff8194d8c44defcc6",
       "source_id": "",
-      "content": "Oliver Buchtala helped with the original design of the Substance Document Model. In October 2012 he joined the project at a full capacity. Together we founded the Substance Software GmbH. Given Oliver's perfectionism for a clean system architecture and my perfectionism for a flawless user experience it could only be a matter of time until we reach our goals, one after another. We are supported by volunteers whos work is indispensable. Thank you Victor, Pier, Tim, and Daniel!\n"
+      "content": "Substance is currently developed by Michael Aufreiter and Oliver Buchtala who joined the project at a full capacity in 2012. Together we founded the Substance Software GmbH to provide consulting and services to support our ambitious project. We are supported by volunteers from the open source community whose influence has shaped the project. Thank you Victor, Pier, Tim, and Daniel!\n"
     },
     "defe47142b41156e20d7123f8bd3332b": {
       "type": "text",
@@ -253,7 +253,7 @@
       "type": "text",
       "id": "8b3d9e6e62a13b2677ee6de4d21281a9",
       "source_id": "",
-      "content": "Through our company, we are offering consulting to help organizations modernize their digital publishing workflows. We have helped innovate publishers, such as eLife to improve the way how scientific research is presented online. Together with Ivan Grubisic we were developing a new interactive display for scientific articles  eLife Lens . Only days ago, Pubchase has made available the whole corpus of PubMed open access articles for viewing in Lens."
+      "content": "Through our company, registered in Austria,  we are offering consulting to help organizations modernize their digital publishing workflows. We have helped innovate publishers, such as eLife to improve the way how scientific research is presented online. Together with Ivan Grubisic we were developing a new interactive display for scientific articles, eLife Lens. Only days ago, Pubchase has made available the whole corpus of PubMed open access articles for viewing in Lens."
     },
     "heading_1e53f35b58dab3b4db49c60a4c857852": {
       "type": "heading",
@@ -266,7 +266,7 @@
       "type": "text",
       "id": "f66b6631c2ac00cbf0e8791fc579ae65",
       "source_id": "",
-      "content": "It is three years later now, and the project has grown up since then.  \n"
+      "content": "It is three years later now, and the idea is still the same. However the project has grown up since then and we have to deal with the complexities of a big software project. We also needed to find ways to self-finance our work.\n"
     },
     "heading_34accf320821bf28b7be80a32aabb779": {
       "type": "heading",
@@ -316,8 +316,8 @@
         "content"
       ],
       "range": [
-        466,
-        478
+        333,
+        345
       ],
       "url": "http://dribbble.com/froodee"
     },
@@ -325,7 +325,7 @@
       "type": "text",
       "id": "020a738b51115cb25e64a7d4b92c9d22",
       "source_id": "",
-      "content": "The article you are currently reading is the first that has been written using the all new  Composer. It is already functional, we just need to work out the reimaining glitches and package it as a native application for all major platforms. "
+      "content": "The article you are currently reading is the first that has been written using the all new Composer. The software is already functional, we just need to work out the reimaining glitches and package it as a native application for all major platforms."
     },
     "heading_ee4117a422d6d347a77fd77be667fcb4": {
       "type": "heading",
@@ -334,37 +334,11 @@
       "content": "Stay tuned",
       "level": 1
     },
-    "figure_reference_5adc099be7320358f55b8701fcdad515": {
-      "type": "figure_reference",
-      "id": "figure_reference_5adc099be7320358f55b8701fcdad515",
-      "path": [
-        "8b3d9e6e62a13b2677ee6de4d21281a9",
-        "content"
-      ],
-      "range": [
-        328,
-        338
-      ],
-      "target": "figure_2"
-    },
-    "figure_reference_c2eeee9e387d2ec755bf0175102935be": {
-      "type": "figure_reference",
-      "id": "figure_reference_c2eeee9e387d2ec755bf0175102935be",
-      "path": [
-        "020a738b51115cb25e64a7d4b92c9d22",
-        "content"
-      ],
-      "range": [
-        92,
-        100
-      ],
-      "target": "figure_1"
-    },
     "f446b86f5dd6f26dd6f320cf0dd03a95": {
       "type": "text",
       "id": "f446b86f5dd6f26dd6f320cf0dd03a95",
       "source_id": "",
-      "content": "It's a new year. And I wanted to share with you what our plans are for 2014. We are still on our mission to build open software to modernize digital publishing and move beyond simulating paper, as this is what current word-processors (MS Word, OpenOffice) and formats (PDF) do. By promoting an open document format and supporting tools we want to unleash the full power of digital content and provide an interactive experience for authoring and viewing. Moreover, we would like to enable people to be their own publisher and no longer be subject to the politics of big publishing companies and software vendors. In order to accomplish that, we need to ensure we can self-finance our Open Source efforts. In this post I'd like to explain some decisions we have made in order to make that happen and how we plan to move on. But first, let me explain what the main idea of Substance was about."
+      "content": "It's a new year. And we wanted to share with you what our plans are for 2014. We are still on our mission to build open software to modernize digital publishing and move beyond simulating paper, as this is what current word-processors (MS Word, OpenOffice) and formats (PDF) do. By promoting an open document format and supporting tools we want to unleash the full power of digital content and provide an interactive experience for authoring and viewing. Moreover, we would like to enable people to act as their own publisher and no longer be subject to the politics of big publishing companies and software vendors. In this post I'd like to explain some decisions we have made in order to make that happen and what you can expect for the coming months. But first, let me explain what the main idea of Substance was about."
     },
     "figure_reference_c563c2959d51d92ae901dbd8bf5eb15b": {
       "type": "figure_reference",
@@ -374,8 +348,8 @@
         "content"
       ],
       "range": [
-        0,
-        15
+        58,
+        73
       ],
       "target": "figure_1"
     },
@@ -387,8 +361,8 @@
         "content"
       ],
       "range": [
-        176,
-        192
+        177,
+        193
       ]
     },
     "strong_f670f66eef00a899ea2042fef0e23699": {
@@ -399,20 +373,8 @@
         "content"
       ],
       "range": [
-        294,
-        314
-      ]
-    },
-    "strong_842ceda31382452251e1356664ca295b": {
-      "type": "strong",
-      "id": "strong_842ceda31382452251e1356664ca295b",
-      "path": [
-        "f446b86f5dd6f26dd6f320cf0dd03a95",
-        "content"
-      ],
-      "range": [
-        319,
-        335
+        295,
+        315
       ]
     },
     "emphasis_6bfa86f79bca6d0d6a4ad441cc620e77": {
@@ -423,15 +385,15 @@
         "content"
       ],
       "range": [
-        58,
-        84
+        61,
+        87
       ]
     },
     "92ab451b72b6bdb8601287c13ecd06f7": {
       "type": "text",
       "id": "92ab451b72b6bdb8601287c13ecd06f7",
       "source_id": "",
-      "content": "If you are interested in beta testing the new composer, please sign up at our mailing list. We will let youk now when it is ready.\n"
+      "content": "If you are interested in beta testing the new Composer, please sign up at our mailing list. We will let you know when it is ready - it can only be a matter of weeks.\n"
     },
     "heading_80928187175636246fa2be6892186263": {
       "type": "heading",
@@ -490,7 +452,7 @@
       "type": "text",
       "id": "e9d1a8db7d3fed779d17062627b49363",
       "source_id": "",
-      "content": "Our first product is called the Substance Composer and a beta will be ready around April. This means Substance in production for the first time. I'm sure you will love it! Once we are out of beta, the app will be available at a low price. With your purchase of the app, you'll be supporting the Substance ecosystem which will remain completely Open Source. Note, that the Composer is just our own reference implementation of an editor built on top of the Substance document model. We are looking forward to see the community build other editor variants for different use-cases."
+      "content": "Our first product is called the Substance Composer and a beta will be ready around April 2014. I'm sure you will love it! Once we are out of beta, the app will be available at a low price. With your purchase of the app, you'll be supporting the Substance ecosystem which will remain completely open source. Note, that the Composer is just our own reference implementation of an editor built on top of the Substance document model. We are looking forward to see the developer community build other editor variants for different use-cases."
     },
     "heading_c797d22b5843af6d6f268cba06cdad66": {
       "type": "heading",
@@ -503,7 +465,7 @@
       "type": "text",
       "id": "d1eb2fa55074b0ac6a8684cb2769bda7",
       "source_id": "",
-      "content": "A simple way to publish your content.\n"
+      "content": "Substance.io provides a simple way to publish your articles right fromt he Composer interface.\n"
     },
     "heading_5f1c0d542c0d8ba68523f77c305c515c": {
       "type": "heading",
@@ -511,6 +473,269 @@
       "source_id": "",
       "content": "Substance.io platform",
       "level": 3
+    },
+    "strong_1afcbe1addbd3f94e4496ecc1883ab08": {
+      "type": "strong",
+      "id": "strong_1afcbe1addbd3f94e4496ecc1883ab08",
+      "path": [
+        "caption_figure_2",
+        "content"
+      ],
+      "range": [
+        277,
+        283
+      ]
+    },
+    "emphasis_a9862f20b28db00ec7616fb54ebdea7b": {
+      "type": "emphasis",
+      "id": "emphasis_a9862f20b28db00ec7616fb54ebdea7b",
+      "path": [
+        "caption_figure_2",
+        "content"
+      ],
+      "range": [
+        71,
+        81
+      ]
+    },
+    "emphasis_81dba2d6894160c6bd720bce4f5abb9c": {
+      "type": "emphasis",
+      "id": "emphasis_81dba2d6894160c6bd720bce4f5abb9c",
+      "path": [
+        "caption_figure_2",
+        "content"
+      ],
+      "range": [
+        83,
+        94
+      ]
+    },
+    "emphasis_2923e40f9d061169685dc6677110af23": {
+      "type": "emphasis",
+      "id": "emphasis_2923e40f9d061169685dc6677110af23",
+      "path": [
+        "caption_figure_2",
+        "content"
+      ],
+      "range": [
+        99,
+        111
+      ]
+    },
+    "emphasis_aa473d0fbea11ed24bde0759d5613b85": {
+      "type": "emphasis",
+      "id": "emphasis_aa473d0fbea11ed24bde0759d5613b85",
+      "path": [
+        "f446b86f5dd6f26dd6f320cf0dd03a95",
+        "content"
+      ],
+      "range": [
+        374,
+        389
+      ]
+    },
+    "emphasis_6674ad273d0fc1eb7b6b0c4ec640e8bc": {
+      "type": "emphasis",
+      "id": "emphasis_6674ad273d0fc1eb7b6b0c4ec640e8bc",
+      "path": [
+        "f446b86f5dd6f26dd6f320cf0dd03a95",
+        "content"
+      ],
+      "range": [
+        405,
+        416
+      ]
+    },
+    "emphasis_8eeb9a33d0b17825f7e42067dc7029d5": {
+      "type": "emphasis",
+      "id": "emphasis_8eeb9a33d0b17825f7e42067dc7029d5",
+      "path": [
+        "f446b86f5dd6f26dd6f320cf0dd03a95",
+        "content"
+      ],
+      "range": [
+        432,
+        441
+      ]
+    },
+    "emphasis_76713ea772b856f1c89fd54e479eea3b": {
+      "type": "emphasis",
+      "id": "emphasis_76713ea772b856f1c89fd54e479eea3b",
+      "path": [
+        "f446b86f5dd6f26dd6f320cf0dd03a95",
+        "content"
+      ],
+      "range": [
+        446,
+        453
+      ]
+    },
+    "link_6c4a69adcba5badcd12e46a30f170f28": {
+      "type": "link",
+      "id": "link_6c4a69adcba5badcd12e46a30f170f28",
+      "path": [
+        "24abe29340b1869ff8194d8c44defcc6",
+        "content"
+      ],
+      "range": [
+        149,
+        172
+      ],
+      "url": "http://about.substance.io"
+    },
+    "text_fdeed277471f0af847eb0b38dd4cd9c0": {
+      "type": "text",
+      "id": "text_fdeed277471f0af847eb0b38dd4cd9c0",
+      "source_id": "",
+      "content": "As the initiator of Substance, Michael coordinates the project and leads UI/UX development. He is a passionate open source commiter since many years. Notable projects include Prose, a visual interface for managing content on GitHub, eLife Lens and of course Substance."
+    },
+    "figure_0e51617a008094838943650223b2bff8": {
+      "type": "figure",
+      "id": "figure_0e51617a008094838943650223b2bff8",
+      "url": "http://about.substance.io/images/michael.jpg",
+      "label": "Michael Aufreiter",
+      "caption": "text_fdeed277471f0af847eb0b38dd4cd9c0"
+    },
+    "link_b275e4b1f3fbb5014053178905b9a2f7": {
+      "type": "link",
+      "id": "link_b275e4b1f3fbb5014053178905b9a2f7",
+      "path": [
+        "text_fdeed277471f0af847eb0b38dd4cd9c0",
+        "content"
+      ],
+      "range": [
+        175,
+        180
+      ],
+      "url": "http://prose.io"
+    },
+    "link_7e35913be1d0ca1e417768fbfc656a2d": {
+      "type": "link",
+      "id": "link_7e35913be1d0ca1e417768fbfc656a2d",
+      "path": [
+        "text_fdeed277471f0af847eb0b38dd4cd9c0",
+        "content"
+      ],
+      "range": [
+        233,
+        243
+      ],
+      "url": "http://lens.elifesciences.org"
+    },
+    "figure_reference_db2d11cd7cfc4547721b87a61b2988f9": {
+      "type": "figure_reference",
+      "id": "figure_reference_db2d11cd7cfc4547721b87a61b2988f9",
+      "path": [
+        "24abe29340b1869ff8194d8c44defcc6",
+        "content"
+      ],
+      "range": [
+        36,
+        53
+      ],
+      "target": "figure_0e51617a008094838943650223b2bff8"
+    },
+    "figure_reference_cf34288b75187d5acc52d540f057f662": {
+      "type": "figure_reference",
+      "id": "figure_reference_cf34288b75187d5acc52d540f057f662",
+      "path": [
+        "e9d1a8db7d3fed779d17062627b49363",
+        "content"
+      ],
+      "range": [
+        32,
+        50
+      ],
+      "target": "figure_2"
+    },
+    "figure_reference_2a7b2b62968240a74872ebe51ffcc949": {
+      "type": "figure_reference",
+      "id": "figure_reference_2a7b2b62968240a74872ebe51ffcc949",
+      "path": [
+        "020a738b51115cb25e64a7d4b92c9d22",
+        "content"
+      ],
+      "range": [
+        91,
+        99
+      ],
+      "target": "figure_2"
+    },
+    "emphasis_93dee7c31141ecca9536a752db1e6192": {
+      "type": "emphasis",
+      "id": "emphasis_93dee7c31141ecca9536a752db1e6192",
+      "path": [
+        "text_3",
+        "content"
+      ],
+      "range": [
+        95,
+        125
+      ]
+    },
+    "link_8fe5cf840155cecb61b29b44a63025f4": {
+      "type": "link",
+      "id": "link_8fe5cf840155cecb61b29b44a63025f4",
+      "path": [
+        "8b3d9e6e62a13b2677ee6de4d21281a9",
+        "content"
+      ],
+      "range": [
+        183,
+        189
+      ],
+      "url": "http://elifesciences.org"
+    },
+    "link_9acebc318138e7cae3cbe7217fa00595": {
+      "type": "link",
+      "id": "link_9acebc318138e7cae3cbe7217fa00595",
+      "path": [
+        "8b3d9e6e62a13b2677ee6de4d21281a9",
+        "content"
+      ],
+      "range": [
+        268,
+        281
+      ],
+      "url": "http://www.linkedin.com/pub/ivan-grubisic/26/353/739"
+    },
+    "strong_ebd673d58210a3928062d10e49aa084d": {
+      "type": "strong",
+      "id": "strong_ebd673d58210a3928062d10e49aa084d",
+      "path": [
+        "92ab451b72b6bdb8601287c13ecd06f7",
+        "content"
+      ],
+      "range": [
+        25,
+        37
+      ]
+    },
+    "link_043e263734036ab8e90a89560459c3a3": {
+      "type": "link",
+      "id": "link_043e263734036ab8e90a89560459c3a3",
+      "path": [
+        "8b3d9e6e62a13b2677ee6de4d21281a9",
+        "content"
+      ],
+      "range": [
+        352,
+        362
+      ],
+      "url": "http://lens.elifesciences.org"
+    },
+    "link_bbdf1ebbd1a5a3ab0d2c79d538c3df29": {
+      "type": "link",
+      "id": "link_bbdf1ebbd1a5a3ab0d2c79d538c3df29",
+      "path": [
+        "8b3d9e6e62a13b2677ee6de4d21281a9",
+        "content"
+      ],
+      "range": [
+        379,
+        387
+      ],
+      "url": "http://blog.pubchase.com/the-fake-open-access-scam"
     }
   }
 }

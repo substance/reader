@@ -122,6 +122,7 @@ ReaderView.Prototype = function() {
   // 
 
   this.toggleAuthor = function(e) {
+    console.log('toggling author...');
     var resourceId = e.currentTarget.getAttribute('data-id');
     var state = this.readerCtrl.state;
     
@@ -162,6 +163,7 @@ ReaderView.Prototype = function() {
 
     // Always activate the resource
     this.readerCtrl.modifyState({
+      id: "main",
       resource: resourceId,
       fullscreen: !state.fullscreen
     });
@@ -200,6 +202,7 @@ ReaderView.Prototype = function() {
       });
     } else {
       this.readerCtrl.switchState({
+        id: "main",
         contextId: context,
         resourceId: resourceId
       });
@@ -411,8 +414,9 @@ ReaderView.Prototype = function() {
     // Set context on the main element
     // -------
 
+
     this.$el.removeClass();
-    this.$el.addClass("article substance-article "+this.selectionState);
+    this.$el.addClass("article substance-article");
 
     this.contentView.$('.content-node.active').removeClass('active');
 
@@ -425,6 +429,7 @@ ReaderView.Prototype = function() {
 
     // Note: by adding the context id to the main element
     // there are css rules that make only one panel visible
+    console.log('STATE', state);
     this.$el.addClass("state-"+state.id);
     this.$el.addClass(this.readerCtrl.getContextId());
 

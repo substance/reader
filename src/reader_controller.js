@@ -47,8 +47,6 @@ ReaderController.Prototype = function() {
   // --------
 
   this.initialize = function(newState, cb) {
-    console.log('readercontroller#initialize called');
-    
     var doc = this.document;
 
     this.currentContext = newState.contextId;
