@@ -52,9 +52,13 @@ Substance.Prototype = function() {
   // TODO: this is kind of a workaround: updateState is called from
   // the SubstanceRouter which is really not the right place
 
-  this.updateState = function() {
-    this.$('#main').html(this.controller.view.el);
-    this.updateTitle(this.doc.title);
+  this.afterTransition = function(newState, oldState) {
+    // Experimental: only add the view if the oldState was null
+    if (!oldState) {
+      console.log("Substance.afterTransition", newState, oldState);
+      this.$('#main').html(this.controller.view.el);
+      this.updateTitle(this.doc.title);
+    }
   };
 };
 

@@ -36,12 +36,12 @@ SubstanceRouter.Prototype = function() {
     // debugger;
     var state = this.app.stateFromFragment(fragment);
     console.log('stateFromFragment', fragment);
-    this.app.switchState(state, DEFAULT_OPTIONS, this.app.updateState.bind(this.app));
+    this.app.switchState(state, DEFAULT_OPTIONS);
   };
 
   this.openReader = function(context, node, resource, fullscreen) {
     // console.log('stateFromFragment', state);
-    this.app.switchState({id: "main", contextId: "toc"}, DEFAULT_OPTIONS, this.app.updateState.bind(this.app));
+    this.app.switchState({id: "main", contextId: "toc"}, DEFAULT_OPTIONS);
   };
 
   this.navigate = function(route, options) {
