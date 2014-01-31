@@ -1,5 +1,5 @@
 {
-  "id": "challenging-the-pdf",
+  "id": "beyond-simulating-paper",
   "schema": [
     "substance-article",
     "0.3.0"
@@ -18,10 +18,10 @@
         "contributor_2"
       ],
       "published_on": "2013-08-02T22:00:00.000Z",
-      "guid": "challenging-the-pdf",
+      "guid": "beyond-simulating-paper",
       "creator": "",
-      "title": "Challenging the PDF in 2014",
-      "abstract": "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...",
+      "title": "Beyond simulating paper",
+      "abstract": "",
       "keywords": []
     },
     "content": {
@@ -45,6 +45,8 @@
         "28710e38aa141088d66630d54413c879",
         "heading_e2587825332902f6a0dd8efca23b6a94",
         "f2d55ed2f8fa9ca88b8f060d79f35c5e",
+        "heading_453538dc3c47342cdffaacbe497ea059",
+        "6f83b7ccaadf32d1f929758b6da55700",
         "heading_2eeea4f7aa151a0374d1823c203821a8",
         "heading_c797d22b5843af6d6f268cba06cdad66",
         "e9d1a8db7d3fed779d17062627b49363",
@@ -223,25 +225,25 @@
       "type": "text",
       "id": "339a5e45176056dd710bf008c163631c",
       "source_id": "",
-      "content": "Substance was initiated in late 2010, as an attempt to bring content-oriented authoring to the web. Users should be able to focus on their writing, leaving the layout part to the authoring system entirely. The content produced should be exposed as data, which allows digital documents to be queried like a database. With the help of Samo Korosec our designer in chief, we got a first release ready around February 2011. The initial feedback was great. More than 5000 people signed up within the first three months. At that time Substance was an experiment and not yet ready for production use. Since then we are working hard to  change that."
+      "content": "Substance was initiated in late 2010, as an attempt to bring content-oriented authoring to the web. Users should be able to focus on their writing, leaving the layout part to the authoring system entirely. The content produced should be exposed as data, which allows digital documents to be queried like a database. With the help of Samo Korosec our designer in chief, we got a first release ready in February 2011. The initial feedback was great. More than 5000 people signed up within the first three months. At that time Substance was an experiment and not ready for production use. Since then we've been working hard to change that."
     },
     "24abe29340b1869ff8194d8c44defcc6": {
       "type": "text",
       "id": "24abe29340b1869ff8194d8c44defcc6",
       "source_id": "",
-      "content": "Substance is currently developed by Michael Aufreiter and Oliver Buchtala who joined the project at a full capacity in 2012. Together we founded the Substance Software GmbH to provide consulting and services to support our ambitious project. We are supported by volunteers from the open source community whose influence has shaped the project. Thank you Victor, Pier, Tim, Daniel and all the others!\n"
+      "content": "Substance is currently developed by Michael Aufreiter and Oliver Buchtala, who joined the project at a full capacity in 2012. Together we founded the Substance Software GmbH to provide consulting and services to finance our ambitious project. We are supported by volunteers from the open source community whose contributions have influenced the project significantly. Thank you Victor, Pier, Tim, Daniel and all the others!\n"
     },
     "defe47142b41156e20d7123f8bd3332b": {
       "type": "text",
       "id": "defe47142b41156e20d7123f8bd3332b",
       "source_id": "",
-      "content": "As a consequence we stripped down the project. We ditched all server infrastructure, and thus took down the original Substance.io platform. We also cut some features, such as online collaboration. They will all come back, but first our focus is on creating a reliable editor for professional writers."
+      "content": "As a consequence we stripped down the project. We ditched all server infrastructure, and thus took down the original Substance.io platform. We also cut some features, such as online collaboration. They will all come back, but first our focus will be on creating a reliable editor for professional writers."
     },
     "8b3d9e6e62a13b2677ee6de4d21281a9": {
       "type": "text",
       "id": "8b3d9e6e62a13b2677ee6de4d21281a9",
       "source_id": "",
-      "content": "Through our company, registered in Austria,  we are offering consulting to help organizations modernize their digital publishing workflows. We have helped innovate publishers, such as eLife to improve the way how scientific research is consumed online. Together with Ivan Grubisic we developed a new interactive display for scientific articles, eLife Lens. Only days ago, Pubchase has made available the whole corpus of PubMed open access articles for viewing in Lens. Our work on Lens has also substantially driven the Substance project, as it served as a great real-world usecase. Credits go to Ian mMulvay from eLife for investing into that idea in the scope of an open source project."
+      "content": "Through our company, registered in Austria,  we are offering consulting to help organizations modernize their digital publishing workflows. We have helped innovate publishers, such as eLife to improve the way scientific research is consumed online. Together with Ivan Grubisic from Berkeley we developed a new interactive display for scientific articles, eLife Lens. Only days ago, Pubchase has made available the whole corpus of PubMed open access articles for viewing in Lens. Our work on Lens has also substantially driven the Substance project, as it served as a great real-world usecase. Credits go to Ian Mulvany from eLife for investing into that idea in the scope of an open source project."
     },
     "heading_1e53f35b58dab3b4db49c60a4c857852": {
       "type": "heading",
@@ -254,7 +256,7 @@
       "type": "text",
       "id": "f66b6631c2ac00cbf0e8791fc579ae65",
       "source_id": "",
-      "content": "It is three years later now, and the idea is still the same. However, the project has grown up since then and we are facing the complexities of managing a big software project. We also needed to find ways to self-finance our work.\n"
+      "content": "It is three years later now, and the idea has not changed. However, Substance has grown up since then and we are facing the complexities of managing a big software project. We also needed to find ways to self-finance our work.\n"
     },
     "heading_34accf320821bf28b7be80a32aabb779": {
       "type": "heading",
@@ -326,7 +328,7 @@
       "type": "text",
       "id": "f446b86f5dd6f26dd6f320cf0dd03a95",
       "source_id": "",
-      "content": "It's a new year. And we wanted to share with you what our plans are for 2014. We are still on our mission to build open software to modernize digital publishing and move beyond simulating paper, as this is what current word-processors (MS Word, OpenOffice) and formats (PDF) do. By promoting an open document format and supporting tools we want to unleash the full power of digital content and provide an interactive experience for authoring and viewing. Moreover, we would like to enable people to act as their own publisher and no longer be subject to the politics of big publishing companies and software vendors. In this post we would like to explain some decisions we have made in order to make that happen and what you can expect for the coming months. But first, let me explain what the main idea of Substance was about."
+      "content": "It's a new year. And we wanted to share with you what our plans are for 2014. We are still on our mission to build open software to modernize digital publishing and move beyond simulating paper, as this is what current word-processors (MS Word, OpenOffice) and formats (PDF) do. By promoting an open document format and supporting tools we want to unleash the full power of digital content and provide an interactive experience for authoring and viewing. Moreover, we would like to enable people to act as their own publisher and no longer be subject to the politics of big publishing companies and software vendors. In this post we would like to explain some decisions we have made in order to make that happen and what you can expect for near future. But first, let us explain what the main idea of Substance was about."
     },
     "figure_reference_c563c2959d51d92ae901dbd8bf5eb15b": {
       "type": "figure_reference",
@@ -340,18 +342,6 @@
         73
       ],
       "target": "figure_1"
-    },
-    "emphasis_1958462d7779cb04ecefa8d57e2644ba": {
-      "type": "emphasis",
-      "id": "emphasis_1958462d7779cb04ecefa8d57e2644ba",
-      "path": [
-        "f446b86f5dd6f26dd6f320cf0dd03a95",
-        "content"
-      ],
-      "range": [
-        177,
-        193
-      ]
     },
     "strong_f670f66eef00a899ea2042fef0e23699": {
       "type": "strong",
@@ -381,7 +371,7 @@
       "type": "text",
       "id": "92ab451b72b6bdb8601287c13ecd06f7",
       "source_id": "",
-      "content": "If you are interested in beta testing the new Composer, please sign up at our mailing list. We will let you know when it is ready - it can only be a matter of weeks. Also check our website from time to time for further updates.\n"
+      "content": "If you are interested in beta testing the new Composer, please sign up at our mailing list. We will let you know when it is ready — it can only be a matter of weeks. Also check our website from time to time for further updates.\n"
     },
     "link_92d0d4ac01d201a293d73dbd58011ca9": {
       "type": "link",
@@ -407,7 +397,7 @@
       "type": "text",
       "id": "e9d1a8db7d3fed779d17062627b49363",
       "source_id": "",
-      "content": "Our first product is called the Substance Composer and a beta will be ready around April 2014. I'm sure you will love it! Once we are out of beta, the app will be available at a low price. With your purchase of the app, you'll be supporting the Substance ecosystem which will remain completely open source. Note, that the Composer is just our own reference implementation of an editor built on top of the Substance document model. We are looking forward to see the developer community build other editor variants for different use-cases."
+      "content": "Our first product is called the Substance Composer and a beta will be ready around April 2014. We are sure you will love it! Note, that the Composer is just our own reference implementation of an editor built on top of the Substance document model. We are looking forward to see the developer community build other editor variants for different use-cases."
     },
     "heading_c797d22b5843af6d6f268cba06cdad66": {
       "type": "heading",
@@ -533,8 +523,8 @@
         "content"
       ],
       "range": [
-        149,
-        172
+        150,
+        173
       ],
       "url": "http://about.substance.io"
     },
@@ -542,7 +532,7 @@
       "type": "text",
       "id": "text_fdeed277471f0af847eb0b38dd4cd9c0",
       "source_id": "",
-      "content": "As the initiator of Substance, Michael coordinates the project and leads UI/UX development. He is a passionate open source commiter since many years. Notable projects include Prose, a visual interface for managing content on GitHub, eLife Lens and of course Substance."
+      "content": "As the initiator of Substance, Michael coordinates the project and leads UI/UX development. He is a passionate open source commiter since many years. Notable projects include Prose, a visual interface for managing content on GitHub and eLife Lens, a new way to view research."
     },
     "figure_0e51617a008094838943650223b2bff8": {
       "type": "figure",
@@ -572,8 +562,8 @@
         "content"
       ],
       "range": [
-        233,
-        243
+        236,
+        246
       ],
       "url": "http://lens.elifesciences.org"
     },
@@ -649,8 +639,8 @@
         "content"
       ],
       "range": [
-        267,
-        280
+        263,
+        276
       ],
       "url": "http://www.linkedin.com/pub/ivan-grubisic/26/353/739"
     },
@@ -674,8 +664,8 @@
         "content"
       ],
       "range": [
-        345,
-        355
+        355,
+        365
       ],
       "url": "http://lens.elifesciences.org"
     },
@@ -687,8 +677,8 @@
         "content"
       ],
       "range": [
-        372,
-        380
+        382,
+        390
       ],
       "url": "http://blog.pubchase.com/the-fake-open-access-scam"
     },
@@ -696,7 +686,7 @@
       "type": "text",
       "id": "8be56de200da64d90f1134cf98ccea41",
       "source_id": "",
-      "content": "Substance is not considered a complete integrated solution, instead it is a collection of modules that helps you creating, modifying and displaying structured documents. We are providing a wide range of open source components that can be integrated easily by developers. All Substance core components (data manipulation, document model, operational transformation, versioning, converters) are licensed under MIT for most flexibility. For application-level components we use GPL and offer commercial licenses on request."
+      "content": "Substance offers a collection of modules that helps you creating, modifying and displaying structured documents. We are providing a wide range of open source components that can be integrated easily by developers. All Substance core components (data manipulation, document model, operational transformation, versioning, converters) are licensed under MIT for most flexibility. For application-level components we use GPL and offer commercial licenses on request."
     },
     "heading_2ef279f1cae37d75a30c00c09e9a1cb3": {
       "type": "heading",
@@ -722,7 +712,7 @@
       "type": "text",
       "id": "f2d55ed2f8fa9ca88b8f060d79f35c5e",
       "source_id": "",
-      "content": "The Substance Surface is a flexible editing compontent, that can be used independently you realize custom web-based editing scenarios. Substance Surface is the first web-based editor that manipulates a javascript-native data structure, while HTML is only used for layouting and capturing the cursor position. Using this approach we can ensure a consistent "
+      "content": "The Substance Surface is a flexible editing compontent, that can be used independently to realize custom web-based editing scenarios. Substance Surface is the first web-based editor that manipulates a Javascript data structure, while HTML is only used for layouting and capturing the cursor position. Only by using this approach error-free and scalable text manipulation can be guaranteed."
     },
     "heading_2eeea4f7aa151a0374d1823c203821a8": {
       "type": "heading",
@@ -765,10 +755,88 @@
         "content"
       ],
       "range": [
-        668,
-        687
+        678,
+        697
       ],
       "url": "http://github.com/elifesciences/lens"
+    },
+    "6f83b7ccaadf32d1f929758b6da55700": {
+      "type": "text",
+      "id": "6f83b7ccaadf32d1f929758b6da55700",
+      "source_id": "",
+      "content": "Using the Substance Converter you can turn existing formats into Substance documents and vice versa. By delegating the hard work to Pandoc we support a wide range of input and output formats, such as Markdown, Media Wiki and DocBook, but also Word processor formats such as Microsoft Word docx and OpenOffice/LibreOffice ODT."
+    },
+    "heading_453538dc3c47342cdffaacbe497ea059": {
+      "type": "heading",
+      "id": "heading_453538dc3c47342cdffaacbe497ea059",
+      "source_id": "",
+      "content": "Substance Converter",
+      "level": 1
+    },
+    "link_1f400158400efc9419aae98abbdc49e3": {
+      "type": "link",
+      "id": "link_1f400158400efc9419aae98abbdc49e3",
+      "path": [
+        "6f83b7ccaadf32d1f929758b6da55700",
+        "content"
+      ],
+      "range": [
+        132,
+        138
+      ],
+      "url": "http://johnmacfarlane/pandoc"
+    },
+    "link_02ea804de3e5f8b490315e318cdbd059": {
+      "type": "link",
+      "id": "link_02ea804de3e5f8b490315e318cdbd059",
+      "path": [
+        "6f83b7ccaadf32d1f929758b6da55700",
+        "content"
+      ],
+      "range": [
+        10,
+        29
+      ],
+      "url": "http://github.com/substance/converter"
+    },
+    "link_49a8f09773c132ea723988a7cda50428": {
+      "type": "link",
+      "id": "link_49a8f09773c132ea723988a7cda50428",
+      "path": [
+        "f2d55ed2f8fa9ca88b8f060d79f35c5e",
+        "content"
+      ],
+      "range": [
+        4,
+        21
+      ],
+      "url": "http://github.com/substance/surface"
+    },
+    "link_c290549e141381a3edd2c43e9d67fec0": {
+      "type": "link",
+      "id": "link_c290549e141381a3edd2c43e9d67fec0",
+      "path": [
+        "f2d55ed2f8fa9ca88b8f060d79f35c5e",
+        "content"
+      ],
+      "range": [
+        187,
+        226
+      ],
+      "url": "https://docs.google.com/a/substance.io/presentation/d/1jHzaEdaOUs2ZX5L5b92ub-cyAXewFhu2HAKHg_qmE4g/edit#slide=id.p"
+    },
+    "link_4b25f207c3dbdbb7d70c1283e980e51d": {
+      "type": "link",
+      "id": "link_4b25f207c3dbdbb7d70c1283e980e51d",
+      "path": [
+        "8b3d9e6e62a13b2677ee6de4d21281a9",
+        "content"
+      ],
+      "range": [
+        430,
+        436
+      ],
+      "url": "http://ncbi.nlm.nih.gov/pubmed"
     }
   }
 }
