@@ -39,22 +39,21 @@
         "heading_2",
         "text_3",
         "defe47142b41156e20d7123f8bd3332b",
+        "heading_2ef279f1cae37d75a30c00c09e9a1cb3",
+        "8be56de200da64d90f1134cf98ccea41",
+        "heading_420281615c7f5297b8fcc04c6f2400f3",
+        "28710e38aa141088d66630d54413c879",
         "heading_e2587825332902f6a0dd8efca23b6a94",
+        "f2d55ed2f8fa9ca88b8f060d79f35c5e",
+        "heading_2eeea4f7aa151a0374d1823c203821a8",
         "heading_c797d22b5843af6d6f268cba06cdad66",
         "e9d1a8db7d3fed779d17062627b49363",
         "heading_5f1c0d542c0d8ba68523f77c305c515c",
         "d1eb2fa55074b0ac6a8684cb2769bda7",
-        "heading_3",
-        "text_4",
-        "heading_f2349f7cf05c57d005d5f90200c18cff",
-        "10185d8315ba1e51d7c9fbb4be4831b3",
-        "heading_678e081510a4fcf69f27e5b492996b63",
-        "acd6e589b0a474c2be47e4092591574f",
         "heading_1e53f35b58dab3b4db49c60a4c857852",
         "8b3d9e6e62a13b2677ee6de4d21281a9",
         "heading_ee4117a422d6d347a77fd77be667fcb4",
         "020a738b51115cb25e64a7d4b92c9d22",
-        "heading_80928187175636246fa2be6892186263",
         "92ab451b72b6bdb8601287c13ecd06f7"
       ]
     },
@@ -106,18 +105,7 @@
     "text_3": {
       "type": "text",
       "id": "text_3",
-      "content": "It has always been clear to us that the main challenge of Substance was in creating a reliable web-based authoring experience. Before we could release a complete solution we would need to solve that problem at heart."
-    },
-    "heading_3": {
-      "type": "heading",
-      "id": "heading_3",
-      "level": 2,
-      "content": "High quality open source components"
-    },
-    "text_4": {
-      "type": "text",
-      "id": "text_4",
-      "content": "Substance should not be considered a complete integrated solution, instead it is a collection of modules that helps you creating, modifying and displaying structured documents. We are providing a range of open source components that can be integrated easily by developers. Most of the lower level compontents are licensed under MIT for most flexibility. For higher level modules we use GPL and offer commercial licenses on request.\n"
+      "content": "It has always been clear to us that the main challenge of Substance lies in creating a reliable web-based authoring experience. Before we could release a complete solution we would need to solve that problem at heart."
     },
     "cover": {
       "type": "cover",
@@ -174,7 +162,7 @@
       "type": "text",
       "id": "caption_figure_3",
       "source_id": null,
-      "content": "The Substance Reader is used to publish your documents online.It lets you explore figures and figure descriptions – without losing your place in the article text. While most online articles simply replicate print, provides an interactive reading experience."
+      "content": "The Substance Reader is used to publish your documents online. It lets you explore figures and figure descriptions – without losing your place in the article text. While most online articles simply replicate print, the Substance Reader provides an interactive reading experience."
     },
     "figure_3": {
       "type": "figure",
@@ -241,19 +229,19 @@
       "type": "text",
       "id": "24abe29340b1869ff8194d8c44defcc6",
       "source_id": "",
-      "content": "Substance is currently developed by Michael Aufreiter and Oliver Buchtala who joined the project at a full capacity in 2012. Together we founded the Substance Software GmbH to provide consulting and services to support our ambitious project. We are supported by volunteers from the open source community whose influence has shaped the project. Thank you Victor, Pier, Tim, and Daniel!\n"
+      "content": "Substance is currently developed by Michael Aufreiter and Oliver Buchtala who joined the project at a full capacity in 2012. Together we founded the Substance Software GmbH to provide consulting and services to support our ambitious project. We are supported by volunteers from the open source community whose influence has shaped the project. Thank you Victor, Pier, Tim, Daniel and all the others!\n"
     },
     "defe47142b41156e20d7123f8bd3332b": {
       "type": "text",
       "id": "defe47142b41156e20d7123f8bd3332b",
       "source_id": "",
-      "content": "As a consequence we stripped down the project. We ditched all server infrastructure, and thus took down the original Substance.io platform. We also cut some features, such as online collaboration. It will all come back, but first our focus is on creating a reliable editor for professional writers."
+      "content": "As a consequence we stripped down the project. We ditched all server infrastructure, and thus took down the original Substance.io platform. We also cut some features, such as online collaboration. They will all come back, but first our focus is on creating a reliable editor for professional writers."
     },
     "8b3d9e6e62a13b2677ee6de4d21281a9": {
       "type": "text",
       "id": "8b3d9e6e62a13b2677ee6de4d21281a9",
       "source_id": "",
-      "content": "Through our company, registered in Austria,  we are offering consulting to help organizations modernize their digital publishing workflows. We have helped innovate publishers, such as eLife to improve the way how scientific research is presented online. Together with Ivan Grubisic we were developing a new interactive display for scientific articles, eLife Lens. Only days ago, Pubchase has made available the whole corpus of PubMed open access articles for viewing in Lens."
+      "content": "Through our company, registered in Austria,  we are offering consulting to help organizations modernize their digital publishing workflows. We have helped innovate publishers, such as eLife to improve the way how scientific research is consumed online. Together with Ivan Grubisic we developed a new interactive display for scientific articles, eLife Lens. Only days ago, Pubchase has made available the whole corpus of PubMed open access articles for viewing in Lens. Our work on Lens has also substantially driven the Substance project, as it served as a great real-world usecase. Credits go to Ian mMulvay from eLife for investing into that idea in the scope of an open source project."
     },
     "heading_1e53f35b58dab3b4db49c60a4c857852": {
       "type": "heading",
@@ -266,20 +254,20 @@
       "type": "text",
       "id": "f66b6631c2ac00cbf0e8791fc579ae65",
       "source_id": "",
-      "content": "It is three years later now, and the idea is still the same. However the project has grown up since then and we have to deal with the complexities of a big software project. We also needed to find ways to self-finance our work.\n"
+      "content": "It is three years later now, and the idea is still the same. However, the project has grown up since then and we are facing the complexities of managing a big software project. We also needed to find ways to self-finance our work.\n"
     },
     "heading_34accf320821bf28b7be80a32aabb779": {
       "type": "heading",
       "id": "heading_34accf320821bf28b7be80a32aabb779",
       "source_id": "",
-      "content": "The Plan",
+      "content": "The Setup for 2014",
       "level": 1
     },
     "heading_5588f8aeb752a21af3daf79f8f8ced75": {
       "type": "heading",
       "id": "heading_5588f8aeb752a21af3daf79f8f8ced75",
       "source_id": "",
-      "content": "The idea of Substance",
+      "content": "The Idea of Substance",
       "level": 1
     },
     "link_12a8f197c22bd7742224c87a53a034c3": {
@@ -338,7 +326,7 @@
       "type": "text",
       "id": "f446b86f5dd6f26dd6f320cf0dd03a95",
       "source_id": "",
-      "content": "It's a new year. And we wanted to share with you what our plans are for 2014. We are still on our mission to build open software to modernize digital publishing and move beyond simulating paper, as this is what current word-processors (MS Word, OpenOffice) and formats (PDF) do. By promoting an open document format and supporting tools we want to unleash the full power of digital content and provide an interactive experience for authoring and viewing. Moreover, we would like to enable people to act as their own publisher and no longer be subject to the politics of big publishing companies and software vendors. In this post I'd like to explain some decisions we have made in order to make that happen and what you can expect for the coming months. But first, let me explain what the main idea of Substance was about."
+      "content": "It's a new year. And we wanted to share with you what our plans are for 2014. We are still on our mission to build open software to modernize digital publishing and move beyond simulating paper, as this is what current word-processors (MS Word, OpenOffice) and formats (PDF) do. By promoting an open document format and supporting tools we want to unleash the full power of digital content and provide an interactive experience for authoring and viewing. Moreover, we would like to enable people to act as their own publisher and no longer be subject to the politics of big publishing companies and software vendors. In this post we would like to explain some decisions we have made in order to make that happen and what you can expect for the coming months. But first, let me explain what the main idea of Substance was about."
     },
     "figure_reference_c563c2959d51d92ae901dbd8bf5eb15b": {
       "type": "figure_reference",
@@ -393,40 +381,7 @@
       "type": "text",
       "id": "92ab451b72b6bdb8601287c13ecd06f7",
       "source_id": "",
-      "content": "If you are interested in beta testing the new Composer, please sign up at our mailing list. We will let you know when it is ready - it can only be a matter of weeks.\n"
-    },
-    "heading_80928187175636246fa2be6892186263": {
-      "type": "heading",
-      "id": "heading_80928187175636246fa2be6892186263",
-      "source_id": "",
-      "content": "We are looking for beta tester",
-      "level": 2
-    },
-    "heading_f2349f7cf05c57d005d5f90200c18cff": {
-      "type": "heading",
-      "id": "heading_f2349f7cf05c57d005d5f90200c18cff",
-      "source_id": "",
-      "content": "Substance Reader",
-      "level": 3
-    },
-    "10185d8315ba1e51d7c9fbb4be4831b3": {
-      "type": "text",
-      "id": "10185d8315ba1e51d7c9fbb4be4831b3",
-      "source_id": "",
-      "content": "The Substance Reader is used to display Substance documents on the desktop and on mobile. Available under GPL."
-    },
-    "acd6e589b0a474c2be47e4092591574f": {
-      "type": "text",
-      "id": "acd6e589b0a474c2be47e4092591574f",
-      "source_id": "",
-      "content": "A flexible editing compontent, that lets you build you own web-based document editor. We offer commercial licenses on request."
-    },
-    "heading_678e081510a4fcf69f27e5b492996b63": {
-      "type": "heading",
-      "id": "heading_678e081510a4fcf69f27e5b492996b63",
-      "source_id": "",
-      "content": "Substance Surface",
-      "level": 3
+      "content": "If you are interested in beta testing the new Composer, please sign up at our mailing list. We will let you know when it is ready - it can only be a matter of weeks. Also check our website from time to time for further updates.\n"
     },
     "link_92d0d4ac01d201a293d73dbd58011ca9": {
       "type": "link",
@@ -445,7 +400,7 @@
       "type": "heading",
       "id": "heading_e2587825332902f6a0dd8efca23b6a94",
       "source_id": "",
-      "content": "Products and services",
+      "content": "Substance Surface",
       "level": 2
     },
     "e9d1a8db7d3fed779d17062627b49363": {
@@ -459,20 +414,20 @@
       "id": "heading_c797d22b5843af6d6f268cba06cdad66",
       "source_id": "",
       "content": "Substance Composer",
-      "level": 3
+      "level": 2
     },
     "d1eb2fa55074b0ac6a8684cb2769bda7": {
       "type": "text",
       "id": "d1eb2fa55074b0ac6a8684cb2769bda7",
       "source_id": "",
-      "content": "Substance.io provides a simple way to publish your articles right fromt he Composer interface.\n"
+      "content": "Substance.io provides a simple way to publish your articles right from the Composer interface. Alternatively you can always choose to host them yourself. It's only a matter of uploading a folder to a webserver (even Dropbox works).\n"
     },
     "heading_5f1c0d542c0d8ba68523f77c305c515c": {
       "type": "heading",
       "id": "heading_5f1c0d542c0d8ba68523f77c305c515c",
       "source_id": "",
       "content": "Substance.io platform",
-      "level": 3
+      "level": 2
     },
     "strong_1afcbe1addbd3f94e4496ecc1883ab08": {
       "type": "strong",
@@ -669,8 +624,8 @@
         "content"
       ],
       "range": [
-        95,
-        125
+        96,
+        126
       ]
     },
     "link_8fe5cf840155cecb61b29b44a63025f4": {
@@ -694,8 +649,8 @@
         "content"
       ],
       "range": [
-        268,
-        281
+        267,
+        280
       ],
       "url": "http://www.linkedin.com/pub/ivan-grubisic/26/353/739"
     },
@@ -719,8 +674,8 @@
         "content"
       ],
       "range": [
-        352,
-        362
+        345,
+        355
       ],
       "url": "http://lens.elifesciences.org"
     },
@@ -732,10 +687,88 @@
         "content"
       ],
       "range": [
-        379,
-        387
+        372,
+        380
       ],
       "url": "http://blog.pubchase.com/the-fake-open-access-scam"
+    },
+    "8be56de200da64d90f1134cf98ccea41": {
+      "type": "text",
+      "id": "8be56de200da64d90f1134cf98ccea41",
+      "source_id": "",
+      "content": "Substance is not considered a complete integrated solution, instead it is a collection of modules that helps you creating, modifying and displaying structured documents. We are providing a wide range of open source components that can be integrated easily by developers. All Substance core components (data manipulation, document model, operational transformation, versioning, converters) are licensed under MIT for most flexibility. For application-level components we use GPL and offer commercial licenses on request."
+    },
+    "heading_2ef279f1cae37d75a30c00c09e9a1cb3": {
+      "type": "heading",
+      "id": "heading_2ef279f1cae37d75a30c00c09e9a1cb3",
+      "source_id": "",
+      "content": "High quality open source modules",
+      "level": 1
+    },
+    "heading_420281615c7f5297b8fcc04c6f2400f3": {
+      "type": "heading",
+      "id": "heading_420281615c7f5297b8fcc04c6f2400f3",
+      "source_id": "",
+      "content": "Substance Reader",
+      "level": 2
+    },
+    "28710e38aa141088d66630d54413c879": {
+      "type": "text",
+      "id": "28710e38aa141088d66630d54413c879",
+      "source_id": "",
+      "content": "The Substance Reader is used to display Substance documents on the desktop and on mobile. It has been shaped over the past years and provides a clean and unobtrusive reading experience."
+    },
+    "f2d55ed2f8fa9ca88b8f060d79f35c5e": {
+      "type": "text",
+      "id": "f2d55ed2f8fa9ca88b8f060d79f35c5e",
+      "source_id": "",
+      "content": "The Substance Surface is a flexible editing compontent, that can be used independently you realize custom web-based editing scenarios. Substance Surface is the first web-based editor that manipulates a javascript-native data structure, while HTML is only used for layouting and capturing the cursor position. Using this approach we can ensure a consistent "
+    },
+    "heading_2eeea4f7aa151a0374d1823c203821a8": {
+      "type": "heading",
+      "id": "heading_2eeea4f7aa151a0374d1823c203821a8",
+      "source_id": "",
+      "content": "Products and services",
+      "level": 1
+    },
+    "figure_reference_55a035e25e387074ac79d20a1f8d93ad": {
+      "type": "figure_reference",
+      "id": "figure_reference_55a035e25e387074ac79d20a1f8d93ad",
+      "path": [
+        "d1eb2fa55074b0ac6a8684cb2769bda7",
+        "content"
+      ],
+      "range": [
+        75,
+        83
+      ],
+      "target": "figure_2"
+    },
+    "figure_reference_bd83f7afbe6e5350eff320800a2d05d5": {
+      "type": "figure_reference",
+      "id": "figure_reference_bd83f7afbe6e5350eff320800a2d05d5",
+      "path": [
+        "28710e38aa141088d66630d54413c879",
+        "content"
+      ],
+      "range": [
+        4,
+        20
+      ],
+      "target": "figure_3"
+    },
+    "link_6519b462def8b586dde37d57dcd86522": {
+      "type": "link",
+      "id": "link_6519b462def8b586dde37d57dcd86522",
+      "path": [
+        "8b3d9e6e62a13b2677ee6de4d21281a9",
+        "content"
+      ],
+      "range": [
+        668,
+        687
+      ],
+      "url": "http://github.com/elifesciences/lens"
     }
   }
 }
