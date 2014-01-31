@@ -32,7 +32,7 @@ Substance.Article = require("substance-article");
 Substance.Outline = require("lens-outline");
 
 Substance.Prototype = function() {
-  
+
   // Start listening to routes
   // --------
 
@@ -46,7 +46,7 @@ Substance.Prototype = function() {
 
   // Update State
   // --------
-  // 
+  //
   // Since we just have one state this means we are ready to render
   // the one and only ReaderView
   // TODO: this is kind of a workaround: updateState is called from

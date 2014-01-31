@@ -51,7 +51,7 @@ var ReaderView = function(readerCtrl, options) {
   this.contentView = __createSurface(this, doc, "content");
   this.contentView.el.classList.add("content");
 
-  // Table of Contents 
+  // Table of Contents
   // --------
 
   this.tocView = new TOC(this.readerCtrl.contentCtrl);
@@ -68,7 +68,7 @@ var ReaderView = function(readerCtrl, options) {
 
   // Index for resources
   // --------
-  // 
+  //
   // Keep in mind that Substance.Article uses collaborator_reference while the Lens article has
   // contributor_reference instances.
 
@@ -90,7 +90,7 @@ var ReaderView = function(readerCtrl, options) {
 
   // DOM Events
   // --------
-  // 
+  //
 
   this.contentView.$el.on('scroll', _.bind(this.onContentScroll, this));
 
@@ -102,13 +102,13 @@ var ReaderView = function(readerCtrl, options) {
   // Resource references
   this.$el.on('click', '.annotation.figure_reference', _.bind(this.toggleFigureReference, this));
   this.$el.on('click', '.annotation.citation_reference', _.bind(this.toggleCitationReference, this));
-    
+
   this.$el.on('click', '.resources .content-node .toggle-resource', _.bind(this.toggleResource, this));
   this.$el.on('click', '.authors .toggle-author', _.bind(this.toggleAuthor, this));
 
   this.$el.on('click', '.annotation.cross_reference', _.bind(this.followCrossReference, this));
   this.$el.on('click', '.document .content-node.heading', _.bind(this.setAnchor, this));
-  
+
   // this.$el.on('click', '.document .content-node.heading .top', _.bind(this.gotoTop, this));
 
   this.outline.$el.on('click', '.node', _.bind(this._jumpToNode, this));
@@ -119,13 +119,13 @@ ReaderView.Prototype = function() {
 
   // Toggles on and off the zoom
   // --------
-  // 
+  //
 
   this.toggleAuthor = function(e) {
     console.log('toggling author...');
     var resourceId = e.currentTarget.getAttribute('data-id');
     var state = this.readerCtrl.state;
-    
+
     if (state.resourceId === resourceId) {
       // Reset
       this.readerCtrl.switchState({
@@ -142,7 +142,7 @@ ReaderView.Prototype = function() {
     }
     return false;
   };
-  
+
   this.setAnchor = function(e) {
     this.toggleNode('toc', $(e.currentTarget).attr('id'));
   };
@@ -156,7 +156,7 @@ ReaderView.Prototype = function() {
 
   // Toggles on and off the zoom
   // --------
-  // 
+  //
 
   this.toggleFullscreen = function(resourceId) {
     var state = this.readerCtrl.state;
@@ -295,7 +295,7 @@ ReaderView.Prototype = function() {
 
   // Determines whether parts of an element are visible on screen or not
   // --------
-  // 
+  //
   // Only consideres vertical bounds
 
   this.isElementInViewport = function(el) {
@@ -358,7 +358,7 @@ ReaderView.Prototype = function() {
 
   // Get scroll position of active panel
   // --------
-  // 
+  //
   // Content, Figures, Info
 
   this.getScroll = function() {
@@ -368,7 +368,7 @@ ReaderView.Prototype = function() {
 
   // Recover scroll from previous state (if there is any)
   // --------
-  // 
+  //
   // TODO: retrieve from cookie to persist scroll pos over reload?
 
   this.recoverScroll = function() {
@@ -378,7 +378,7 @@ ReaderView.Prototype = function() {
 
   // Save current scroll position
   // --------
-  // 
+  //
 
   this.saveScroll = function() {
     this.bodyScroll[this.readerCtrl.state.contextId] = this.getScroll();
@@ -402,7 +402,7 @@ ReaderView.Prototype = function() {
 
   // Update Reader State
   // --------
-  // 
+  //
   // Called every time the controller state has been modified
   // Search for readerCtrl.modifyState occurences
 
@@ -429,7 +429,7 @@ ReaderView.Prototype = function() {
 
     // Note: by adding the context id to the main element
     // there are css rules that make only one panel visible
-    console.log('STATE', state);
+    // console.log('STATE', state);
     this.$el.addClass("state-"+state.id);
     this.$el.addClass(this.readerCtrl.getContextId());
 
@@ -478,7 +478,7 @@ ReaderView.Prototype = function() {
       // and then `updateState` would not need to worry.
       // This needs some refactoring on the app state API, as 'initialized' is not explicitly reached
       // when a state is given.
-      
+
       _.delay(function() {
         // TODO: do we really need that?
         if (state.nodeId)  {
@@ -514,7 +514,7 @@ ReaderView.Prototype = function() {
 
   // Whenever the app state changes
   // --------
-  // 
+  //
   // Triggered by updateResource.
 
   this.updateOutline = function() {

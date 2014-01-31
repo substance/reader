@@ -70,7 +70,7 @@ SubstanceRouter.routes = [
   },
   {
     "route": ":context/:node",
-    "name": "document-node", 
+    "name": "document-node",
     "command": "openReader"
   },
   {
@@ -79,7 +79,7 @@ SubstanceRouter.routes = [
     "command": "openReader"
   },
   {
-    "route": "", 
+    "route": "",
     "name": "document",
     "command": "openReader"
   }
