@@ -4,11 +4,13 @@ The Substance Reader is an integral part of the Substance technology stack used 
 
 ![](http://f.cl.ly/items/3Q0s053U0l3z2x0D241t/Screen%20Shot%202014-01-30%20at%2010.37.56.png)
 
-### Using the Reader
+## Using the Reader
+
+### The manual way
 
 Just take the contents from the `dist` folder, and replace the data folder with your own document's content.
 
-### Using the Substance Publisher Command Line utility.
+### Using the Substance Publisher command line utility.
 
 You can read Substance Documents (`.sdf` archives) or JSON files representing the Substance Document Format.
 
