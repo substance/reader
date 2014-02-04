@@ -122,7 +122,6 @@ ReaderView.Prototype = function() {
   //
 
   this.toggleAuthor = function(e) {
-    console.log('toggling author...');
     var resourceId = e.currentTarget.getAttribute('data-id');
     var state = this.readerCtrl.state;
 

@@ -26,6 +26,6 @@ $ substance-publish my-essay.md <target-folder>
 
 ### License
 
-Substance Reader is released under GPLv3. For commercial licenses please send an inquiry to info@substance.io.
+Substance Reader is released under MIT, see [LICENSE](LICENSE).
 
-*The Substance Reader has been extracted as an independent module from an [eLife Lens](http://lens.elifesciences.org), an innovate display method for scientific content.*
+*The Substance Reader has been extracted as an independent module from [eLife Lens](http://lens.elifesciences.org), an innovate display method for scientific content.*

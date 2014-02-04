@@ -55,7 +55,6 @@ Substance.Prototype = function() {
   this.afterTransition = function(newState, oldState) {
     // Experimental: only add the view if the oldState was null
     if (!oldState) {
-      console.log("Substance.afterTransition", newState, oldState);
       this.$('#main').html(this.controller.view.el);
       this.updateTitle(this.doc.title);
     }
