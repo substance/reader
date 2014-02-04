@@ -1,7 +1,19634 @@
-!function t(e,n,r){function i(s,a){if(!n[s]){if(!e[s]){var c="function"==typeof require&&require;if(!a&&c)return c(s,!0);if(o)return o(s,!0);throw new Error("Cannot find module '"+s+"'")}var u=n[s]={exports:{}};e[s][0].call(u.exports,function(t){var n=e[s][1][t];return i(n?n:t)},u,u.exports,t,e,n,r)}return n[s].exports}for(var o="function"==typeof require&&require,s=0;s<r.length;s++)i(r[s]);return i}({1:[function(t){window.Substance=t("./src/substance")},{"./src/substance":154}],2:[function(t,e){"use strict";var n=t("./outline");e.exports=n},{"./outline":3}],3:[function(t,e){"use strict";var n=t("substance-application").View,r=t("substance-application").$$,i=t("underscore"),o=function(t){n.call(this),this.surface=t,this.state={selectedNode:null,highlightedNodes:[]},this.$el.addClass("lens-outline"),i.bindAll(this,"mouseDown","mouseUp","mouseMove","updateVisibleArea"),this.$el.mousedown(this.mouseDown),$(window).mousemove(this.mouseMove),$(window).mouseup(this.mouseUp)};o.Prototype=function(){this.render=function(){var t=this,e=0,n=document.createDocumentFragment();this.visibleArea=r(".visible-area"),n.appendChild(this.visibleArea);var o=this.surface.$(".nodes").height(),s=this.surface.$el.height(),a=o/s;if(this.factor=a,s>o)return this.$el.addClass("needless"),this.el.innerHTML="",void 0;var c=this.surface.getContainer(),u=c.getNodes();i.each(u,function(t){var r=this.surface.$("#"+t.id),i=r.outerHeight(!0)/a,o=$('<div class="node">').attr({id:"outline_"+t.id}).css({position:"absolute",height:i-1,top:e}).addClass(t.type).append('<div class="arrow">');n.appendChild(o[0]),e+=i},this);var h=t.surface.$el.scrollTop();return t.el.innerHTML="",t.el.appendChild(n),t.updateVisibleArea(h),this},this.updateVisibleArea=function(t){$(this.visibleArea).css({top:t/this.factor,height:this.surface.$el.height()/this.factor})},this.update=function(t){this.render(),this.state=t,this.$(".node").removeClass("selected").removeClass("highlighted"),this.$el.removeClass("figures").removeClass("citations").removeClass("errors").removeClass("remarks"),this.$el.addClass(t.context),this.$("#outline_"+t.selectedNode).addClass("selected"),i.each(t.highlightedNodes,function(t){this.$("#outline_"+t).addClass("highlighted")},this)},this.mouseDown=function(t){this._mouseDown=!0;var e=t.pageY;return t.target!==this.visibleArea?(this.offset=$(this.visibleArea).height()/2,this.mouseMove(t)):this.offset=e-$(this.visibleArea).position().top,!1},this.mouseUp=function(){this._mouseDown=!1},this.mouseMove=function(t){if(this._mouseDown){var e=t.pageY,n=(e-this.offset)*this.factor;this.surface.$el.scrollTop(n)}}},o.Prototype.prototype=n.prototype,o.prototype=new o.Prototype,e.exports=o},{"substance-application":4,underscore:151}],4:[function(t,e){"use strict";var n=t("./src/application");n.View=t("./src/view"),n.Router=t("./src/router"),n.Controller=t("./src/controller"),n.ElementRenderer=t("./src/renderers/element_renderer"),n.$$=n.ElementRenderer.$$,e.exports=n},{"./src/application":5,"./src/controller":6,"./src/renderers/element_renderer":7,"./src/router":8,"./src/view":9}],5:[function(t,e){"use strict";var n=t("./view"),r=t("substance-util"),i=t("underscore"),o=function(t){n.call(this),this.config=t,this.__controller__=null};o.Prototype=function(){this.setRouter=function(t){this.router=t},this.start=function(){this.$el=$("body"),this.el=this.$el[0],this.render(),this.router&&this.router.start()};var t={updateRoute:!0,replace:!1};this.switchState=function(e,n,o){var s=this;n=i.extend(t,n||{});var a=this.getState();this.controller.__switchState__(e,function(t){if(t)return o?o(t):(console.error(t.message),r.printStackTrace(t)),void 0;if(n.updateRoute&&s.updateRoute(n),s.afterTransition)try{s.afterTransition(e,a)}catch(i){return o?o(i):(console.error(i.message),r.printStackTrace(i)),void 0}o&&o(null)})},this.stateFromFragment=function(t){function e(t){for(var e=[],n=0;n<t.length;n++)e.push({id:t[n]});return e}var n,r,i,o=t.split(";"),s=[];for(r=0;r<o.length;r++){i=o[r].split("=");var a=i[0],c=i[1];if(a&&void 0!==c)if("state"===a){var u=c.split(".");n=e(u)}else i=a.split("."),s.push({state:i[0],key:i[1],value:c})}for(r=0;r<s.length;r++){var h=s[r],p=n[h.state];p[h.key]=h.value}return n},this.getState=function(){if(!this.controller.state)return null;for(var t=[],e=this.controller;e;)t.push(e.state),e=e.childController;return t},this.updateRoute=function(t){if(this.router){t=t||{};for(var e=this.getState(),n=[],r=[],o=0;o<e.length;o++){var s=e[o];if(s){n.push(s.id);for(var a in s){var c=s[a];"id"!==a&&"__id__"!==a&&(i.isString(c)?r.push(o+"."+a+"="+c):console.error("Only String state variables are allowed"))}}}var u="state="+n.join(".")+";"+r.join(";");this.router.navigate(u,{trigger:!1,replace:t.replace})}},this.stateChanged=function(t,e,n){n.updateRoute&&this.updateRoute(n)}},o.Prototype.prototype=n.prototype,o.prototype=new o.Prototype,Object.defineProperty(o.prototype,"controller",{set:function(t){t.setChangeListener(this),this.__controller__=t},get:function(){return this.__controller__}}),e.exports=o},{"./view":9,"substance-util":144,underscore:151}],6:[function(t,e){"use strict";var n=t("substance-util"),r=t("underscore"),i=function(){this.changeListener=null,this.state=null,this.__childController__=null};i.Prototype=function(){this.intitialize=function(){},this.dispose=function(){this.__childController__&&this.__childController__.dispose(),this.__childController__=null,this.state=null},this.transition=function(t,e){e(null)},this.switchState=function(t,e,i){var o=this;1===arguments.length&&r.isFunction(e)&&(i=e,e={}),e=e||{updateRoute:!0,replace:!1},i=i||function(r){if(r)throw console.error("Error during switch state",t,e),n.printStackTrace(r),new Error(r)};var s=this.state;this.__switchState__(t,function(t){return t?i(t):(o.changeListener&&o.changeListener.stateChanged(this,s,e),i(null),void 0)})},this.__switchState__=function(t,e){var n=this;e=e||function(t){if(t)throw new Error(t)},r.isArray(t)||(t=[t]);var i,o=t.shift(),s=function(){if(!i){var t=n.state;n.state=o,n.afterTransition(t)}e(null)},a=function(){try{n.transition(o,function(r,o){if(r)return e(r);if(i=o,n.childController)if(t.length>0)n.childController.__switchState__(t,function(t){return t?e(t):(s(),void 0)});else{if(!n.childController.AUTO_INIT)return e("Unsufficient state data provided! Child controller needs a transition!");n.childController.initialize(null,function(t){return t?e(t):(s(),void 0)})}else s()})}catch(r){e(r)}};this.state?a():this.initialize(o,function(t){return t?e(t):(n.state={id:"initialized"},a(),void 0)})},this.afterTransition=function(){},this.setChildController=function(t){this.__childController__&&this.__childController__.state&&(console.error("The child controller has not been disposed. Call 'disposeChildController()' first. However, let me do this for you once more..."),this.__childController__.dispose()),t&&(this.changeListener?t.changeListener=this.changeListener:console.error("This controller does not have a changeListener attached, so the child controller will not trigger corresponding application state changes."),this.__childController__=t)},this.disposeChildController=function(){this.__childController__&&(this.__childController__.dispose(),this.__childController__=null)},this.setChangeListener=function(t){this.changeListener=t}},i.Prototype.prototype=n.Events,i.prototype=new i.Prototype,i.State=function(t){if(r.isString(t))this.__id__=t;else{var e=arguments[0];this.__id__=e.id,r.each(e,function(t,e){"id"!==e&&(this[e]=t)},this)}},Object.defineProperty(i.State.prototype,"id",{set:function(){throw new Error("Property 'id' is immutable")},get:function(){return this.__id__}}),Object.defineProperty(i.prototype,"childController",{set:function(t){this.setChildController(t)},get:function(){return this.__childController__}}),e.exports=i},{"substance-util":144,underscore:151}],7:[function(t,e){"use strict";var n=t("substance-util"),r=t("substance-regexp"),i=function(t){return this.attributes=t,this.tagName=t.tag,this.children=t.children||[],this.text=t.text||"",this.html=t.html,delete t.children,delete t.text,delete t.html,delete t.tag,this.render()};i.Prototype=function(){this.render=function(){var t=document.createElement(this.tagName);this.html?t.innerHTML=this.html:t.textContent=this.text;for(var e in this.attributes){var n=this.attributes[e];t.setAttribute(e,n)}for(var r=0;r<this.children.length;r++){var i=this.children[r];t.appendChild(i)}return this.el=t,t}};var o=function(t,e){var e=e||{},n=/^([a-zA-Z0-9]*)/.exec(t);e.tag=n&&n[1]?n[1]:"div";var o=/#([a-zA-Z0-9_]*)/.exec(t);o&&o[1]&&(e.id=o[1]);var s=new r(/\.([a-zA-Z0-9_-]*)/g);return e.class||(e.class=s.match(t).map(function(t){return t.match[1]}).join(" ")),new i(e)};i.$$=o,i.Prototype.prototype=n.Events,i.prototype=new i.Prototype,e.exports=i},{"substance-regexp":132,"substance-util":144}],8:[function(t,e){"use strict";var n=t("substance-util"),r=t("underscore"),i=function(t){t||(t={}),t.routes&&(this.routes=t.routes),this._bindRoutes(),this.initialize.apply(this,arguments)},o=/\((.*?)\)/g,s=/(\(\?)?:\w+/g,a=/\*\w+/g,c=/[\-{}\[\]+?.,\\\^$|#\s]/g;r.extend(i.prototype,n.Events,{initialize:function(){},route:function(t,e,n){r.isRegExp(t)||(t=this._routeToRegExp(t)),r.isFunction(e)&&(n=e,e=""),n||(n=this[e]);var o=this;return i.history.route(t,function(r){var s=o._extractParameters(t,r);n&&n.apply(o,s),o.trigger.apply(o,["route:"+e].concat(s)),o.trigger("route",e,s),i.history.trigger("route",o,e,s)}),this},navigate:function(t,e){return i.history.navigate(t,e),this},_bindRoutes:function(){if(this.routes){this.routes=r.result(this,"routes");for(var t,e=r.keys(this.routes);null!=(t=e.pop());)this.route(t,this.routes[t])}},_routeToRegExp:function(t){return t=t.replace(c,"\\$&").replace(o,"(?:$1)?").replace(s,function(t,e){return e?t:"([^/]+)"}).replace(a,"(.*?)"),new RegExp("^"+t+"$")},_extractParameters:function(t,e){var n=t.exec(e).slice(1);return r.map(n,function(t){return t?decodeURIComponent(t):null})}});var u=i.History=function(){this.handlers=[],r.bindAll(this,"checkUrl"),"undefined"!=typeof window&&(this.location=window.location,this.history=window.history)},h=/^[#\/]|\s+$/g,p=/^\/+|\/+$/g,l=/msie [\w.]+/,d=/\/$/;u.started=!1,r.extend(u.prototype,n.Events,{interval:50,getHash:function(t){var e=(t||this).location.href.match(/#(.*)$/);return e?e[1]:""},getFragment:function(t,e){if(null==t)if(this._hasPushState||!this._wantsHashChange||e){t=this.location.pathname;var n=this.root.replace(d,"");t.indexOf(n)||(t=t.substr(n.length))}else t=this.getHash();return t.replace(h,"")},start:function(t){if(u.started)throw new Error("Router.history has already been started");u.started=!0,this.options=r.extend({},{root:"/"},this.options,t),this.root=this.options.root,this._wantsHashChange=this.options.hashChange!==!1,this._wantsPushState=!!this.options.pushState,this._hasPushState=!!(this.options.pushState&&this.history&&this.history.pushState);var e=this.getFragment(),n=document.documentMode,i=l.exec(navigator.userAgent.toLowerCase())&&(!n||7>=n);this.root=("/"+this.root+"/").replace(p,"/"),i&&this._wantsHashChange&&(this.iframe=$('<iframe src="javascript:0" tabindex="-1" />').hide().appendTo("body")[0].contentWindow,this.navigate(e)),this._hasPushState?$(window).on("popstate",this.checkUrl):this._wantsHashChange&&"onhashchange"in window&&!i?$(window).on("hashchange",this.checkUrl):this._wantsHashChange&&(this._checkUrlInterval=setInterval(this.checkUrl,this.interval)),this.fragment=e;var o=this.location,s=o.pathname.replace(/[^\/]$/,"$&/")===this.root;return this._wantsHashChange&&this._wantsPushState&&!this._hasPushState&&!s?(this.fragment=this.getFragment(null,!0),this.location.replace(this.root+this.location.search+"#"+this.fragment),!0):(this._wantsPushState&&this._hasPushState&&s&&o.hash&&(this.fragment=this.getHash().replace(h,""),this.history.replaceState({},document.title,this.root+this.fragment+o.search)),this.options.silent?void 0:this.loadUrl())},stop:function(){$(window).off("popstate",this.checkUrl).off("hashchange",this.checkUrl),clearInterval(this._checkUrlInterval),u.started=!1},route:function(t,e){this.handlers.unshift({route:t,callback:e})},checkUrl:function(){var t=this.getFragment();return t===this.fragment&&this.iframe&&(t=this.getFragment(this.getHash(this.iframe))),t===this.fragment?!1:(this.iframe&&this.navigate(t),this.loadUrl()||this.loadUrl(this.getHash()),void 0)},loadUrl:function(t){var e=this.fragment=this.getFragment(t),n=r.any(this.handlers,function(t){return t.route.test(e)?(t.callback(e),!0):void 0});return n},navigate:function(t,e){if(!u.started)return!1;if(e&&e!==!0||(e={trigger:e}),t=this.getFragment(t||""),this.fragment!==t){this.fragment=t;var n=this.root+t;if(this._hasPushState)this.history[e.replace?"replaceState":"pushState"]({},document.title,n);else{if(!this._wantsHashChange)return this.location.assign(n);this._updateHash(this.location,t,e.replace),this.iframe&&t!==this.getFragment(this.getHash(this.iframe))&&(e.replace||this.iframe.document.open().close(),this._updateHash(this.iframe.location,t,e.replace))}e.trigger&&this.loadUrl(t)}},_updateHash:function(t,e,n){if(n){var r=t.href.replace(/(javascript:|#).*$/,"");t.replace(r+"#"+e)}else t.hash="#"+e}}),i.history=new u,e.exports=i},{"substance-util":144,underscore:151}],9:[function(t,e){"use strict";var n=t("substance-util"),r=function(){this.$el=$("<div/>"),this.el=this.$el[0],this.dispatchDOMEvents()};r.Prototype=function(){this.dispose=function(){this.stopListening()},this.$=function(t){return this.$el.find(t)},this.dispatchDOMEvents=function(){function t(t){var e=/(\w+)\((.*)\)/.exec(t);if(!e)throw new Error("Invalid click handler '"+t+"'");return{method:e[1],args:e[2].split(",")}}var e=this;this.$el.delegate("[sbs-click]","click",function(n){var r=t($(n.currentTarget).attr("sbs-click")),i=e[r.method];return i?(i.apply(e,r.args),!1):void 0})},this.updateTitle=function(t){document.title=t,window.history.replaceState({},document.title,window.location.href)}},r.Prototype.prototype=n.Events,r.prototype=new r.Prototype,e.exports=r},{"substance-util":144}],10:[function(t,e){"use strict";var n=t("./src/article");n.Renderer=t("./src/renderer"),n.ViewFactory=t("./src/view_factory"),e.exports=n},{"./src/article":12,"./src/renderer":13,"./src/view_factory":14}],11:[function(t,e){"use strict";var n=t("underscore"),r={};n.each(t("substance-nodes"),function(t,e){r[e]=n.clone(t)}),e.exports=r},{"substance-nodes":43,underscore:151}],12:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=t("substance-document"),o=i.Annotator,s=function(t){t=t||{},t.schema=r.deepclone(i.schema),t.schema.id="substance-article",t.schema.version="0.3.0",n.each(s.types,function(e,n){t.schema.types[n]=e}),n.each(s.nodeTypes,function(e,n){t.schema.types[n]=e.Model.type}),n.each(s.indexes,function(e,n){t.schema.indexes[n]=e}),i.call(this,t),this.nodeTypes=s.nodeTypes,void 0===t.seed&&(this.create({id:"document",type:"document",guid:t.id,creator:t.creator,created_at:t.created_at,views:["content"],title:"","abstract":""}),n.each(s.views,function(t){this.create({id:t,type:"view",nodes:[]})},this))};s.Prototype=function(){this.fromSnapshot=function(t,e){return s.fromSnapshot(t,e)},this.getAuthorNames=function(){return n.map(this.getAuthors(),function(t){return t.name})},this.getAuthors=function(){return n.map(this.authors,function(t){return this.get(t)},this)},this.setPublishedOn=function(t){this.set(["document","published_on"],t)},this.setId=function(t){this.set(["document","guid"],t)},this.setTitle=function(t){this.set(["document","title"],t)},this.setAuthors=function(t){this.set(["document","authors"],t)}},s.fromSnapshot=function(t,e){return e=e||{},e.seed=t,new s(e)},s.views=["content","figures","citations","info"],s.nodeTypes=t("../nodes"),s.annotationBehavior={groups:{emphasis:"style",strong:"style",link:"style",math:"style",issue:"marker"},expansion:{emphasis:{left:o.isOnNodeStart},strong:{left:o.isOnNodeStart}},split:["emphasis","strong"],levels:{idea:1,question:1,remark:1,error:1,issue:1,link:1,math:1,strong:2,emphasis:2,code:2,subscript:2,superscript:2,underline:2,cross_reference:1,figure_reference:1,person_reference:1,contributor_reference:1,citation_reference:1,remark_reference:1,error_reference:1}},s.types={document:{properties:{views:["array","view"],guid:"string",creator:"string",authors:["array","contributor"],title:"string","abstract":"string",published_on:"date",meta:"object"}}},s.indexes={comments:{type:"comment",properties:["node"]}};var a={id:"article",nodes:{document:{type:"document",id:"document",views:["content","info"],title:"The Anatomy of a Substance Article",authors:["contributor_1","contributor_2"],guid:"lens_article"},content:{type:"view",id:"content",nodes:["cover"]},cover:{id:"cover",type:"cover"},contributor_1:{id:"contributor_1",type:"contributor",name:"Michael Aufreiter"},contributor_2:{id:"contributor_2",type:"contributor",name:"Oliver Buchtala"}}};s.describe=function(){var t=new s({seed:a}),e=0;return n.each(s.nodeTypes,function(r,i){if("composite"!==i){r=r.Model;var o="heading_"+r.type.id;t.create({id:o,type:"heading",content:r.description.name,level:1});var s=r.description.remarks.join(" "),a="text_"+r.type.id+"_intro";t.create({id:a,type:"text",content:s}),t.show("content",[o,a],-1),t.create({id:o+"_properties",type:"text",content:r.description.name+" uses the following properties:"}),t.show("content",[o+"_properties"],-1);var c=[];n.each(r.description.properties,function(n,r){var i="text_"+ ++e;t.create({id:i,type:"text",content:r+": "+n}),t.create({id:e+"_annotation",type:"code",path:[i,"content"],range:[0,r.length]}),c.push(i)}),t.create({id:o+"_property_list",type:"list",items:c,ordered:!1}),t.show("content",[o+"_property_list"],-1),r.example&&(t.create({id:o+"_example",type:"text",content:"Here's an example:"}),t.create({id:o+"_example_codeblock",type:"codeblock",content:JSON.stringify(r.example,null,"  ")}),t.show("content",[o+"_example",o+"_example_codeblock"],-1))}}),t},s.Prototype.prototype=i.prototype,s.prototype=new s.Prototype,s.prototype.constructor=s,Object.defineProperties(s.prototype,{id:{get:function(){return this.get("document").guid},set:function(){throw new Error("This is a read-only property alias.")}},creator:{get:function(){return this.get("document").creator},set:function(){this.get("document").creator=creator}},authors:{get:function(){return this.get("document").authors},set:function(){throw new Error("This is a read-only property alias.")}},created_at:{get:function(){return this.get("document").created_at},set:function(){throw new Error("This is a read-only property alias.")}},published_on:{get:function(){return this.get("document").published_on},set:function(){throw new Error("This is a read-only property alias.")}},title:{get:function(){return this.get("document").title},set:function(){throw new Error("This is a read-only property alias.")}},"abstract":{get:function(){return this.get("document").abstract},set:function(){throw new Error("This is a read-only property alias.")}},views:{get:function(){return this.get("document").views.slice(0)},set:function(){throw new Error("This is a read-only property alias.")}}}),e.exports=s},{"../nodes":11,"substance-document":35,"substance-util":144,underscore:151}],13:[function(t,e){"use strict";var n=t("./view_factory"),r=t("underscore"),i=function(t,e,r){n.call(this,t),this.viewName=e,this.options=r||{},this.nodeViews={}};i.Prototype=function(){var t=n.prototype;this.createView=function(e){if(this.nodeViews[e.id])return this.nodeViews[e.id];var n=t.createView.call(this,e);return this.nodeViews[e.id]=n,n},this.render=function(){r.each(this.nodeViews,function(t){t.dispose()});var t=document.createDocumentFragment(),e=this.document.get(this.viewName).nodes;return r.each(e,function(e){var n=this.document.get(e),r=this.createView(n);t.appendChild(r.render().el),this.options.afterRender&&this.options.afterRender(this.document,r)},this),t}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,e.exports=i},{"./view_factory":14,underscore:151}],14:[function(t,e){"use strict";var n=function(t){this.document=t,this.nodeTypes=t.constructor.nodeTypes};n.Prototype=function(){this.createView=function(t){var e=this.nodeTypes[t.type].View;if(!e)throw new Error('Node type "'+t.type+'" not supported');var n=new e(t,this);return n.listenTo(this.document,"operation:applied",n.onGraphUpdate),n}},n.prototype=new n.Prototype,e.exports=n},{}],15:[function(t,e){"use strict";var n=t("./src/chronicle");n.IndexImpl=t("./src/index_impl"),n.ChronicleImpl=t("./src/chronicle_impl"),n.DiffImpl=t("./src/diff_impl"),n.TmpIndex=t("./src/tmp_index"),n.create=n.ChronicleImpl.create,n.Index.create=n.IndexImpl.create,n.Diff.create=n.DiffImpl.create,n.ArrayOperationAdapter=t("./src/array_adapter"),n.TextOperationAdapter=t("./src/text_adapter"),n.IndexedDBBackend=t("./src/backends/indexeddb_backend"),e.exports=n},{"./src/array_adapter":16,"./src/backends/indexeddb_backend":17,"./src/chronicle":18,"./src/chronicle_impl":19,"./src/diff_impl":20,"./src/index_impl":21,"./src/text_adapter":22,"./src/tmp_index":23}],16:[function(t,e){"use strict";var n=t("substance-util"),r=t("./chronicle"),i=t("substance-operator").ArrayOperation,o=function(t,e){r.Versioned.call(this,t),this.array=e};o.Prototype=function(){var t=n.prototype(this);this.apply=function(t){i.fromJSON(t).apply(this.array)},this.invert=function(t){return i.fromJSON(t).invert()},this.transform=function(t,e,n){return i.transform(t,e,n)},this.reset=function(){for(t.reset.call(this);this.array.length>0;)this.array.shift()}},o.Prototype.prototype=r.Versioned.prototype,o.prototype=new o.Prototype,e.exports=o},{"./chronicle":18,"substance-operator":125,"substance-util":144}],17:[function(t,e){"use strict";var n=t("substance-util"),r=t("underscore"),i=t("../chronicle"),o=i.Index,s=function(t,e){this.name=t,this.index=e,this.db=null};s.Prototype=function(){this.delete=function(t){var e=this;this.clear(function(){window.indexedDB.deleteDatabase(e.name),t(null)})};var t=function(t,e,n){var r=t.transaction([e],"readwrite"),i=r.objectStore(e),o=i.clear();o.onsuccess=function(){n(null)},o.onerror=function(t){n(t)}};this.clear=function(e){var r=this.db,i=["changes","snapshots","refs"];n.async.each({items:i,iterator:function(e,n){t(r,e,n)}},e)},this.open=function(t){var e=this;this.db=null;var n=window.indexedDB.open(this.name,1);n.onupgradeneeded=function(t){var e=t.target.result;e.createObjectStore("changes",{keyPath:"id"});var n=e.createObjectStore("snapshots",{keyPath:"sha"});n.createIndex("sha","sha",{unique:!0});var r=e.createObjectStore("refs",{keyPath:"name"});r.createIndex("name","name",{unique:!0})},n.onerror=function(n){console.error("Could not open database",e.name),t(n)},n.onsuccess=function(n){e.db=n.target.result,t(null)}},this.close=function(t){this.db.close(),t&&t(null)},this.load=function(t){var e=this,n=this.db.transaction(["changes","refs"]),r=n.objectStore("changes"),i=r.openCursor(),s={};i.onsuccess=function(r){var a=r.target.result;if(a)return s[a.key]=a.value,a.continue(),void 0;e.index.import(o.adapt(s));var c=n.objectStore("refs");i=c.openCursor(),i.onsuccess=function(n){var r=n.target.result;return r?(e.index.setRef(r.key,r.value.sha),r.continue(),void 0):(t(null),void 0)},i.onerror=function(e){console.error("Error during loading...",e),t(e)}},i.onerror=function(e){console.error("Error during loading...",e),t(e)}};var e=function(t,e){var n=t.db.transaction(["changes"],"readwrite");n.onerror=function(t){console.error("Error while saving changes."),e&&e(t)},n.oncomplete=function(){e&&e(null)};var r=n.objectStore("changes");t.index.foreach(function(t){var e=t;t instanceof i.Change&&(e=t.toJSON());var n=r.put(e);n.onerror=function(e){console.error("Could not add change: ",t.id,e)}})},s=function(t,e){var n=t.db.transaction(["refs"],"readwrite");n.onerror=function(t){console.error("Error while saving refs."),e&&e(t)},n.oncomplete=function(){e&&e(null)};var i=n.objectStore("refs");r.each(t.index.listRefs(),function(e){var n={name:e,sha:t.index.getRef(e)},r=i.put(n);r.onerror=function(t){console.error("Could not store ref: ",n,t)}})};this.save=function(t){var n=this;e(n,function(e){return e?t(e):(s(n,t),void 0)})},this.saveSnapshot=function(t,e,n){var r=this.db.transaction(["snapshots"],"readwrite");r.oncomplete=function(){n(null)},r.onerror=function(t){console.error("Error while saving snapshot."),n(t)};var i=r.objectStore("snapshots"),o=e;o.toJSON&&(o=o.toJSON()),o.sha=t;var s=i.put(o);s.onerror=function(t){console.error("Could not add snapshot: ",o,t)}},this.listSnapshots=function(t){var e=this.db.transaction(["snapshots"],"readonly"),n=e.objectStore("snapshots"),r=n.index("sha"),i=r.openCursor(),o=[];i.onsuccess=function(e){var n=e.target.result;return n?(o.push(n.key),n.continue(),void 0):(t(null,o),void 0)},i.onerror=function(e){console.error("Error during loading...",e),t(e)}},this.getSnapshot=function(t,e){var n=this.db.transaction(["snapshots"],"readonly"),r=n.objectStore("snapshots"),i=r.get(t);i.onsuccess=function(t){var n=t.target.result;e(null,n)},i.onerror=function(n){console.error("Error: could not load snapshot for sha",t),e(n)}}},s.prototype=new s.Prototype,e.exports=s},{"../chronicle":18,"substance-util":144,underscore:151}],18:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=r.errors;i.define("ChronicleError",-1),i.define("ChangeError",-1);var o=function(t,e,n){if(this.type="change",!t)throw new i.ChangeError("Every change needs a unique id.");if(this.id=t,!e)throw new i.ChangeError("Every change needs a parent.");this.parent=e,this.data=n,this.uuid=r.uuid};o.prototype={toJSON:function(){return{type:this.type,id:this.id,parent:this.parent,data:this.data}}},o.fromJSON=function(t){return t.type===c.TYPE?new c(t):t.type===u.TYPE?new u(t):new o(t.parent,t.data,t)};var s="ROOT",a=new o(s,!0,null);a.parent=s;var c=function(t,e,n){if(o.call(this,t,e),this.type=c.TYPE,!n)throw new i.ChangeError("Missing branches.");this.branches=n};c.Prototype=function(){var t=r.prototype(this);this.toJSON=function(){var e=t.toJSON.call(this);return e.type=c.TYPE,e.branches=this.branches,e}},c.Prototype.prototype=o.prototype,c.prototype=new c.Prototype,c.TYPE="merge",c.fromJSON=function(t){if(t.type!==c.TYPE)throw new i.ChangeError("Illegal data for deserializing a Merge node.");return new c(t.parent,t.branches,t)};var u=function(t,e,n,r){o.call(this,t,e,n),this.type=u.TYPE,this.original=r};u.Prototype=function(){var t=r.prototype(this);this.toJSON=function(){var e=t.toJSON.call(this);return e.type=u.TYPE,e.original=this.original,e}},u.TYPE="transformed",u.fromJSON=function(t){if(t.type!==u.TYPE)throw new i.ChangeError("Illegal data for deserializing a Transformed node.");return new u(t.parent,t.data,t.original,t)},u.Prototype.prototype=o.prototype,u.prototype=new u.Prototype;var h=function(){};h.prototype={hasReverts:function(){throw new i.SubstanceError("Not implemented.")},reverts:function(){throw new i.SubstanceError("Not implemented.")},hasApplies:function(){throw new i.SubstanceError("Not implemented.")},applies:function(){throw new i.SubstanceError("Not implemented.")},sequence:function(){throw new i.SubstanceError("Not implemented.")},mine:function(){throw new i.SubstanceError("Not implemented.")},theirs:function(){throw new i.SubstanceError("Not implemented.")},root:function(){throw new i.SubstanceError("Not implemented.")},start:function(){throw new i.SubstanceError("Not implemented.")},end:function(){throw new i.SubstanceError("Not implemented.")},inverted:function(){throw new i.SubstanceError("Not implemented.")}},h.create=function(){throw new i.SubstanceError("Not implemented.")};var p=function(t,e){e=e||{},this.index=t,this.versioned=null,this.__mode__=e.mode||p.DEFAULT_MODE};p.Prototype=function(){this.record=function(){throw new i.SubstanceError("Not implemented.")},this.open=function(){throw new i.SubstanceError("Not implemented.")},this.step=function(){throw new i.SubstanceError("Not implemented.")},this.forward=function(t){var e=this.versioned.getState();if(e!==t){var n=this.index.children[e];if(0!==n.length){var r;if(1===n.length)r=n[0];else if(t){var i=this.index.shortestPath(e,t);i.shift(),r=i.shift()}else r=n[n.length-1];return r?this.step(r):void 0}}},this.rewind=function(){var t,e=this.index.get(this.versioned.getState());return e.id===s?null:(t=e.parent,this.step(t))},this.merge=function(){throw new i.SubstanceError("Not implemented.")},this.manage=function(t){this.versioned=t},this.mark=function(t){this.index.setRef(t,this.versioned.getState())},this.find=function(t){return this.index.getRef(t)},this.getState=function(){return this.versioned.getState()},this.getChanges=function(t,e){var r=[],i=this.path(t,e);return n.each(i,function(t){r.push(this.index.get(t))},this),r}},p.prototype=new p.Prototype,p.PEDANTIC_RECORD=2,p.PEDANTIC_IMPORT=4,p.HYSTERICAL=p.PEDANTIC_RECORD|p.PEDANTIC_IMPORT,p.DEFAULT_MODE=p.PEDANTIC_IMPORT,p.create=function(){throw new i.SubstanceError("Not implemented.")};var l=function(){this.__id__=r.uuid(),this.changes={},this.refs={},this.children={},this.changes[s]=a,this.children[s]=[]};l.Prototype=function(){this.add=function(){throw new i.SubstanceError("Not implemented.")},this.remove=function(){throw new i.SubstanceError("Not implemented.")},this.contains=function(){throw new i.SubstanceError("Not implemented.")},this.path=function(){throw new i.SubstanceError("Not implemented.")},this.get=function(){throw new i.SubstanceError("Not implemented.")},this.getChildren=function(){throw new i.SubstanceError("Not implemented.")},this.list=function(){throw new i.SubstanceError("Not implemented.")},this.diff=function(){throw new i.SubstanceError("Not implemented.")},this.setRef=function(t,e){if(void 0===this.changes[e])throw new i.ChronicleError("Unknown change: "+e);this.refs[t]=e},this.getRef=function(t){return this.refs[t]},this.listRefs=function(){return Object.keys(this.refs)},this.import=function(){throw new i.SubstanceError("Not implemented.")}},l.prototype=new l.Prototype,l.INVALID="INVALID",l.ROOT=a,l.create=function(){throw new i.SubstanceError("Not implemented.")},l.adapt=function(t){return{list:function(){return n.keys(t)},get:function(e){return t[e]}}};var d=function(t){this.chronicle=t,this.state=s,t.manage(this)};d.Prototype=function(){this.apply=function(){throw new i.SubstanceError("Not implemented.")},this.revert=function(t){t=this.invert(t),this.apply(t)},this.invert=function(){throw new i.SubstanceError("Not implemented.")},this.transform=function(){throw new i.SubstanceError("Not implemented.")},this.getState=function(){return this.state},this.setState=function(t){this.state=t},this.reset=function(){this.state=s}},d.prototype=new d.Prototype,p.Change=o,p.Merge=c,p.Transformed=u,p.Diff=h,p.Index=l,p.Versioned=d,p.ROOT=s,p.mergeConflict=function(t,e){var n=new i.MergeConflict("Merge conflict: "+JSON.stringify(t)+" vs "+JSON.stringify(e));return n.a=t,n.b=e,n},e.exports=p},{"substance-util":144,underscore:151}],19:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=r.errors,o=t("./chronicle"),s=function(t,e){o.call(this,t,e)};s.Prototype=function(){var t=new s.__private__,e=o.Index.ROOT.id;this.uuid=r.uuid,this.internal_uuid=r.uuid,this.record=function(t){(this.__mode__&o.PEDANTIC_RECORD)>0&&(this.versioned.revert(t),this.versioned.apply(t));var e=this.versioned.getState(),n=this.uuid(),r=new o.Change(n,e,t);return this.index.add(r),this.versioned.setState(n),n},this.reset=function(e,n){if(n=n||this.index,!n.contains(e))throw new i.ChronicleError("Invalid argument: unknown change "+e);var r=this.versioned.getState(),o=n.shortestPath(r,e);t.applySequence.call(this,o,n)},this.open=this.reset,this.path=function(t,n){if(n){if(!t)throw new i.ChronicleError("Illegal argument: "+t);return this.index.shortestPath(t,n)}var r=this.index.shortestPath(e,t||this.versioned.getState());return r.shift(),r
-},this.apply=function(e){return n.isArray(e)?t.applySequence.call(this,e):t.applySequence.call(this,arguments)},this.step=function(t){var e=this.index,n=this.versioned.getState();try{var r=e.get(n);if(r.id===t)return null;var o,s=e.get(t);if(r.parent===t)o=this.versioned.invert(r.data);else{if(s.parent!==r.id)throw new i.ChronicleError("Invalid apply sequence: "+t+" is not parent or child of "+r.id);o=s.data}return this.versioned.apply(o),this.versioned.setState(t),o}catch(a){throw this.reset(n,e),a}},this.merge=function(e,n,r){if(!this.index.contains(e))throw new i.ChronicleError("Invalid argument: unknown change "+e);1==arguments.length&&(n="auto",r={}),r=r||{};var s=this.versioned.getState(),a=this.index.diff(s,e);if(!a.hasApplies())return s;if(!a.hasReverts()&&!r.no_ff)return t.applyDiff.call(this,a),this.versioned.getState();var c;if("mine"===n)c=new o.Merge(this.uuid(),s,[s,e]);else if("theirs"===n)c=new o.Merge(this.uuid(),e,[s,e]);else{if("manual"!==n)throw new i.ChronicleError("Unsupported merge strategy: "+n);if(!r.sequence)throw new i.ChronicleError("Invalid argument: sequence is missing for manual merge");var u=r.sequence;c=t.manualMerge.call(this,s,e,a,u,r)}return this.index.add(c),this.reset(c.id),c.id},this.import=function(e){var n=this.index.import(e);(this.__mode__&o.PEDANTIC_IMPORT)>0&&t.importSanityCheck.call(this,n)}},s.__private__=function(){var t=this;this.applyDiff=function(e,n){if(n=n||this.index,e){var r=this.versioned.getState();if(r!==e.start())throw new i.ChronicleError("Diff can not applied on to this state. Expected: "+e.start()+", Actual: "+r);var s=null,a=[],c=[];try{var u,h,p=e.reverts(),l=e.applies();for(u=0;u<p.length;u++)h=p[u],t.revertTo.call(this,h,n),a.push(h);for(u=0;u<l.length;u++)h=l[u],t.apply.call(this,h,n),c.push(h)}catch(d){s=d}if(s&&(a.length>0||c.length>0)){var f=o.Diff.create(e.start(),a,c),g=f.inverted();try{t.applyDiff.call(this,g,n)}catch(d){console.log("Ohohhhh.... could not rollback partially applied diff.","Without bugs and in HYSTERICAL mode this should not happen.","Resetting to original state"),this.versioned.reset(),this.reset(r,n)}}if(s)throw s}},this.applySequence=function(e,r){r=r||this.index;var o=this.versioned.getState();try{var s=r.get(o);n.each(e,function(e){if(s.id!==e){var n=r.get(e);if(s.parent===e)t.revertTo.call(this,e,r);else{if(n.parent!==s.id)throw new i.ChronicleError("Invalid apply sequence: "+e+" is not parent or child of "+s.id);t.apply.call(this,e,r)}s=n}},this)}catch(a){throw this.reset(o,r),a}},this.revertTo=function(t,e){e=e||this.index;var n=this.versioned.getState(),r=e.get(n);if(!r)throw new i.ChangeError("Illegal state. 'head' is unknown: "+n);if(r.parent!==t)throw new i.ChangeError("Can not revert: change is not parent of current");r.data&&this.versioned.revert(r.data),this.versioned.setState(t)},this.apply=function(t,e){e=e||this.index;var n=e.get(t);if(!n)throw new i.ChangeError("Illegal argument. change is unknown: "+t);n.data&&this.versioned.apply(n.data),this.versioned.setState(t)},this.eliminate=function(e,n,r,s,a){if(!(s instanceof o.TmpIndex))throw new i.ChronicleError("'eliminate' must be called on a TmpIndex instance");var c,u,h=s.get(n),p=s.get(e);return c=new o.Change(this.internal_uuid(),n,this.versioned.invert(h.data)),s.add(c),u=t.rebase0.call(this,c.id,p.id,r,s,a,!0),s.reconnect(u,h.parent),p=s.get(u),p.id},this.rebase0=function(t,e,n,r,s,a){r=r||this.index;var c=r.get(t),u=r.get(e);if(c.parent!==u.parent)throw new i.ChronicleError("Illegal arguments: principal rebase can only be applied on siblings.");for(var h,p,l,d,f,g=[[c.data,c.id,u]],y=null,v=[];g.length>0;){h=g.pop(),p=h[0],t=h[1],u=h[2],l=u.data;var m;if(u instanceof o.Merge)m=[p],d=new o.Merge(this.uuid(),t,u.branches),v.push(d);else{m=this.versioned.transform(p,l,{check:a});var w=u instanceof o.Transformed?u.original:u.id;d=new o.Transformed(this.internal_uuid(),t,m[1],w),n[w]=d.id}n[u.id]=d.id,y||(y=d),r.add(d);var _=r.getChildren(u.id);for(f=0;f<_.length;f++){var b=r.get(_[f]);if(s){var x=b instanceof o.Transformed?b.original:b.id;if(!s[x])continue}g.unshift([m[0],d.id,b])}}for(f=0;f<v.length;f++){for(var C=v[f],P=[],E=0;E<C.branches.length;E++)P.push(n[C.branches[E]]);C.branches=P}return y.id},this.eliminateToSelection=function(e,r,i,s){var a=new o.TmpIndex(s),c=n.intersection(e,r);if(0===c.length)return null;var u=n.difference(e,r).reverse();if(0===u.length)return i[c[0]];for(var h,p,l,d=0,f=0,g=null;d<e.length&&f<u.length;)p=e[e.length-1-d],l=u[f],p===l?(g&&(g=t.eliminate.call(this,g,p,i,a,i)),d++,f++):(g=p,d++);for(h=0;h<c.length;h++)p=c[h],a.save(i[p]);return i[c[0]]},this.manualMerge=function(e,r,s,a,c){if(0===a.length)throw new i.ChronicleError("Nothing selected for merge.");var u=n.intersection(a,s.sequence());if(u.length!==a.length)throw new i.ChronicleError("Illegal merge selection: contains changes that are not contained in the merged branches.");var h=new o.TmpIndex(this.index),p=s.mine(),l=s.theirs(),d=n.object(a,a);t.eliminateToSelection.call(this,p,a,d,h),t.eliminateToSelection.call(this,l,a,d,h),p=n.intersection(p,a),l=n.intersection(l,a);for(var f=0;f<a.length;f++){var g,y,v=a[f];if(0===p.length||0===l.length)break;if(p[0]===v)p.shift(),g=d[v],y=d[l[0]];else{if(l[0]!==v)throw new i.ChronicleError("Reordering of commmits is not supported.");l.shift(),g=d[v],y=d[p[0]]}t.rebase0.call(this,g,y,d,h,null,!c.force)}var m=d[n.last(a)];try{this.reset(m,h)}catch(w){throw this.reset(e,h),w}for(f=0;f<a.length;f++)h.save(d[a[f]]);return new o.Merge(this.uuid(),m,[e,r])},this.importSanityCheck=function(t){var e,n=this.versioned.getState(),r=null;try{for(e=0;e<t.length;e++)this.reset(t[e])}catch(o){r=o,console.log(r.stack)}if(this.reset(n),r){for(t.reverse(),e=0;e<t.length;e++)this.index.remove(t[e]);if(r)throw new i.ChronicleError("Import did not pass sanity check: "+r.toString())}}},s.Prototype.prototype=o.prototype,s.prototype=new s.Prototype,s.create=function(t){t=t||{};var e=o.Index.create(t);return new s(e,t)},e.exports=s},{"./chronicle":18,"substance-util":144,underscore:151}],20:[function(t,e){var n=t("underscore"),r=t("./chronicle"),i=function(t){this.data=t};i.Prototype=function(){this.reverts=function(){return this.data[1].slice(1,this.data[0]+1)},this.applies=function(){return this.data[1].slice(this.data[0]+1)},this.hasReverts=function(){return this.data[0]>0},this.hasApplies=function(){return this.data[1].length-1-this.data[0]>0},this.start=function(){return this.data[1][0]},this.end=function(){return n.last(this.data[1])},this.root=function(){return this.data[1][this.data[0]]},this.sequence=function(){return this.data[1].slice(0)},this.mine=function(){return this.data[1].slice(0,this.data[0]).reverse()},this.theirs=function(){return this.applies()},this.inverted=function(){return new i([this.data[1].length-1-this.data[0],this.data[1].slice(0).reverse()])},this.toJSON=function(){return{data:this.data}}},i.Prototype.prototype=r.Diff.prototype,i.prototype=new i.Prototype,i.create=function(t,e,n){return new i([e.length,[t].concat(e).concat(n)])},e.exports=i},{"./chronicle":18,underscore:151}],21:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=r.errors,o=t("./chronicle"),s=function(){o.Index.call(this)};s.Prototype=function(){var t=new s.__private__,e=o.ROOT;this.add=function(t){t.data=r.freeze(t.data);var e=t.id;if(!t.parent)throw new i.ChronicleError("Change does not have a parent.");if(!this.contains(t.parent))throw new i.ChronicleError("Illegal change: parent is unknown - change="+e+", parent="+t.parent);this.changes[e]=t,this.children[e]=[],this.children[t.parent]||(this.children[t.parent]=[]),this.children[t.parent].push(e)},this.remove=function(t){if(this.children[t].length>0)throw new i.ChronicleError("Can not remove: other changes depend on it.");var e=this.changes[t];delete this.changes[t],delete this.children[t],this.children[e.parent]=n.without(this.children[e.parent],t)},this.contains=function(t){return!!this.changes[t]},this.get=function(t){return this.changes[t]},this.list=function(){return n.keys(this.changes)},this.getChildren=function(t){return this.children[t]},this.diff=function(n,r){var i,s,a=t.getPathToRoot.call(this,n),c=t.getPathToRoot.call(this,r),u=[],h=[],p={};for(s=0;s<c.length;s++)p[c[s]]=!0;for(s=0;s<a.length&&(i=a[s],s>0&&u.push(i),!p[i]);s++);var l=i;for(s=0;s<c.length&&(i=c[s],i!==l&&i!==e);s++)h.unshift(i);return o.Diff.create(n,u,h)},this.shortestPath=function(n,r){if(n===r)return[];if(r===e)return t.getPathToRoot.call(this,n).slice(1);if(n===e)return t.getPathToRoot.call(this,r).reverse().slice(1);for(var o,s,a,c,u,h,p,l={},d=[[n,n]];d.length>0;)if(o=d.shift(),s=o[0],a=o[1],c=this.get(a),!l[a]){if(l[a]=s,a===r){for(var f,g=[];a!==n;)if(g.unshift(a),f=l[a],l[a]=null,a=f,!a)throw new i.SubstanceError("Illegal state: bug in implementation of Index.shortestPath.");return g}for(l[c.parent]||d.push([a,c.parent]),p=this.getChildren(a),u=0;u<p.length;u++)h=p[u],l[h]||d.push([a,h])}throw new i.SubstanceError("Illegal state: no path found.")},this.import=function(e){var r=n.difference(e.list(),this.list());if(0!==r.length){var i=t.computeDependencyOrder.call(this,e,r);r.sort(function(t,e){return i[t]-i[e]});for(var o=0;o<r.length;o++)this.add(e.get(r[o]));return r}},this.foreach=function(t,e){e=e||"ROOT";for(var n,r,i=[e];i.length>0;){n=i.shift(),r=this.get(n),t(r);for(var o=this.children[n],s=0;s<o.length;s++)i.push(o[s])}}},s.__private__=function(){var t=o.ROOT;this.getPathToRoot=function(e){var n=[];if(e===t)return n;var r=this.get(e);if(!r)throw new i.ChronicleError("Unknown change: "+e);for(var o;;){if(n.push(r.id),r.id===t)break;o=r.parent,r=this.get(o)}return n},this.computeDependencyOrder=function(e,n){function r(n){if(i[n])return i[n];if(n===t)return 0;var o=e.get(n),s=r(o.parent)+1;return i[n]=s,s}for(var i={},o=0;o<n.length;o++)r(n[o]);return i}},s.Prototype.prototype=o.Index.prototype,s.prototype=new s.Prototype;var a=function(t,e){t.store=e,t.__changes__=e.hash("changes"),t.__refs__=e.hash("refs"),t.__changes__.list=t.__changes__.keys;var r=t.add;t.add=function(t){r.call(this,t),this.__changes__.set(t.id,t)};var i=t.remove;t.remove=function(t){i.call(this,t),this.__changes__.delete(t)};var o=t.setRef;t.setRef=function(t,e){o.call(this,t,e),this.__refs__.set(t,e)},t.load=function(){this.import(this.__changes__),n.each(this.__refs__.keys(),function(t){this.setRef(t,this.__refs__.get(t))},this)},t.load()};s.create=function(t){t=t||{};var e=new s;return t.store&&a(e,t.store),e},e.exports=s},{"./chronicle":18,"substance-util":144,underscore:151}],22:[function(t,e){"use strict";var n=t("substance-util"),r=t("./chronicle"),i=t("substance-operator").TextOperation,o=function(t,e){r.Versioned.call(this,t),this.doc=e};o.Prototype=function(){var t=n.prototype(this);this.apply=function(t){this.doc.setText(t.apply(this.doc.getText()))},this.invert=function(t){return t.invert()},this.transform=function(t,e,n){return i.transform(t,e,n)},this.reset=function(){t.reset.call(this),this.doc.setText("")}},o.Prototype.prototype=r.Versioned.prototype,o.prototype=new o.Prototype,e.exports=o},{"./chronicle":18,"substance-operator":125,"substance-util":144}],23:[function(t,e){var n=t("underscore"),r=t("substance-util"),i=r.errors,o=t("./index_impl"),s=function(t){o.call(this),this.index=t};s.Prototype=function(){var t=r.prototype(this);this.get=function(e){return t.contains.call(this,e)?t.get.call(this,e):this.index.get(e)},this.contains=function(e){return t.contains.call(this,e)||this.index.contains(e)},this.getChildren=function(e){var n=t.getChildren.call(this,e)||[];return this.index.contains(e)&&(n=n.concat(this.index.getChildren(e))),n},this.list=function(){return t.list.call(this).concat(this.index.list())},this.save=function(t,e){if(e)for(var n,r,i=[t];i.length>0;){n=i.pop(),r=this.changes[n],this.changes[n]&&this.index.add(r);for(var o=0;o<r.children;o++)i.unshift(r.children[o])}else this.changes[t]&&this.index.add(this.changes[t])},this.reconnect=function(t,e){if(!this.changes[t])throw new i.ChronicleError("Change does not exist to this index.");var r=this.get(t);if(!this.contains(e))throw new i.ChronicleError("Illegal change: parent is unknown parent="+e);this.children[r.parent]||(this.children[r.parent]=[]),this.children[r.parent]=n.without(this.children[r.parent],r.id),r.parent=e,this.children[r.parent]||(this.children[r.parent]=[]),this.children[r.parent].push(t)}},s.Prototype.prototype=o.prototype,s.prototype=new s.Prototype,e.exports=s},{"./index_impl":21,"substance-util":144,underscore:151}],24:[function(t,e){"use strict";e.exports={Keyboard:t("./src/keyboard"),Mousetrap:t("./src/mousetrap")}},{"./src/keyboard":26,"./src/mousetrap":27}],25:[function(){!function(){function t(t,e,n){return t.addEventListener?(t.addEventListener(e,n,!1),void 0):(t.attachEvent("on"+e,n),void 0)}function e(t){if("keypress"==t.type){var e=String.fromCharCode(t.which);return t.shiftKey||(e=e.toLowerCase()),e}return _[t.which]?_[t.which]:b[t.which]?b[t.which]:String.fromCharCode(t.which).toLowerCase()}function n(t,e){return t.sort().join(",")===e.sort().join(",")}function r(t){t=t||{};var e,n=!1;for(e in S)t[e]?n=!0:S[e]=0;n||(N=!1)}function i(t,e,r,i,o,s){var a,c,h=[],p=r.type;if(!P[t])return[];for("keyup"==p&&u(t)&&(e=[t]),a=0;a<P[t].length;++a)if(c=P[t][a],(i||!c.seq||S[c.seq]==c.level)&&p==c.action&&("keypress"==p&&!r.metaKey&&!r.ctrlKey||n(e,c.modifiers))){var l=!i&&c.combo==o,d=i&&c.seq==i&&c.level==s;(l||d)&&P[t].splice(a,1),h.push(c)}return h}function o(t){var e=[];return t.shiftKey&&e.push("shift"),t.altKey&&e.push("alt"),t.ctrlKey&&e.push("ctrl"),t.metaKey&&e.push("meta"),e}function s(t,e,n){I.stopCallback(e,e.target||e.srcElement,n)||t(e,n)===!1&&(e.preventDefault&&e.preventDefault(),e.stopPropagation&&e.stopPropagation(),e.returnValue=!1,e.cancelBubble=!0)}function a(t,e,n){var o,a=i(t,e,n),c={},h=0,p=!1;for(o=0;o<a.length;++o)a[o].seq&&(h=Math.max(h,a[o].level));for(o=0;o<a.length;++o)if(a[o].seq){if(a[o].level!=h)continue;p=!0,c[a[o].seq]=1,s(a[o].callback,n,a[o].combo)}else I.TRIGGER_PREFIX_COMBOS?s(a[o].callback,n,a[o].combo):p||s(a[o].callback,n,a[o].combo);var l="keypress"==n.type&&O;return n.type!=N||u(t)||l||r(c),O=p&&"keydown"==n.type,a.length>0}function c(t){"number"!=typeof t.which&&(t.which=t.keyCode);var n=e(t);if(n)return"keyup"==t.type&&k===n?(k=!1,void 0):(I.handleKey(n,o(t),t),void 0)}function u(t){return"shift"==t||"ctrl"==t||"alt"==t||"meta"==t}function h(){clearTimeout(w),w=setTimeout(r,1e3)}function p(){if(!m){m={};for(var t in _)t>95&&112>t||_.hasOwnProperty(t)&&(m[_[t]]=t)}return m}function l(t,e,n){return n||(n=p()[t]?"keydown":"keypress"),"keypress"==n&&e.length&&(n="keydown"),n}function d(t,n,i,o){function a(e){return function(){N=e,++S[t],h()}}function c(n){s(i,n,t),"keyup"!==o&&(k=e(n)),setTimeout(r,10)}S[t]=0;for(var u=0;u<n.length;++u){var p=u+1===n.length,l=p?c:a(o||g(n[u+1]).action);y(n[u],l,o,t,u)}}function f(t){return"+"===t?["+"]:t.split("+")}function g(t,e){var n,r,i,o=[];for(n=f(t),i=0;i<n.length;++i)r=n[i],C[r]&&(r=C[r]),e&&"keypress"!=e&&x[r]&&(r=x[r],o.push("shift")),u(r)&&o.push(r);return e=l(r,o,e),{key:r,modifiers:o,action:e}}function y(t,e,n,r,o){E[t+":"+n]=e,t=t.replace(/\s+/g," ");var s,a=t.split(" ");return a.length>1?(d(t,a,e,n),void 0):(s=g(t,n),P[s.key]=P[s.key]||[],i(s.key,s.modifiers,{type:s.action},r,t,o),P[s.key][r?"unshift":"push"]({callback:e,modifiers:s.modifiers,action:s.action,seq:r,level:o,combo:t}),void 0)}function v(t,e,n){for(var r=0;r<t.length;++r)y(t[r],e,n)}for(var m,w,_={8:"backspace",9:"tab",13:"enter",16:"shift",17:"ctrl",18:"alt",20:"capslock",27:"esc",32:"space",33:"pageup",34:"pagedown",35:"end",36:"home",37:"left",38:"up",39:"right",40:"down",45:"ins",46:"del",91:"meta",93:"meta",224:"meta"},b={106:"*",107:"+",109:"-",110:".",111:"/",186:";",187:"=",188:",",189:"-",190:".",191:"/",192:"`",219:"[",220:"\\",221:"]",222:"'"},x={"~":"`","!":"1","@":"2","#":"3",$:"4","%":"5","^":"6","&":"7","*":"8","(":"9",")":"0",_:"-","+":"=",":":";",'"':"'","<":",",">":".","?":"/","|":"\\"},C={option:"alt",command:"meta","return":"enter",escape:"esc",mod:/Mac|iPod|iPhone|iPad/.test(navigator.platform)?"meta":"ctrl"},P={},E={},S={},k=!1,O=!1,N=!1,T=1;20>T;++T)_[111+T]="f"+T;for(T=0;9>=T;++T)_[T+96]=T;t(document,"keypress",c),t(document,"keydown",c),t(document,"keyup",c);var I={bind:function(t,e,n){return t=t instanceof Array?t:[t],v(t,e,n),this},unbind:function(t,e){return I.bind(t,function(){},e)},trigger:function(t,e){return E[t+":"+e]&&E[t+":"+e]({},t),this},reset:function(){return P={},E={},this},stopCallback:function(t,e){return(" "+e.className+" ").indexOf(" mousetrap ")>-1?!1:"INPUT"==e.tagName||"SELECT"==e.tagName||"TEXTAREA"==e.tagName||e.contentEditable&&"true"==e.contentEditable},handleKey:a,TRIGGER_PREFIX_COMBOS:!1};window.Mousetrap=I,"function"==typeof define&&define.amd&&define(I)}()},{}],26:[function(t,e){"use strict";t("../lib/mousetrap");var n=window.Mousetrap,r=function(t){this.__bindings={},this.__mainControl=t,this.__controls=[],this.__defaultHandler=null};r.Prototype=function(){function t(t,e){for(var n=e.split("."),r=t.__bindings,i=0;i<n.length;i++){var o=n[i];r.contexts=r.contexts||{},r.contexts[o]=r.contexts[o]||{},r=r.contexts[o]}return r}function e(e,n){var r=t(e,n.context);r.commands=r.commands||[],r.commands=r.commands.concat(n.commands)}function r(t,e){var n=t;e.scope&&(n=t[e.scope]);var r="false"!==e.preventDefault;return function(t){n[e.command].apply(n,e.args),r&&t.preventDefault()}}function i(t,e){if(void 0!==e)for(var i=0;i<e.length;i++){var o=e[i];n.bind(o.keys,r(t,o))}}function o(t){if(t&&0!==t.length){var e=function(e,n,r){if(!a(e,n,r))for(var i=t.length-1;i>=0;i--){var o=t[i],s=o.handler(e,n,r);if(s){var c=o.control,u=s.command,h=s.args;return c[u].apply(c,h),void 0}}};n.handleKey=e}}function s(t){function e(t,e,n){i(e,n.commands),void 0!==n.default&&r.push({context:t,control:e,handler:n.default})}n.reset(),n.handleKey=a;var r=[],s=t.__controls,c=t.__bindings,u="",h=t.__mainControl;e(u,h,c);for(var p=0;p<s.length&&(u=s[p][0],h=s[p][1],void 0!==c.contexts&&void 0!==c.contexts[u]);p++)c=c.contexts[u],e(u,h,c);o(r)}var a=n.handleKey;this.registerBindings=function(t){console.log("Keyboard.registerBindings: definition=",t);for(var n=0;n<t.length;n++){var r=t[n];e(this,r)}this.stateChanged()},this.setDefaultHandler=function(e,n){var r=t(this,e);r.default=n},this.stateChanged=function(){this.__controls=this.__mainControl.getActiveControllers(),s(this)},this.enter=function(t,e){this.__controls.push([t,e]),s(this)},this.exit=function(t){for(var e=-1,n=this.__controls.length-1;n>=0;n--)if(this.__controls[n][0]===t){e=n;break}if(0>e)throw new Error("Unknown context: "+t,", expected one of: "+JSON.stringify(this.__contexts));this.__controls=this.__controls.slice(0,e),s(this)},this.set=function(t,e){n[t]=e}},r.prototype=new r.Prototype,e.exports=r},{"../lib/mousetrap":25}],27:[function(t,e){"use strict";function n(t,e,n){t.addEventListener?t.addEventListener(e,n,!1):t.attachEvent("on"+e,n)}function r(t,e,n){t.removeEventListener?t.removeEventListener(e,n,!1):t.detachEvent("on"+e,n)}function i(t){if("keypress"==t.type){var e=String.fromCharCode(t.which);return t.shiftKey||(e=e.toLowerCase()),e}return u[t.which]?u[t.which]:h[t.which]?h[t.which]:String.fromCharCode(t.which).toLowerCase()}function o(t,e){return t.sort().join(",")===e.sort().join(",")}function s(t){var e=[];return t.shiftKey&&e.push("shift"),t.altKey&&e.push("alt"),t.ctrlKey&&e.push("ctrl"),t.metaKey&&e.push("meta"),e}function a(t){return"shift"==t||"ctrl"==t||"alt"==t||"meta"==t}function c(t){return"+"===t?["+"]:t.split("+")}for(var u={8:"backspace",9:"tab",13:"enter",16:"shift",17:"ctrl",18:"alt",20:"capslock",27:"esc",32:"space",33:"pageup",34:"pagedown",35:"end",36:"home",37:"left",38:"up",39:"right",40:"down",45:"ins",46:"del",91:"meta",93:"meta",224:"meta"},h={106:"*",107:"+",109:"-",110:".",111:"/",186:";",187:"=",188:",",189:"-",190:".",191:"/",192:"`",219:"[",220:"\\",221:"]",222:"'"},p={"~":"`","!":"1","@":"2","#":"3",$:"4","%":"5","^":"6","&":"7","*":"8","(":"9",")":"0",_:"-","+":"=",":":";",'"':"'","<":",",">":".","?":"/","|":"\\"},l={option:"alt",command:"meta","return":"enter",escape:"esc",mod:/Mac|iPod|iPhone|iPad/.test(navigator.platform)?"meta":"ctrl"},d=1;20>d;++d)u[111+d]="f"+d;for(d=0;9>=d;++d)u[d+96]=d;var f=function(){this._REVERSE_MAP={},this._callbacks={},this._directMap={},this._sequenceLevels={},this._resetTimer=null,this._ignoreNextKeyup=!1,this._ignoreNextKeypress=!1,this._nextExpectedAction=!1,this._handler=this._handleKeyEvent.bind(this)};f.Prototype=function(){function t(t){t=t||{};var e,n=!1;for(e in this._sequenceLevels)t[e]?n=!0:this._sequenceLevels[e]=0;n||(this._nextExpectedAction=!1)}function e(t,e,n,r,i,s){var c,u,h=[],p=n.type;if(!this._callbacks[t])return[];for("keyup"==p&&a(t)&&(e=[t]),c=0;c<this._callbacks[t].length;++c)if(u=this._callbacks[t][c],(r||!u.seq||this._sequenceLevels[u.seq]==u.level)&&p==u.action&&("keypress"==p&&!n.metaKey&&!n.ctrlKey||o(e,u.modifiers))){var l=!r&&u.combo==i,d=r&&u.seq==r&&u.level==s;(l||d)&&this._callbacks[t].splice(c,1),h.push(u)}return h}function h(t,e,n){this.NOT_IN_EDITABLES&&this.stopCallback(e,e.target||e.srcElement,n)||t.call(this,e,n)===!1&&(e.preventDefault&&e.preventDefault(),e.stopPropagation&&e.stopPropagation(),e.returnValue=!1,e.cancelBubble=!0)}function d(t,e){var n,r,i,o=[];for(n=c(t),i=0;i<n.length;++i)r=n[i],l[r]&&(r=l[r]),e&&"keypress"!=e&&p[r]&&(r=p[r],o.push("shift")),a(r)&&o.push(r);return e=w.call(this,r,o,e),{key:r,modifiers:o,action:e}}function g(t,n,r,i,o){this._directMap[t+":"+r]=n,t=t.replace(/\s+/g," ");var s,a=t.split(" ");return a.length>1?(_.call(this,t,a,n,r),void 0):(s=d.call(this,t,r),this._callbacks[s.key]=this._callbacks[s.key]||[],e.call(this,s.key,s.modifiers,{type:s.action},i,t,o),this._callbacks[s.key][i?"unshift":"push"]({callback:n,modifiers:s.modifiers,action:s.action,seq:i,level:o,combo:t}),void 0)}function y(t,e,n){for(var r=0;r<t.length;++r)g.call(this,t[r],e,n)}function v(){clearTimeout(this._resetTimer),this._resetTimer=setTimeout(t.bind(this),1e3)}function m(){if(!this._REVERSE_MAP){this._REVERSE_MAP={};for(var t in u)t>95&&112>t||u.hasOwnProperty(t)&&(this._REVERSE_MAP[u[t]]=t)}return this._REVERSE_MAP}function w(t,e,n){return n||(n=m.call(this)[t]?"keydown":"keypress"),"keypress"==n&&e.length&&(n="keydown"),n}function _(e,n,r,o){function s(t){return function(){c._nextExpectedAction=t,++c._sequenceLevels[e],v.call(c)}}function a(n){h.call(this,r,n,e),"keyup"!==o&&(this._ignoreNextKeyup=i(n)),setTimeout(t.bind(this),10)}var c=this;this._sequenceLevels[e]=0;for(var u=0;u<n.length;++u){var p=u+1===n.length,l=p?a:s.call(this,o||d(n[u+1]).action);g.call(this,n[u],l,o,e,u)}}this.handleKey=function(n,r,i){var o,s=e.call(this,n,r,i),c={},u=0,p=!1;for(o=0;o<s.length;++o)s[o].seq&&(u=Math.max(u,s[o].level));for(o=0;o<s.length;++o)if(s[o].seq){if(s[o].level!=u)continue;p=!0,c[s[o].seq]=1,h.call(this,s[o].callback,i,s[o].combo)}else f.TRIGGER_PREFIX_COMBOS?h.call(this,s[o].callback,i,s[o].combo):p||h.call(this,s[o].callback,i,s[o].combo);var l="keypress"==i.type&&this._ignoreNextKeypress;return i.type!=this._nextExpectedAction||a(n)||l||t.call(this,c),this._ignoreNextKeypress=p&&"keydown"==i.type,s.length>0},this._handleKeyEvent=function(t){"number"!=typeof t.which&&(t.which=t.keyCode);var e=i(t);if(e)return"keyup"==t.type&&this._ignoreNextKeyup===e?(this._ignoreNextKeyup=!1,void 0):(this.handleKey(e,s(t),t),void 0)},this.bind=function(t,e,n){return t=t instanceof Array?t:[t],y.call(this,t,e,n),this},this.unbind=function(t,e){return this.bind(t,function(){},e)},this.trigger=function(t,e){return this._directMap[t+":"+e]&&this._directMap[t+":"+e].call(this,{},t),this},this.reset=function(){return this._callbacks={},this._directMap={},this},this.stopCallback=function(t,e){return(" "+e.className+" ").indexOf(" mousetrap ")>-1?!1:"INPUT"==e.tagName||"SELECT"==e.tagName||"TEXTAREA"==e.tagName||e.contentEditable&&"true"==e.contentEditable},this.connect=function(t){this._el=t,n(this._el,"keypress",this._handler),n(this._el,"keydown",this._handler),n(this._el,"keyup",this._handler)},this.disconnect=function(){r(this._el,"keypress",this._handler),r(this._el,"keydown",this._handler),r(this._el,"keyup",this._handler)},this.TRIGGER_PREFIX_COMBOS=!1,this.NOT_IN_EDITABLES=!1},f.prototype=new f.Prototype,e.exports=f},{}],28:[function(t,e){"use strict";var n={};n.VERSION="0.8.0",n.Graph=t("./src/graph");var r=t("underscore");n.defineNodeProperties=function(t,e,n){r.each(e,function(e){var r={get:function(){return this.properties[e]}};n||(r.set=function(t){return this.properties[e]=t,this}),Object.defineProperty(t,e,r)})},e.exports=n},{"./src/graph":30,underscore:151}],29:[function(t,e){"use strict";var n=t("substance-chronicle"),r=t("substance-operator"),i=function(t){this.graph=t,this.graph.state="ROOT"};i.Prototype=function(){this.apply=function(t){this.graph.__apply__(t),this.graph.updated_at=new Date(t.timestamp)},this.invert=function(t){return r.ObjectOperation.fromJSON(t).invert()},this.transform=function(t,e,n){return r.ObjectOperation.transform(t,e,n)},this.reset=function(){this.graph.reset()},this.getState=function(){return this.graph.state},this.setState=function(t){this.graph.state=t}},i.Prototype.prototype=n.Versioned.prototype,i.prototype=new i.Prototype,e.exports=i},{"substance-chronicle":15,"substance-operator":125}],30:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=r.errors,o=t("./schema"),s=t("./property"),a=t("substance-chronicle"),c=t("substance-operator"),u=t("./persistence_adapter"),h=t("./chronicle_adapter"),p=t("./graph_index"),l=i.define("GraphError"),d=["object","array","string","number","boolean","date"],f=function(t){return n.isArray(t)&&(t=t[0]),d.indexOf(t)>=0},g=function(t,e){if(e=e||{},this.schema=new o(t),this.schema.id&&e.seed&&e.seed.schema&&!n.isEqual(e.seed.schema,[this.schema.id,this.schema.version]))throw new l(["Graph does not conform to schema. Expected: ",this.schema.id+"@"+this.schema.version," Actual: ",e.seed.schema[0]+"@"+e.seed.schema[1]].join(""));if(this.objectAdapter=new g.ObjectAdapter(this),this.nodes={},this.indexes={},this.__mode__=e.mode||g.DEFAULT_MODE,this.__seed__=e.seed,this.isVersioned=!!e.chronicle,this.isPersistent=!!e.store,this.isVersioned&&(this.chronicle=e.chronicle,this.chronicle.manage(new g.ChronicleAdapter(this))),this.isPersistent){var r=e.store.hash("nodes");this.__store__=e.store,this.__nodes__=r,this.isVersioned&&(this.__version__=e.store.hash("__version__")),this.objectAdapter=new u(this.objectAdapter,r)}e.load?this.load():this.init(),e.graph&&this.merge(e.graph)};g.Prototype=function(){n.extend(this,r.Events);var t=new g.Private;this.create=function(t){var e=c.ObjectOperation.Create([t.id],t);return this.apply(e)},this.delete=function(t){var e=this.get(t);if(void 0===e)throw new l("Could not resolve a node with id "+t);e.toJSON&&(e=e.toJSON());var n=c.ObjectOperation.Delete([t],e);return this.apply(n)},this.update=function(t,e){var r=this.resolve(t);if(!r)throw new l("Could not resolve property with path "+JSON.stringify(t));if(n.isArray(e))if("string"===r.baseType)e=c.TextOperation.fromSequence(r.get(),e);else{if("array"!==r.baseType)throw new l("There is no convenient notation supported for this type: "+r.baseType);e=c.ArrayOperation.create(r.get(),e)}if(e){var i=c.ObjectOperation.Update(t,e,r.baseType);return this.apply(i)}},this.set=function(t,e){var n=this.resolve(t);if(!n)throw new l("Could not resolve property with path "+JSON.stringify(t));var r=n.get(),i=c.ObjectOperation.Set(t,r,e);return this.apply(i)},this.__apply__=function(t){c.Helpers.each(t,function(t){t instanceof c.ObjectOperation||(t=c.ObjectOperation.fromJSON(t)),t.apply(this.objectAdapter),this.updated_at=new Date,this._internalUpdates(t),n.each(this.indexes,function(e){e.onGraphChange(t)},this),this.trigger("operation:applied",t,this)},this)},this._internalUpdates=function(t){c.Helpers.each(t,function(t){n.each(this.indexes,function(e){e.onGraphChange(t)},this)},this)},this.apply=function(t){return this.__apply__(t),!this.__is_initializing__&&this.isVersioned&&(t.timestamp=new Date,this.chronicle.record(r.clone(t))),t},this.get=function(t){if(void 0===t||null===t)throw new l("Invalid argument: provided undefined or null.");if(!n.isArray(t)&&!n.isString(t))throw new l("Invalid argument path. Must be String or Array");if(n.isString(t))return this.nodes[t];var e=this.resolve(t);return e.get()},this.query=function(e){var n=this.resolve(e),r=n.type,i=n.baseType,o=n.get();return"array"===i?t.queryArray.call(this,o,r):f(i)?o:this.get(o)},this.toJSON=function(){return{id:this.id,schema:[this.schema.id,this.schema.version],nodes:r.deepclone(this.nodes)}},this.contains=function(t){return!!this.nodes[t]},this.resolve=function(t){return new s(this,t)},this.reset=function(){this.isPersistent&&this.__nodes__&&this.__nodes__.clear(),this.init(),this.isVersioned&&(this.state=a.ROOT),this.trigger("graph:reset")},this.init=function(){this.__is_initializing__=!0,this.nodes=this.__seed__?r.clone(this.__seed__.nodes):{},n.each(this.indexes,function(t){t.reset()}),this.isPersistent&&n.each(this.nodes,function(t,e){this.__nodes__.set(e,t)},this),delete this.__is_initializing__},this.merge=function(t){return n.each(t.nodes,function(t){this.create(t)},this),this},this.traverse=function(t){return n.map(this.getView(t),function(t){return this.get(t)},this)},this.load=function(){if(!this.isPersistent)return console.log("Graph is not persistent."),void 0;this.__is_initializing__=!0,this.nodes={},this.indexes={};for(var e=this.__nodes__.keys(),n=0;n<e.length;n++)t.create.call(this,this.__nodes__.get(e[n]));return this.isVersioned&&(this.state=this.__version__.get("state")||"ROOT"),delete this.__is_initializing__,this},this.cotransform=function(t,e){if("create"===e.type)t.create(e.val);else if("delete"===e.type)t.delete(e.val);else{var r=this.resolve(e.path);if(void 0===r)throw new Error("Key error: could not find element for path "+JSON.stringify(e.path));var i,o=r.get();if(void 0===o)return;if("set"===e.type)i=e.original;else{var s=c.Helpers.invert(e.diff,r.baseType);i=s.apply(n.clone(o))}t.update(r.node,r.key,o,i)}},this.addIndex=function(t,e){if(this.indexes[t])return this.indexes[t];var n=new p(this,e);return this.indexes[t]=n,n},this.getIndex=function(t){if(!this.indexes[t])throw new l("No index available with name:"+t);return this.indexes[t]},this.removeIndex=function(t){delete this.indexes[t]},this.enableVersioning=function(t){this.isVersioned||(t||(t=a.create()),this.chronicle=t,this.chronicle.manage(new g.ChronicleAdapter(this)),this.isVersioned=!0)}},g.STRICT_INDEXING=2,g.DEFAULT_MODE=g.STRICT_INDEXING,g.Private=function(){var t=this;this.createNode=function(t,e){if(!e.id||!e.type)throw new l("Can not create Node: 'id' and 'type' are mandatory.");var i=t.type(e.type);if(!i)throw new l("Type '"+e.type+"' not found in the schema");var o=t.properties(e.type),s={type:e.type,id:e.id};return n.each(o,function(n,i){var o=t.propertyBaseType(e.type,i),a=void 0!==e[i]?e[i]:t.defaultValue(o);s[i]=r.deepclone(a)}),s},this.create=function(e){var n=t.createNode(this.schema,e);if(this.contains(n.id))throw new l("Node already exists: "+n.id);return this.nodes[n.id]=n,this.trigger("node:created",n),this},this.delete=function(t){delete this.nodes[t.id],this.trigger("node:deleted",t.id)},this.set=function(t,e){var n=this.resolve(t);if(void 0===n)throw new Error("Key error: could not find element for path "+JSON.stringify(t));var i=r.deepclone(n.get());n.set(e),this.trigger("property:updated",t,null,i,e)};var e=function(t,e){c.Helpers.each(e,function(e){this.trigger("property:updated",t,e,this)},this)};this.update=function(t,n,r){var i=this.resolve(t);if(void 0===i)throw new Error("Key error: could not find element for path "+JSON.stringify(t));i.set(n),e.call(this,t,r)},this.queryArray=function(e,r){if(!n.isArray(r))throw new l("Illegal argument: array types must be specified as ['array'(, 'array')*, <type>]");
-var i,o;if("array"===r[1])for(i=[],o=0;o<e.length;o++)i.push(t.queryArray.call(this,e[o],r.slice(1)));else if(f(r[1]))i=e;else for(i=[],o=0;o<e.length;o++)i.push(this.get(e[o]));return i}},g.prototype=new g.Prototype,g.ObjectAdapter=function(t){this.graph=t},g.ObjectAdapter.Prototype=function(){var t=new g.Private;this.get=function(t){var e=this.graph.resolve(t);if(void 0===e)throw new Error("Key error: could not find element for path "+JSON.stringify(t));return e.get()},this.create=function(e,n){t.create.call(this.graph,n)},this.set=function(e,n){t.set.call(this.graph,e,n)},this.update=function(e,n,r){t.update.call(this.graph,e,n,r)},this.delete=function(e,n){t.delete.call(this.graph,n)},this.inplace=function(){return!1}},g.ObjectAdapter.Prototype.prototype=c.ObjectOperation.Object.prototype,g.ObjectAdapter.prototype=new g.ObjectAdapter.Prototype,g.Schema=o,g.Property=s,g.PersistenceAdapter=u,g.ChronicleAdapter=h,g.Index=p,e.exports=g},{"./chronicle_adapter":29,"./graph_index":31,"./persistence_adapter":32,"./property":33,"./schema":34,"substance-chronicle":15,"substance-operator":125,"substance-util":144,underscore:151}],31:[function(t,e){var n=t("underscore"),r=t("substance-util"),i=function(t,e){e=e||{},this.graph=t,this.nodes={},this.scopes={},e.filter?this.filter=e.filter:e.types&&(this.filter=i.typeFilter(t.schema,e.types)),e.property&&(this.property=e.property),this.createIndex()};i.Prototype=function(){var t=function(t){var e=this;if(null!==t)for(var n=0;n<t.length;n++){var r=t[n];e.scopes[r]=e.scopes[r]||{nodes:{},scopes:{}},e=e.scopes[r]}return e},e=function(t){if(!this.property)return null;var e=t[this.property]?t[this.property]:null;return n.isString(e)&&(e=[e]),e},r=function(t){var e=n.extend({},t.nodes);return n.each(t.scopes,function(t,i){"nodes"!==i&&n.extend(e,r(t))}),e},i=function(e,n){var r=t.call(this,e);r.nodes[n.id]=n.id},o=function(e,n){var r=t.call(this,e);delete r.nodes[n.id]};this.onGraphChange=function(t){var r=this,s={create:function(t){if(!r.filter||r.filter(t)){var n=e.call(r,t);i.call(r,n,t)}},"delete":function(t){if(!r.filter||r.filter(t)){var n=e.call(r,t);o.call(r,n,t)}},update:function(t,e,s,a){if(r.property===e&&(!r.filter||r.filter(t))){var c=a;n.isString(c)&&(c=[c]),o.call(r,c,t),c=s,n.isString(c)&&(c=[c]),i.call(r,c,t)}}};this.graph.cotransform(s,t)},this.createIndex=function(){this.reset();var t=this.graph.nodes;n.each(t,function(t){if(!this.filter||this.filter(t)){var n=e.call(this,t);i.call(this,n,t)}},this)},this.get=function(e){0===arguments.length?e=null:n.isString(e)&&(e=[e]);var i,o=t.call(this,e);return i=r(o),n.each(i,function(t){i[t]=this.graph.get(t)},this),i},this.reset=function(){this.nodes={},this.scopes={}},this.dispose=function(){this.stopListening()}},i.prototype=n.extend(new i.Prototype,r.Events.Listener),i.typeFilter=function(t,e){return function(n){for(var r=t.typeChain(n.type),i=0;i<e.length;i++)if(r.indexOf(e[i])>=0)return!0;return!1}},e.exports=i},{"substance-util":144,underscore:151}],32:[function(t,e){"use strict";var n=t("substance-operator"),r=function(t,e){this.delegate=t,this.nodes=e};r.Prototype=function(){this.get=function(t){return this.delegate.get(t)},this.create=function(t,e){this.delegate.create(t,e),this.nodes.set(e.id,e)},this.set=function(t,e){this.delegate.set(t,e);var n=t[0],r=this.delegate.get([n]);this.nodes.set(n,r)},this.delete=function(t,e){this.delegate.delete(t,e),this.nodes.delete(e.id)},this.inplace=function(){return!1}},r.Prototype.prototype=n.ObjectOperation.Object.prototype,r.prototype=new r.Prototype,e.exports=r},{"substance-operator":125}],33:[function(t,e){"use strict";var n=t("underscore"),r=function(t,e){if(!e)throw new Error("Illegal argument: path is null/undefined.");this.graph=t,this.schema=t.schema;var r=this.resolve(e);return void 0===r?void 0:(n.extend(this,r),void 0)};r.Prototype=function(){this.resolve=function(t){for(var e,n,r=this.graph,i=r,o="graph",s=0;s<t.length;s++)if("graph"===o||void 0!==this.schema.types[o]){if(i=this.graph.get(t[s]),void 0===i)return void 0;r=i,o=this.schema.properties(i.type),n=r,e=void 0}else{if(void 0===i)return void 0;e=t[s];var a=t[s];o=o[a],n=i[e],s<t.length-1&&(i=i[a])}return{node:r,parent:i,type:o,key:e,value:n}},this.get=function(){return void 0!==this.key?this.parent[this.key]:this.node},this.set=function(t){if(void 0===this.key)throw new Error("'set' is only supported for node properties.");this.parent[this.key]=this.schema.parseValue(this.baseType,t)}},r.prototype=new r.Prototype,Object.defineProperties(r.prototype,{baseType:{get:function(){return n.isArray(this.type)?this.type[0]:this.type}},path:{get:function(){return[this.node.id,this.key]}}}),e.exports=r},{underscore:151}],34:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=function(t){n.extend(this,t)};i.Prototype=function(){this.defaultValue=function(t){return"object"===t?{}:"array"===t?[]:"string"===t?"":"number"===t?0:"boolean"===t?!1:"date"===t?new Date:null},this.parseValue=function(t,e){if(null===e)return e;if(n.isString(e)){if("object"===t)return JSON.parse(e);if("array"===t)return JSON.parse(e);if("string"===t)return e;if("number"===t)return parseInt(e,10);if("boolean"===t){if("true"===e)return!0;if("false"===e)return!1;throw new Error("Can not parse boolean value from: "+e)}return"date"===t?new Date(e):e}if("array"===t){if(!n.isArray(e))throw new Error("Illegal value type: expected array.");e=r.deepclone(e)}else if("string"===t){if(!n.isString(e))throw new Error("Illegal value type: expected string.")}else if("object"===t){if(!n.isObject(e))throw new Error("Illegal value type: expected object.");e=r.deepclone(e)}else if("number"===t){if(!n.isNumber(e))throw new Error("Illegal value type: expected number.")}else if("boolean"===t){if(!n.isBoolean(e))throw new Error("Illegal value type: expected boolean.")}else{if("date"!==t)throw new Error("Unsupported value type: "+t);e=new Date(e)}return e},this.type=function(t){return this.types[t]},this.typeChain=function(t){var e=this.types[t];if(!e)throw new Error("Type "+t+" not found in schema");var n=e.parent?this.typeChain(e.parent):[];return n.push(t),n},this.isInstanceOf=function(t,e){var n=this.typeChain(t);return n&&n.indexOf(e)>=0?!0:!1},this.baseType=function(t){return this.typeChain(t)[0]},this.properties=function(t){t=n.isObject(t)?t:this.type(t);var e=t.parent?this.properties(t.parent):{};return n.extend(e,t.properties),e},this.propertyType=function(t,e){var r=this.properties(t),i=r[e];if(!i)throw new Error("Property not found for"+t+"."+e);return n.isArray(i)?i:[i]},this.propertyBaseType=function(t,e){return this.propertyType(t,e)[0]}},i.prototype=new i.Prototype,e.exports=i},{"substance-util":144,underscore:151}],35:[function(t,e){"use strict";t("underscore");var n=t("./src/document");n.Annotator=t("./src/annotator"),n.Cursor=t("./src/cursor"),n.Selection=t("./src/selection"),n.Container=t("./src/container"),n.Session=t("./src/document_session"),e.exports=n},{"./src/annotator":36,"./src/container":37,"./src/cursor":38,"./src/document":39,"./src/document_session":40,"./src/selection":42,underscore:151}],36:[function(t,e){"use strict";var n,r=t("underscore"),i=t("substance-util"),o=t("./document"),s=t("substance-operator"),a=function(t){this.config=n(t),t.addIndex("annotations",{types:["annotation"],property:"path"}),this.document=t};a.Prototype=function(){this.update=function(e,n){n=n||{};var i=n.path||e.path,o=this.document.getIndex("annotations"),s=o.get(i);r.each(s,function(r){t(this,r,e,n)},this)},this.copy=function(){throw new Error("FIXME: this must be updated considering the other API changes.")},this.paste=function(){throw new Error("FIXME: this must be updated considering the other API changes.")},this.transferAnnotations=function(t,e,n,o){o=o||0;var s=a(this,t,{start:e});r.each(s,function(t){var s,a=e>t.range[0]||e[1]<t.range[1];if(a){if(this.isSplittable(t.type)){var c=i.clone(t);c.range=[o,o+t.range[1]-e],c.id=i.uuid(),this.document.create(c)}s=r.clone(t.range),s[1]=e,s[1]===s[0]?this.document.delete(t.id):this.document.set([t.id,"range"],s)}else{var u=r.clone(t.path);u[0]=n.id,this.document.set([t.id,"path"],u),s=[o+t.range[0]-e,o+t.range[1]-e],this.document.set([t.id,"range"],s)}},this)},this.getAnnotationsForNode=function(t){return this.index.get(t)},this.getAnnotations=function(t){if(!(t instanceof o.Selection))throw new Error("API has changed: now getAnnotations() takes only a selection.");for(var e=[],r=t.getRanges(),i=0;i<r.length;i++){var s=r[i],a=n(this,this.document,s);e=e.concat(a)}return e},this.isExclusive=function(t,e){return this.config.groups[t]===this.config.groups[e]},this.isSplittable=function(t){return this.config.split.indexOf(t)>=0};var t=function(t,e,n,o){var a=o.path||n.path;if(r.isEqual(e.path,a))if("update"===n.type){var c=!1,u=!1,h=t.config.expansion[e.type];h&&(h.left&&(c=h.left(e)),h.right&&(u=h.right(e)));var p=i.clone(e.range),l=s.TextOperation.Range.transform(p,n.diff,c,u);l&&(p[0]===p[1]?t.document.delete(e.id):t.document.set([e.id,"range"],p))}else("delete"===n.type||"set"===n.type)&&t.document.delete(e.id)},e=function(t,e,n){var i=n.start,o=n.end,s=e.range[0],a=e.range[1],c=!1,u=!1,h=t.config.expansion[e.type];h&&(h.left&&(c=h.left(e)),h.right&&(u=h.right(e)));var p;return p=u?a>=i:a>i,r.isNumber(o)&&(p&=c?o>=s:o>s),p},n=function(t,n,i){var o,s=[],a=i.component,c=n.getIndex("annotations");if("node"===a.type){var u=a.node;o=c.get(u.id)}else"property"===a.type?o=c.get(a.path):"custom"===a.type?o=c.get(a.path):console.error("FIXME");return r.each(o,function(n){e(t,n,i)&&s.push(n)}),s},a=function(t,n,i){var o=[],s=t.document.getIndex("annotations"),a=s.get(n.id);return r.each(a,function(n){e(t,n,i)&&o.push(n)}),o}},a.Prototype.prototype=i.Events,a.prototype=new a.Prototype,a.isOnNodeStart=function(t){return 0===t.range[0]},a.isTrue=function(){return!0};var c=function(t,e,n){var r=t.getSchema();return r.isInstanceOf(e.type,n)};a.changesAnnotations=function(t,e,n){var i;i="delete"===e.type?e.val:t.get(e.path[0]);var o=!1;return c(t,i,"annotation")&&(r.isEqual(n,i.path)?o=!0:"set"===e.type&&"path"===e.path[1]&&(r.isEqual(n,e.original)||r.isEqual(n,e.val))&&(o=!0)),o},a.createIndex=function(t){return t.addIndex("annotations",{types:["annotation"],property:"path"})},n=function(t){if(t.constructor&&t.constructor.annotationBehavior)return t.constructor.annotationBehavior;throw new Error("No Annotation behavior specified.")},e.exports=a},{"./document":39,"substance-operator":125,"substance-util":144,underscore:151}],37:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),r=t("substance-util"),i=r.errors,o=i.define("ContainerError"),s=function(t,e,n){this.document=t,this.name=e;var r=this.document.get(e);if(!r||"view"!==r.type)throw new o("Illegal argument: no view with name "+e);this.view=r,this.__components=null,this.__roots=null,this.__children=null,this.surfaces=n||new s.DefaultNodeSurfaceProvider(t),this.rebuild(),this.listenTo(this.document,"operation:applied",this.update)};s.Prototype=function(){n.extend(this,r.Events),this.rebuild=function(){for(var t=[],e=[],r={},i=this.document.get(this.name),s=i.nodes,a=0;a<s.length;a++){var c=s[a],u=this.surfaces.getNodeSurface(c);if(!u)throw new o("Aaaaah! no surface available for node "+c);var h=u.components;if(!h)throw new o("Node Surface did not provide components: "+u.node.type);r[c]=[];for(var p=0;p<h.length;p++){var l=n.clone(h[p]);l.pos=t.length,l.nodePos=a,r[c].push(l),t.push(l),e.push(s[a])}}this.__components=t,this.__roots=e,this.__children=r,this.view=i},this.getComponents=function(){return this.__components||this.rebuild(),this.__components},this.lookup=function(t){for(var e=this.getComponents(),r=0;r<e.length;r++){var i=e[r];if(n.isEqual(i.path,t))return i}if(1===t.length)for(var o=t[0],s=this.__roots,a=0;a<s.length;a++)if(s[a]===o)return e[a];return console.error("Could not find a view component for path "+JSON.stringify(t)),null},this.getNodes=function(t){var e=this.view.nodes;if(t)return n.clone(e);for(var r=[],i=0;i<e.length;i++)r.push(this.document.get(e[i]));return r},this.update=function(t){var e=t.path,n=!this.__components||e[0]===this.view.id;n&&this.rebuild()},this.getLength=function(t){var e=this.getComponents();return void 0===t?e.length:e[t].getLength()},this.getRootNodeFromPos=function(t){return this.__roots||this.rebuild(),this.document.get(this.__roots[t])},this.getNodePos=function(t){this.__roots||this.rebuild();var e=this.__roots[t];return this.view.nodes.indexOf(e)},this.lookupRootNode=function(t){for(var e=this.getComponents(),n=0;n<e.length;n++){var r=e[n];switch(r.type){case"node":if(r.node.id===t)return this.__roots[n];break;case"property":if(r.path[0]===t)return this.__roots[n]}}return console.error("Could not find a root node for the given id:"+t),null},this.getComponent=function(t){var e=this.getComponents();return e[t]},this.getNodeComponents=function(t){var e=this.__children[t];if(!e)throw new o("Node is not in this container:"+t);return e},this.dispose=function(){this.stopListening()},this.createContainer=function(t){return new s(t,this.name,this.surfaces.createCopy(t))}},s.prototype=n.extend(new s.Prototype,r.Events.Listener),Object.defineProperties(s.prototype,{id:{get:function(){return this.view.id}},type:{get:function(){return this.view.type}},nodes:{get:function(){return this.view.nodes},set:function(t){this.view.nodes=t}}}),s.DefaultNodeSurfaceProvider=t("./node_surface_provider"),s.ContainerError=o,e.exports=s},{"./node_surface_provider":41,"substance-util":144,underscore:151}],38:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=r.errors,o=i.define("CursorError"),s=function(t,e,r,i){if(this.container=t,this.view=i||"content",this.pos=e,this.charPos=r,null!==e&&!n.isNumber(e))throw new o("Illegal argument: expected pos as number");if(null!==r&&!n.isNumber(r))throw new o("Illegal argument: expected charPos as number")};s.Prototype=function(){this.copy=function(){return new s(this.container,this.pos,this.charPos,this.view)},this.isValid=function(){if(null===this.pos||null===this.charPos)return!1;if(this.pos<0||this.charPos<0)return!1;var t=this.container.getLength(this.pos);return this.charPos>=t?!1:!0},this.isRightBound=function(){return this.charPos===this.container.getLength(this.pos)},this.isLeftBound=function(){return 0===this.charPos},this.isEndOfDocument=function(){return this.isRightBound()&&this.pos===this.container.getLength()-1},this.isBeginOfDocument=function(){return this.isLeftBound()&&0===this.pos},this.prevNode=function(){this.isLeftBound()?this.pos>0&&(this.pos-=1,this.charPos=this.container.getLength(this.pos)):this.charPos=0},this.nextNode=function(){this.isRightBound()?this.pos<this.container.getLength()-1&&(this.pos+=1,this.charPos=0):this.charPos=this.container.getLength(this.pos)},this.prevWord=function(){throw new Error("Not implemented")},this.nextWord=function(){throw new Error("Not implemented")},this.nextChar=function(){this.isRightBound()?this.pos<this.container.getLength()-1&&(this.pos+=1,this.charPos=0):this.charPos+=1},this.prevChar=function(){if(this.charPos<0)throw new o("Invalid char position");this.isLeftBound()?this.pos>0&&(this.pos-=1,this.charPos=this.container.getLength(this.pos)):this.charPos-=1},this.move=function(t,e){"left"===t?"word"===e?this.prevWord():"char"===e?this.prevChar():"node"===e&&this.prevNode():"word"===e?this.nextWord():"char"===e?this.nextChar():"node"===e&&this.nextNode()},this.set=function(t,e){if(null!==t&&!n.isNumber(t))throw new o("Illegal argument: expected pos as number");if(null!==e&&!n.isNumber(e))throw new o("Illegal argument: expected charPos as number");if(null!==t){if(!n.isNumber(t))throw new o("Illegal argument: expected pos as number");var r=this.container.getLength();if(0>t||t>=r)throw new o("Invalid node position: "+t);var i=this.container.getLength(t);if(0>e||e>i)throw new o("Invalid char position: "+e)}this.pos=t,this.charPos=e},this.position=function(){return[this.pos,this.charPos]}},s.prototype=new s.Prototype,e.exports=s},{"substance-util":144,underscore:151}],39:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=r.errors,o=t("substance-data"),s=t("substance-operator"),a=i.define("DocumentError"),c=function(t){o.Graph.call(this,t.schema,t)};c.schema={indexes:{},types:{content:{properties:{}},view:{properties:{nodes:["array","content"]}}}},c.Prototype=function(){var t=r.prototype(this);this.getIndex=function(t){return this.indexes[t]},this.getSchema=function(){return this.schema},this.create=function(e){return t.create.call(this,e),this.get(e.id)},this.get=function(e){var n=t.get.call(this,e);if(!n)return n;var r=this.nodeTypes[n.type],i=void 0!==r?r.Model:null;return!i||n instanceof i||(n=new i(n,this),this.nodes[n.id]=n),n},this.toJSON=function(){var e=t.toJSON.call(this);return e.id=this.id,e},this.hide=function(t,e){var r=this.get(t);if(!r)throw new a("Invalid view id: "+t);n.isString(e)&&(e=[e]);var i=[];if(n.each(e,function(t){var e=r.nodes.indexOf(t);e>=0&&i.push(e)},this),0!==i.length){i=i.sort().reverse(),i=n.uniq(i);var o=n.map(i,function(t){return s.ArrayOperation.Delete(t,r.nodes[t])}),c=s.ObjectOperation.Update([t,"nodes"],s.ArrayOperation.Compound(o));return this.apply(c)}},this.comment=function(t){var e=r.uuid();t.id=e,t.type="comment";var n=s.ObjectOperation.Create([t.id],t);return this.__apply__(n)},this.annotate=function(t,e){t.id=t.type+"_"+r.uuid(),n.extend(t,e),this.create(t)},this.show=function(t,e,r){void 0===r&&(r=-1);var i=this.get(t);if(!i)throw new a("Invalid view id: "+t);n.isString(e)&&(e=[e]);var o=i.nodes.length;r=Math.min(r,o),0>r&&(r=Math.max(0,o+r+1));for(var c=[],u=0;u<e.length;u++){var h=e[u];if(void 0===this.nodes[h])throw new a("Invalid node id: "+h);c.push(s.ArrayOperation.Insert(r+u,h))}if(c.length>0){var p=s.ObjectOperation.Update([t,"nodes"],s.ArrayOperation.Compound(c));return this.apply(p)}},this.startSimulation=function(){var t=this,e=this.fromSnapshot(this.toJSON()),n=[];e.ops=n;var r=e.apply;return e.apply=function(t){return n.push(t),t=r.call(e,t)},e.save=function(){for(var e=[],r=0;r<n.length;r++)"compound"!==n[r].type?e.push(n[r]):e=e.concat(n[r].ops);if(0!==e.length){var i=s.ObjectOperation.Compound(e);t.apply(i)}},e},this.fromSnapshot=function(t,e){return c.fromSnapshot(t,e)},this.uuid=function(t){return t+"_"+r.uuid()}},c.Prototype.prototype=o.Graph.prototype,c.prototype=new c.Prototype,c.fromSnapshot=function(t,e){return e=e||{},e.seed=t,new c(e)},c.DocumentError=a,e.exports=c},{"substance-data":28,"substance-operator":125,"substance-util":144,underscore:151}],40:[function(t,e){"use strict";var n=t("./annotator"),r=t("./selection"),i=function(t){this.document=t.document,this.container=t,this.annotator=new n(this.document),this.selection=new r(this.container)};i.Prototype=function(){this.startSimulation=function(){var t=this.document.startSimulation(),e=new n(t),i=this.container.createContainer(t),o=new r(i,this.selection);return{document:t,view:i.name,selection:o,annotator:e,container:i,dispose:function(){i.dispose()},save:function(){t.save(),this.dispose()}}},this.dispose=function(){this.container.dispose()}},i.prototype=new i.Prototype,Object.defineProperties(i.prototype,{view:{get:function(){return this.container.name},set:function(){throw new Error("Immutable.")}}}),e.exports=i},{"./annotator":36,"./selection":42}],41:[function(t,e){"use strict";var n=t("underscore"),r=function(t){this.document=t,this.nodeTypes=this.document.constructor.nodeTypes,this.nodeSurfaces={}};r.Prototype=function(){this.getNodeSurface=function(t){var e,i;if(n.isString(t)?e=t:(i=t,e=i.id),!this.nodeSurfaces[e]){var o;if(i=i||this.document.get(e),!i)throw new Error("Unknown node: "+e);var s=this.nodeTypes[i.type].Surface;s?o=new s(i,this):(console.log("No surface available for node type",i.type,". Using Stub."),o=new r.EmptySurface(i)),this.nodeSurfaces[e]=o}return this.nodeSurfaces[e]},this.createCopy=function(t){return new r(t)}},r.prototype=new r.Prototype,r.EmptySurface=function(t){this.node=t,this.view=null,this.components=[]},e.exports=r},{underscore:151}],42:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=r.errors,o=t("./cursor"),s=i.define("SelectionError"),a=function(t,e){this.container=t,this.start=null,this.__cursor=new o(t,null,null),e&&this.set(e)};a.Prototype=function(){this.copy=function(){var t=new a(this.container);return this.isNull()||t.set(this),t},this.set=function(t){var e=this.__cursor;t instanceof a?(this.start=n.clone(t.start),e.set(t.__cursor.pos,t.__cursor.charPos)):n.isArray(t)?(this.start=n.clone(t),e.set(t[0],t[1])):(this.start=n.clone(t.start),e.set(t.end[0],t.end[1]));var r=this.start,i=this.container.getLength();if(r[0]<0||r[0]>=i)throw new s("Invalid node position: "+r[0]);var o=this.container.getLength(r[0]);if(r[1]<0||r[1]>o)throw new s("Invalid char position: "+r[1]);return this.trigger("selection:changed",this.range()),this},this.clear=function(){this.start=null,this.__cursor.set(null,null),this.trigger("selection:changed",null)},this.range=function(){if(this.isNull())return null;var t=this.start,e=this.__cursor.position();return this.isReverse()?{start:e,end:t}:{start:t,end:e}},this.isReverse=function(){var t=this.__cursor;return t.pos<this.start[0]||t.pos===this.start[0]&&t.charPos<this.start[1]},this.setCursor=function(t){return this.__cursor.set(t[0],t[1]),this.start=t,this},this.getCursor=function(){return this.__cursor.copy()},this.getCursorPosition=function(){return[this.__cursor.pos,this.__cursor.charPos]},this.selectNode=function(t){var e=this.container.getNodeComponents(t),n=e[0],r=e[e.length-1],i=this.container.getLength(r.pos);this.set({start:[n.pos,0],end:[r.pos,i]})},this.getPredecessor=function(){throw new Error("Not supported anymore")},this.getSuccessor=function(){throw new Error("Not supported anymore")},this.hasPredecessor=function(t){return t>0},this.hasSuccessor=function(t){var e=this.container.getLength();return e-1>t},this.collapse=function(t){if("right"!==t&&"left"!==t&&"start"!==t&&"cursor"!==t)throw new s("Invalid direction: "+t);if(!this.isCollapsed()&&!this.isNull()){if("start"===t)this.__cursor.set(this.start[0],this.start[1]);else if("cursor"===t)this.start[0]=this.__cursor.pos,this.start[1]=this.__cursor.charPos;else{var e=this.range();this.isReverse()?"left"===t?this.start=e.start:this.__cursor.set(e.end[0],e.end[1]):"left"===t?this.__cursor.set(e.start[0],e.start[1]):this.start=e.end}this.trigger("selection:changed",this.range())}},this.move=function(t,e){this.isCollapsed()||"char"!==e?(this.__cursor.move(t,e),this.start=this.__cursor.position()):this.collapse(t),this.trigger("selection:changed",this.range())},this.expand=function(t,e){this.__cursor.move(t,e),this.trigger("selection:changed",this.range())},this.toJSON=function(){return this.range()},this.getNodes=function(){throw new Error("This method has been removed, as it is not valid anymore after the Container refactor.")},this.getRanges=function(){for(var t=[],e=this.range(),r=e.start[0];r<=e.end[0];r++){var i=0,o=null;r===e.start[0]&&(i=e.start[1]),r===e.end[0]&&(o=e.end[1]),n.isNumber(o)||(o=this.container.getLength(r)),t.push(new a.Range(this,r,i,o))}return t},this.startNode=function(){return this.isReverse()?this.__cursor.pos:this.start[0]},this.endNode=function(){return this.isReverse()?this.start[0]:this.__cursor.pos},this.startChar=function(){return this.isReverse()?this.__cursor.charPos:this.start[1]},this.endChar=function(){return this.isReverse()?this.start[1]:this.__cursor.charPos},this.isNull=function(){return null===this.start},this.isCollapsed=function(){return this.start[0]===this.__cursor.pos&&this.start[1]===this.__cursor.charPos},this.hasMultipleNodes=function(){return!this.isNull()&&this.startNode()!==this.endNode()}},a.Prototype.prototype=r.Events,a.prototype=new a.Prototype,Object.defineProperties(a.prototype,{cursor:{get:function(){return this.__cursor.copy()},set:function(){throw"immutable property"}}});var c=function(t,e,n,r){this.selection=t,this.pos=e,this.start=n,this.end=r,this.component=t.container.getComponent(e)};c.Prototype=function(){this.isFirst=function(){return this.pos===this.selection.startNode()},this.isLast=function(){return this.pos===this.selection.endNode()},this.hasPredecessor=function(){return!this.isFirst()},this.hasSuccessor=function(){return!this.isLast()},this.isEnclosed=function(){return this.hasPredecessor()&&this.hasSuccessor()},this.isRightBound=function(){return this.end===this.component.getLength()},this.isLeftBound=function(){return 0===this.start},this.length=function(){return this.end-this.start},this.content=function(){throw new Error("Not supported anymore")},this.isFull=function(){return this.isLeftBound()&&this.isRightBound()},this.isPartial=function(){return!this.isFull()}},c.prototype=new c.Prototype,Object.defineProperties(c.prototype,{node:{get:function(){throw new Error("Not supported anymore")},set:function(){throw new Error("Not supported anymore")}}}),a.Range=c,a.SelectionError=s,e.exports=a},{"./cursor":38,"substance-util":144,underscore:151}],43:[function(t,e){"use strict";e.exports={node:t("./src/node"),text:t("./src/text"),heading:t("./src/heading"),codeblock:t("./src/codeblock"),image:t("./src/image"),figure:t("./src/figure"),contributor:t("./src/contributor"),cover:t("./src/cover"),citation:t("./src/citation"),annotation:t("./src/annotation"),emphasis:t("./src/emphasis"),strong:t("./src/strong"),subscript:t("./src/subscript"),superscript:t("./src/superscript"),code:t("./src/code"),link:t("./src/link"),math:t("./src/math"),issue:t("./src/issue"),remark:t("./src/remark"),error:t("./src/error"),figure_reference:t("./src/figure_reference"),citation_reference:t("./src/citation_reference"),cross_reference:t("./src/cross_reference"),remark_reference:t("./src/remark_reference"),error_reference:t("./src/error_reference"),paragraph:t("./src/paragraph"),list:t("./src/list"),table:t("./src/table"),formula:t("./src/formula")}},{"./src/annotation":45,"./src/citation":49,"./src/citation_reference":51,"./src/code":53,"./src/codeblock":56,"./src/contributor":59,"./src/cover":63,"./src/cross_reference":65,"./src/emphasis":67,"./src/error":70,"./src/error_reference":72,"./src/figure":76,"./src/figure_reference":78,"./src/formula":81,"./src/heading":84,"./src/image":87,"./src/issue":88,"./src/link":92,"./src/list":94,"./src/math":97,"./src/node":99,"./src/paragraph":104,"./src/remark":107,"./src/remark_reference":110,"./src/strong":112,"./src/subscript":114,"./src/superscript":116,"./src/table":118,"./src/text":121}],44:[function(t,e){"use strict";var n=t("../node/node");t("underscore");var r=function(t,e){n.call(this,t,e)};r.type={id:"annotation",properties:{path:["array","string"],range:"object"}},r.description={name:"Annotation",remarks:["Abstract type for all available annotations"],properties:{path:"References node and property in the graph.",range:"Tuple describing start and end character offset."}},r.example={type:"emphasis",id:"emphasis_1",path:["text_54","content"],range:[85,95]},r.Prototype=function(){this.getContent=function(){var t=this.document.get(this.path),e=this.range;return t.substring(e[0],e[1])}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),e.exports=r},{"../node/node":100,underscore:151}],45:[function(t,e){"use strict";e.exports={Model:t("./annotation")}},{"./annotation":44}],46:[function(t,e){var n=t("../node/node"),r=function(t,e){n.call(this,t,e)};r.type={id:"article_citation",parent:"content",properties:{source_id:"string",title:"string",label:"string",authors:["array","string"],doi:"string",source:"string",volume:"string",publisher_name:"string",publisher_location:"string",fpage:"string",lpage:"string",year:"string",citation_urls:["array","string"]}},r.description={name:"Citation",remarks:["A journal citation.","This element can be used to describe all kinds of citations."],properties:{title:"The article's title",label:"Optional label (could be a number for instance)",doi:"DOI reference",source:"Usually the journal name",volume:"Issue number",publisher_name:"Publisher Name",publisher_location:"Publisher Location",fpage:"First page",lpage:"Last page",year:"The year of publication",citation_urls:"A list of links for accessing the article on the web"}},r.example={id:"article_nature08160",type:"article_citation",label:"5",title:"The genome of the blood fluke Schistosoma mansoni",authors:["M Berriman","BJ Haas","PT LoVerde"],doi:"http://dx.doi.org/10.1038/nature08160",source:"Nature",volume:"460",fpage:"352",lpage:"8",year:"1984",citation_urls:["http://www.ncbi.nlm.nih.gov/pubmed/19606141"]},r.Prototype=function(){this.urls=function(){return this.properties.citation_urls.length>0?this.properties.citation_urls:[this.properties.doi]}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),Object.defineProperties(r.prototype,{header:{get:function(){return this.properties.title},set:function(){throw new Error("This is a read-only alias property.")}}}),e.exports=r},{"../node/node":100}],47:[function(t,e){"use strict";var n=t("../node/node_surface"),r=t("../text/text_surface"),i=function(t,e){n.call(this,t,e),this.components.push(this.titleComponent());for(var r=0;r<t.authors.length;r++)this.components.push(this.authorComponent(r));this.components.push(this.sourceComponent())};i.Prototype=function(){this.titleComponent=function(){var t=this,e=new r(this.node,this.surfaceProvider,{property:"title"}),n=e.components[0];return n.element(function(){return t.view.childViews.title.el}).length(function(){return t.node.title.length+1}),n.name="title",n},this.authorComponent=function(t){var e=this,n=this.customComponent([this.node.id,"author"+t],{name:"author"}).element(function(){return e.view.authorEls[t]}).length(function(){return e.node.authors[t].length}).mapping(function(t){var e=document.createRange();return e.setStart(this.el.childNodes[0],t),e});return n},this.sourceComponent=function(){var t=this,e=this.customComponent([this.node.id,"source"],{name:"source"});return e.element(function(){return t.view.sourceEl}).length(function(){return t.node.source.length+1}).mapping(function(t){var e=document.createRange();return e.setStart(this.el.childNodes[0],t),e}),e}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,e.exports=i},{"../node/node_surface":101,"../text/text_surface":123}],48:[function(t,e){"use strict";var n=t("../node").View,r=t("../text").View,i=t("substance-application").$$,o=function(t){n.call(this,t),this.$el.attr({id:t.id}),this.$el.addClass("citation"),this.childViews={title:null}};o.Prototype=function(){this.render=function(){n.prototype.render.call(this);var t=document.createDocumentFragment(),e=this.node,o=this.childViews.title=new r(this.node,this.viewFactory,{property:"title"});t.appendChild(o.render().el);var s=i("a.delete-resource",{href:"#",text:"Delete",contenteditable:!1});o.el.appendChild(s);var a=i(".resource-body");this.authorEls=[];for(var c=i(".authors"),u=0;u<e.authors.length;u++){var h=e.authors[u];this.authorEls.push(i("span.author",{text:h,"data-path":"author"+u})),c.appendChild(this.authorEls[u]),c.appendChild(document.createTextNode(" "))}a.appendChild(c);var p=[];return e.source&&e.volume&&p.push([e.source,e.volume].join(", ")+": "),e.fpage&&e.lpage&&p.push([e.fpage,e.lpage].join("-")+", "),e.publisher_name&&e.publisher_location&&p.push([e.publisher_name,e.publisher_location].join(", ")+", "),e.year&&p.push(e.year),this.sourceEl=i(".source",{html:p.join("")}),a.appendChild(this.sourceEl),e.doi&&(this.doiEl=i(".doi",{children:[i("b",{text:"DOI: "}),i("a",{href:e.doi,target:"_new",text:e.doi})]}),a.appendChild(this.doiEl)),t.appendChild(a),this.content.appendChild(t),this}},o.Prototype.prototype=n.prototype,o.prototype=new o.Prototype,o.prototype.constructor=o,e.exports=o},{"../node":99,"../text":121,"substance-application":4}],49:[function(t,e){"use strict";
-e.exports={Model:t("./citation"),View:t("./citation_view"),Surface:t("./citation_surface")}},{"./citation":46,"./citation_surface":47,"./citation_view":48}],50:[function(t,e){"use strict";var n=t("../annotation/annotation"),r=function(t,e){n.call(this,t,e)};r.type={id:"citation_reference",parent:"annotation",properties:{target:"citation"}},r.description={name:"CitationReference",remarks:["References a range in a text-ish node and references a citation."],properties:{}},r.example={type:"citation_reference_1",id:"citation_reference_1",path:["text_54","content"],range:[85,95]},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),e.exports=r},{"../annotation/annotation":44}],51:[function(t,e){"use strict";e.exports={Model:t("./citation_reference")}},{"./citation_reference":50}],52:[function(t,e){"use strict";var n=t("../annotation/annotation"),r=function(t,e){n.call(this,t,e)};r.type={id:"code",parent:"annotation",properties:{}},r.description={name:"Code",remarks:["References a range in a text-ish node and tags it as subscript"],properties:{}},r.example={type:"code_1",id:"code_1",path:["text_54","content"],range:[85,95]},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"../annotation/annotation":44}],53:[function(t,e){"use strict";e.exports={Model:t("./code")}},{"./code":52}],54:[function(t,e){"use strict";var n=t("../text/text_node"),r=function(t,e){n.call(this,t,e)};r.type={id:"codeblock",parent:"content",properties:{source_id:"string",content:"string"}},r.config={zoomable:!0},r.description={name:"Codeblock",remarks:["Text in a codeblock is displayed in a fixed-width font, and it preserves both spaces and line breaks"],properties:{content:"Content"}},r.example={type:"codeblock",id:"codeblock_1",content:'var text = "Sun";\nvar op1 = Operator.TextOperation.Delete(2, "n");\ntext = op2.apply(op1.apply(text));\nconsole.log(text);'},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),e.exports=r},{"../text/text_node":122}],55:[function(t,e){"use strict";var n=t("../text/text_view"),r=function(t){n.call(this,t),this.$el.addClass("content-node codeblock")};r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../text/text_view":124}],56:[function(t,e){"use strict";e.exports={Model:t("./codeblock"),View:t("./codeblock_view"),Surface:t("../text/text_surface")}},{"../text/text_surface":123,"./codeblock":54,"./codeblock_view":55}],57:[function(t,e){var n=t("underscore"),r=t("../node/node"),i=function(t,e){r.call(this,t,e)};i.type={id:"contributor",parent:"content",properties:{source_id:"string",name:"string",role:"string",organization:"string",image:"string",email:"string",contribution:"string"}},i.description={name:"Contributor",remarks:["Describes an article contributor such as an author or editor."],properties:{name:"Full name."}},i.example={id:"contributor_1",type:"contributor",role:"author",name:"John Doe",image:"http://john.com/doe.png",email:"a@b.com",contribution:"Revising the article, data cleanup"},i.Prototype=function(){this.getAffiliations=function(){return n.map(this.properties.affiliations,function(t){return this.document.get(t)},this)}},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i,i.prototype.defineProperties(),Object.defineProperties(i.prototype,{header:{get:function(){return this.properties.name},set:function(){throw new Error("This is a read-only alias property.")}}}),e.exports=i},{"../node/node":100,underscore:151}],58:[function(t,e){"use strict";var n=t("../node").View,r=t("substance-application").$$,i=t("../text/text_view"),o=function(t){n.call(this,t),this.$el.attr({id:t.id}),this.$el.addClass("content-node contributor")};o.Prototype=function(){this.render=function(){n.prototype.render.call(this);var t=new i(this.node,this.viewFactory,{property:"name"});$(t.el).addClass("toggle-resource"),this.content.appendChild(t.render().el);var e=r("a.delete-resource",{href:"#",text:"Delete",contenteditable:!1});t.el.appendChild(e);var o=r(".resource-body");return this.node.image&&(this.imageEl=r(".image",{contenteditable:!1,children:[r("img",{src:this.node.image})]}),o.appendChild(this.imageEl)),this.node.organization&&(this.orgEl=r(".organization.node-property",{text:this.node.organization,"data-path":"organization"}),o.appendChild(this.orgEl)),this.node.contribution&&(o.appendChild(r(".label",{text:"Contribution"})),this.contribEl=r(".contribution.node-property",{text:this.node.contribution,"data-path":"contribution"}),o.appendChild(this.contribEl)),this.node.email&&(o.appendChild(r(".label",{text:"Email"})),this.emailEl=r(".email.node-property",{children:[r("a",{href:"mailto:"+this.node.email,text:this.node.email})],"data-path":"email"}),o.appendChild(this.emailEl)),this.content.appendChild(o),this},this.describeStructure=function(){var t=[];return t.push(this.propertyComponent("organization",this.orgEl)),t.push(this.propertyComponent("contribution",this.contribEl)),t.push(this.propertyComponent("email",this.emailEl)),t}},o.Prototype.prototype=n.prototype,o.prototype=new o.Prototype,e.exports=o},{"../node":99,"../text/text_view":124,"substance-application":4}],59:[function(t,e){"use strict";e.exports={Model:t("./contributor"),View:t("./contributor_view")}},{"./contributor":57,"./contributor_view":58}],60:[function(t,e){t("underscore");var n=t("../node/node"),r=function(t,e){n.call(this,t,e)};r.type={id:"cover",parent:"content",properties:{source_id:"string",image:"string"}},r.description={name:"Cover",remarks:["Virtual view on the title and authors of the paper."],properties:{}},r.example={id:"cover",type:"cover",image:"http://example.com/image.png"},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),Object.defineProperties(r.prototype,{title:{get:function(){return this.document.title},set:function(){throw new Error("This is a read-only property alias.")}}}),e.exports=r},{"../node/node":100,underscore:151}],61:[function(t,e){"use strict";var n=t("../node/node_surface"),r=t("../text/text_surface"),i=function(t,e){n.call(this,t,e),this.titleComponent=r.textProperty(this,"title",["document","title"]),this.components.push(this.titleComponent)};i.Prototype=function(){var t=n.prototype;this.attachView=function(e){t.attachView.call(this,e),this.titleComponent.surface.attachView(this.view.childViews.title)}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,e.exports=i},{"../node/node_surface":101,"../text/text_surface":123}],62:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-application").$$,i=t("../node/node_view"),o=t("../text/text_view"),s=t("substance-document").Annotator,a=function(t,e){i.call(this,t,e),this.$el.attr({id:t.id}),this.$el.addClass("content-node cover"),this.childViews={title:null}};a.Prototype=function(){this.render=function(){i.prototype.render.call(this),this.node.document.published_on&&this.content.appendChild(r(".published-on",{contenteditable:!1,html:new Date(this.node.document.published_on).toDateString()}));var t=this.childViews.title=new o(this.node,this.viewFactory,{property:"title"});return this.content.appendChild(t.render().el),t.el.classList.add("title"),this.authorsEl=r(".authors",{contenteditable:!1}),this.renderAuthors(),this.content.appendChild(this.authorsEl),this},this.renderAuthors=function(){this.authorsEl.innerHTML="";var t=this.node.document.getAuthors();n.each(t,function(t){var e=r("a.toggle-author",{id:"toggle_"+t.id,href:"#",text:t.name,"data-id":t.id});this.authorsEl.appendChild(e)},this)},this.onGraphUpdate=function(t){return i.prototype.onGraphUpdate.call(this,t)?!0:n.isEqual(t.path,["document","title"])?(this.childViews.title.renderContent(),!0):(n.isEqual(t.path,["document","authors"])&&this.renderAuthors(),s.changesAnnotations(this.node.document,t,["cover","title"])?(this.childViews.title.renderContent(),!0):void 0)}},a.Prototype.prototype=i.prototype,a.prototype=new a.Prototype,e.exports=a},{"../node/node_view":102,"../text/text_view":124,"substance-application":4,"substance-document":35,underscore:151}],63:[function(t,e){"use strict";e.exports={Model:t("./cover"),View:t("./cover_view"),Surface:t("./cover_surface")}},{"./cover":60,"./cover_surface":61,"./cover_view":62}],64:[function(t,e){"use strict";var n=t("../annotation/annotation"),r=function(t,e){n.call(this,t,e)};r.type={id:"cross_reference",parent:"annotation",properties:{target:"content"}},r.description={name:"CrossReference",remarks:["References a range in a text-ish node and references a content node."],properties:{}},r.example={type:"cross_reference_1",id:"cross_reference_1",path:["text_54","content"],range:[85,95]},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),e.exports=r},{"../annotation/annotation":44}],65:[function(t,e){"use strict";e.exports={Model:t("./cross_reference")}},{"./cross_reference":64}],66:[function(t,e){"use strict";var n=t("../annotation/annotation"),r=function(t,e){n.call(this,t,e)};r.type={id:"emphasis",parent:"annotation",properties:{}},r.description={name:"Emphasis",remarks:["References a range in a text-ish node and tags it as emphasized"],properties:{}},r.example={type:"emphasis",id:"emphasis_1",path:["text_54","content"],range:[85,95]},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"../annotation/annotation":44}],67:[function(t,e){"use strict";e.exports={Model:t("./emphasis")}},{"./emphasis":66}],68:[function(t,e){"use strict";var n=t("../issue/issue"),r=function(t,e){n.call(this,t,e)};r.type={id:"error",parent:"issue",properties:{}},r.description={name:"Error",remarks:["References a range in a text-ish node and tags it as emphasized"],properties:{}},r.example={type:"error",id:"error_1",title:"Hi I am an a error",description:"An error, yes."},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"../issue/issue":89}],69:[function(t,e){"use strict";var n=t("../issue/issue_view"),r=function(t,e){n.call(this,t,e)};r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../issue/issue_view":91}],70:[function(t,e){"use strict";e.exports={Model:t("./error"),View:t("./error_view"),Surface:t("../issue/issue_surface")}},{"../issue/issue_surface":90,"./error":68,"./error_view":69}],71:[function(t,e){"use strict";var n=t("../annotation/annotation"),r=function(t,e){n.call(this,t,e)};r.type={id:"error_reference",parent:"annotation",properties:{target:"error"}},r.description={name:"ErrorReference",remarks:["References a range in a text-ish node and references an error"],properties:{target:"Referenced error id"}},r.example={type:"error_reference_1",id:"error_reference_1",path:["text_54","content"],range:[85,95],target:"error_1"},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),e.exports=r},{"../annotation/annotation":44}],72:[function(t,e){"use strict";e.exports={Model:t("./error_reference")}},{"./error_reference":71}],73:[function(t,e){"use strict";var n=t("../node/node"),r=function(t,e){n.call(this,t,e)};r.type={id:"figure",parent:"content",properties:{url:"string",label:"string",caption:"paragraph"}},r.description={name:"Figure",remarks:["A figure is a figure is figure."],properties:{label:"Figure label (e.g. Figure 1)",url:"Image url",caption:"A reference to a paragraph that describes the figure"}},r.example={id:"figure_1",label:"Figure 1",url:"http://example.com/fig1.png",caption:"paragraph_1"},r.config={zoomable:!0},r.Prototype=function(){this.hasCaption=function(){return!!this.properties.caption},this.getCaption=function(){return this.properties.caption?this.document.get(this.properties.caption):void 0}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),Object.defineProperties(r.prototype,{header:{get:function(){return this.properties.label},set:function(){throw new Error("This is a read-only alias property.")}}}),r.create=function(t){var e={},n=t.id,r={id:n,type:"figure",label:t.label,url:t.url};if(t.caption){var i="caption_"+t.id,o={id:i,type:"text",content:t.caption};e[i]=o,r.caption=i}return e[n]=r,e},e.exports=r},{"../node/node":100}],74:[function(t,e){"use strict";var n=t("../node/node_surface"),r=t("../text/text_surface");t("../node/surface_components");var i=function(t,e){if(n.call(this,t,e),this.labelComponent=r.textProperty(this,"label"),this.components.push(this.labelComponent),this.node.caption){var i=this.node.getCaption();this.captionComponent=this.surfaceProvider.getNodeSurface(i),this.addSubSurface("caption",this.captionComponent)}};i.Prototype=function(){var t=n.prototype;this.attachView=function(e){t.attachView.call(this,e),this.labelComponent.surface.attachView(this.view.childViews.label),this.captionComponent.surface.attachView(this.view.childViews.caption)}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,e.exports=i},{"../node/node_surface":101,"../node/surface_components":103,"../text/text_surface":123}],75:[function(t,e){"use strict";var n=t("substance-application").$$,r=t("../node/node_view"),i=t("../text/text_view"),o=function(t,e){r.call(this,t,e),this.childViews={label:null,caption:null}};o.Prototype=function(){this.render=function(){r.prototype.render.call(this);var t=this.childViews.label=new i(this.node,this.viewFactory,{property:"label"});$(t.el).addClass("toggle-resource"),this.content.appendChild(t.render().el);var e=n("a.delete-resource",{href:"#",text:"Delete",contenteditable:!1});t.el.appendChild(e);var o=n(".resource-body"),s=n(".image-wrapper",{children:[n("a",{href:this.node.url,title:"View image in full size",target:"_blank",children:[n("img",{src:this.node.url})]})]});o.appendChild(s);var a=this.node.getCaption();if(a){var c=this.childViews.caption=this.viewFactory.createView(a),u=c.render().el;u.classList.add("caption"),o.appendChild(u)}return this.content.appendChild(o),this},this.onNodeUpdate=function(t){this.$("img").attr({src:this.node.url}),this.childViews.label.onNodeUpdate(t)}},o.Prototype.prototype=r.prototype,o.prototype=new o.Prototype,e.exports=o},{"../node/node_view":102,"../text/text_view":124,"substance-application":4}],76:[function(t,e){"use strict";e.exports={Model:t("./figure"),View:t("./figure_view"),Surface:t("./figure_surface")}},{"./figure":73,"./figure_surface":74,"./figure_view":75}],77:[function(t,e){"use strict";var n=t("../annotation/annotation"),r=function(t,e){n.call(this,t,e)};r.type={id:"figure_reference",parent:"annotation",properties:{target:"figure"}},r.description={name:"FigureReference",remarks:["References a range in a text-ish node and references a figure"],properties:{target:"Referenced figure id"}},r.example={type:"figure_reference_1",id:"figure_reference_1",path:["text_54","content"],range:[85,95]},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),e.exports=r},{"../annotation/annotation":44}],78:[function(t,e){"use strict";e.exports={Model:t("./figure_reference")}},{"./figure_reference":77}],79:[function(t,e){"use strict";var n=t("../node/node"),r=function(t){n.call(this,t)};r.type={id:"formula",parent:"content",properties:{source_id:"string",label:"string",data:"string",format:"string",inline:"boolean"}},r.description={name:"Formula",remarks:["Can either be expressed in MathML format or using an image url"],properties:{label:"Formula label (4)",data:"Formula data, either MathML or image url",format:"Can either be `mathml` or `image`"}},r.example={type:"formula",id:"formula_eqn1",label:"(1)",content:"<mml:mrow>...</mml:mrow>",format:"mathml"},r.Prototype=function(){this.inline=!1},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),e.exports=r},{"../node/node":100}],80:[function(t,e){"use strict";var n=t("../node/node_view"),r=function(t){n.call(this,t),this.$el.attr({id:t.id}),this.$el.addClass("content-node formula"),this.node.inline&&this.$el.addClass("inline")};r.Prototype=function(){this.render=function(){n.prototype.render.call(this);var t=this.node.format;switch(t){case"mathml":this.$el.html(this.node.data);break;case"image":this.$el.append('<img src="'+this.node.url+'"/>');break;case"latex":this.node.inline?this.$el.html("\\("+this.node.data+"\\)"):this.$el.html("\\["+this.node.data+"\\]");break;default:console.error("Unknown formula format:",t)}return this.node.label&&this.$el.append($('<div class="label">').html(this.node.label)),this}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../node/node_view":102}],81:[function(t,e){"use strict";e.exports={Model:t("./formula"),View:t("./formula_view")}},{"./formula":79,"./formula_view":80}],82:[function(t,e){"use strict";var n=t("../text/text_node"),r=function(t,e){n.call(this,t,e)};r.type={id:"heading",parent:"content",properties:{source_id:"string",content:"string",level:"number"}},r.example={type:"heading",id:"heading_1",content:"Introduction",level:1},r.description={name:"Heading",remarks:["Denotes a section or sub section in your article."],properties:{content:"Heading content",level:"Heading level. Ranges from 1..4"}},r.Prototype=function(){this.splitInto="paragraph"},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),e.exports=r},{"../text/text_node":122}],83:[function(t,e){"use strict";var n=t("../text/text_view"),r=function(t){n.call(this,t),this.$el.addClass("heading"),this._level=this.node.level,this.$el.addClass("level-"+this._level)};r.Prototype=function(){var t=n.prototype;this.onNodeUpdate=function(e){t.onNodeUpdate.call(this,e),"level"===e.path[1]&&(this.$el.removeClass("level-"+this._level),this._level=this.node.level,this.$el.addClass("level-"+this._level))}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../text/text_view":124}],84:[function(t,e){"use strict";e.exports={Model:t("./heading"),View:t("./heading_view"),Surface:t("../text/text_surface")}},{"../text/text_surface":123,"./heading":82,"./heading_view":83}],85:[function(t,e){"use strict";var n=t("../node/node"),r=function(t,e){n.call(this,t,e)};r.type={id:"image",parent:"content",properties:{source_id:"string",url:"string"}},r.description={name:"Image",remarks:["Represents an image web resource."],properties:{url:"URL to a resource"}},r.example={type:"image",id:"image_1",url:"http://substance.io/image_1.png"},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),e.exports=r},{"../node/node":100}],86:[function(t,e){"use strict";var n=t("../node/node"),r=t("substance-application").$$,i=function(t,e){n.call(this,t,e),this.$el.addClass("image"),this.$el.attr("id",this.node.id)};i.Prototype=function(){this.render=function(){n.prototype.render.call(this);var t=this.imgCharEl=r(".image-char"),e=r("img",{src:this.node.url,alt:"alt text",title:"alt text"});return t.appendChild(e),this.content.appendChild(t),this},this.delete=function(t,e){for(var n=this.$(".content")[0],r=n.childNodes,i=e-1;i>=0;i--)n.removeChild(r[t+i])}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,e.exports=i},{"../node/node":100,"substance-application":4}],87:[function(t,e){"use strict";e.exports={Model:t("./image"),View:t("./image_view")}},{"./image":85,"./image_view":86}],88:[function(t,e){"use strict";e.exports={Model:t("./issue"),View:t("./issue_view"),Surface:t("./issue_surface")}},{"./issue":89,"./issue_surface":90,"./issue_view":91}],89:[function(t,e){"use strict";var n=t("../node/node"),r=function(t,e){n.call(this,t,e)};r.type={id:"issue",properties:{title:"string",description:"string",creator:"string",created_at:"date"}},r.description={name:"Issue",remarks:["References a range in a text-ish node and tags it as subscript"],properties:{title:"Issue Title",description:"More verbose issue description",creator:"Issue creator",created_at:"Date and time of issue creation."}},r.example={"abstract":"type"},r.Prototype=function(){this.hasDescription=function(){return!!this.properties.caption},this.getDescription=function(){return this.properties.description?this.document.get(this.properties.description):void 0}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),e.exports=r},{"../node/node":100}],90:[function(t,e){"use strict";var n=t("../node/node_surface"),r=t("../text/text_surface"),i=function(t,e){n.call(this,t,e),this.components.push(r.textProperty(this,"title")),this.components.push(r.textProperty(this,"description"))};i.Prototype=function(){var t=n.prototype;this.attachView=function(e){t.attachView.call(this,e),this.labelComponent.surface.attachView(this.view.childViews.title),this.captionComponent.surface.attachView(this.view.childViews.description)}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,e.exports=i},{"../node/node_surface":101,"../text/text_surface":123}],91:[function(t,e){"use strict";var n=t("substance-application").$$,r=t("../node/node_view"),i=t("../text/text_view"),o=function(t,e){r.call(this,t,e),this.$el.addClass("issue"),this.childViews={title:null,description:null}};o.Prototype=function(){this.render=function(){r.prototype.render.call(this);var t=this.childViews.title=new i(this.node,this.viewFactory,{property:"title"});this.content.appendChild(t.render().el);var e=n("a.delete-resource",{href:"#",text:"Delete",contenteditable:!1});t.el.appendChild(e);var o=n("div.creator",{text:(this.node.creator||"Anonymous")+", "+jQuery.timeago(new Date(this.node.created_at)),contenteditable:!1});t.el.appendChild(o);var s=this.childViews.description=new i(this.node,this.viewFactory,{property:"description"});return this.content.appendChild(s.render().el),this},this.onNodeUpdate=function(t){"title"===t.path[1]?this.childViews.title.onNodeUpdate(t):"description"===t.path[1]&&this.childViews.description.onNodeUpdate(t)}},o.Prototype.prototype=r.prototype,o.prototype=new o.Prototype,e.exports=o},{"../node/node_view":102,"../text/text_view":124,"substance-application":4}],92:[function(t,e){"use strict";e.exports={Model:t("./link")}},{"./link":93}],93:[function(t,e){"use strict";var n=t("../annotation/annotation"),r=function(t,e){n.call(this,t,e)};r.type={id:"link",parent:"annotation",properties:{url:"string"}},r.description={name:"Link",remarks:["References a range in a text-ish node and tags it as subscript"],properties:{}},r.example={type:"link_1",id:"link_1",path:["text_54","content"],range:[85,95]},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),e.exports=r},{"../annotation/annotation":44}],94:[function(t,e){"use strict";e.exports={Model:t("./list"),View:t("./list_view")}},{"./list":95,"./list_view":96}],95:[function(t,e){"use strict";var n=t("underscore"),r=t("../node/node"),i=function(t,e){r.call(this,t,e)};i.type={id:"list",parent:"content",properties:{source_id:"string",items:["array","paragraph"],ordered:"boolean"}},i.description={name:"List",remarks:["Lists can either be numbered or bullet lists"],properties:{ordered:"Specifies wheter the list is ordered or not",items:"An array of paragraph references"}},i.example={type:"list",id:"list_1","items ":["paragraph_listitem_1","paragraph_listitem_2"]},i.Prototype=function(){this.getItems=function(){return n.map(this.properties.items,function(t){return this.document.get(t)},this)}},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i,i.prototype.defineProperties(),e.exports=i},{"../node/node":100,underscore:151}],96:[function(t,e){"use strict";var n=t("../node/node_view"),r=t("underscore"),i=t("substance-application").$$,o=function(t,e){n.call(this,t,e),this.childViews={}};o.Prototype=function(){this.render=function(){return n.prototype.render.call(this),r.each(this.node.getItems(),function(t){var e=this.childViews[t.id]=this.viewFactory.createView(t);$(e.el).addClass("list-item level-1"),e.render(),e.el.appendChild(i(".bullet")),this.content.appendChild(e.el)},this),this},this.onNodeUpdate=function(t){t.path[0]===this.node.id&&"items"===t.path[1]&&this.render()}},o.Prototype.prototype=n.prototype,o.prototype=new o.Prototype,e.exports=o},{"../node/node_view":102,"substance-application":4,underscore:151}],97:[function(t,e){"use strict";e.exports={Model:t("./math")}},{"./math":98}],98:[function(t,e){"use strict";var n=t("../annotation/annotation"),r=function(t,e){n.call(this,t,e)};r.type={id:"math",parent:"annotation",properties:{}},r.description={name:"Math",remarks:["References a range in a text-ish node and tags it as subscript"],properties:{}},r.example={type:"math_1",id:"math_1",path:["text_54","content"],range:[85,95]},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"../annotation/annotation":44}],99:[function(t,e){"use strict";e.exports={Model:t("./node"),View:t("./node_view"),Node:t("./node_surface")}},{"./node":100,"./node_surface":101,"./node_view":102}],100:[function(t,e){"use strict";var n=t("underscore"),r=function(t,e){this.document=e,this.properties=t};r.type={parent:"content",properties:{}},r.Prototype=function(){this.toJSON=function(){return n.clone(this.properties)},this.getAnnotations=function(){return this.document.getIndex("annotations").get(this.properties.id)},this.isInstanceOf=function(t){var e=this.document.getSchema();return e.isInstanceOf(this.type,t)},this.defineProperties=function(t){if(!this.hasOwnProperty("constructor"))throw new Error("Constructor property is not set. E.g.: MyNode.prototype.constructor = MyNode;");var e=this.constructor;r.defineAllProperties(e,t)}},r.prototype=new r.Prototype,r.prototype.constructor=r,r.defineProperties=function(t,e,r){n.each(e,function(e){var n={get:function(){return this.properties[e]}};r||(n.set=function(t){return this.properties[e]=t,this}),Object.defineProperty(t,e,n)})},r.defineAllProperties=function(t,e){r.defineProperties(t.prototype,Object.keys(t.type.properties),e)},r.defineProperties(r.prototype,["id","type"]),e.exports=r},{underscore:151}],101:[function(t,e){"use strict";var n=t("./surface_components"),r=function(t,e){this.node=t,this.surfaceProvider=e,this.view=null,this.components=[]};r.Prototype=function(){this.hasView=function(){return null!==this.view},this.attachView=function(t){this.view=t},this.getCharPosition=function(t,e){if(!this.view)throw new Error("No view attached.");var n=this.__getCharPosition__(t,e);return n},this.getDOMPosition=function(t){if(!this.view)throw new Error("No view attached.");var e=this.__getDOMPosition__(t);return e},this.propertyComponent=function(t,e){return new n.PropertyComponent(this,t,e)},this.customComponent=function(t,e){return new n.CustomComponent(this,t,e)},this.__getCharPosition__=function(t,e){var n=document.createRange();n.setStart(t,e);for(var r=0,i=0;i<this.components.length;i++){var o=this.components[i],s=n.compareBoundaryPoints(0,o.getRange());if(0>s)break;var a=n.compareBoundaryPoints(3,o.getRange());r=0>a?e:o.getLength()}return r},this.__getDOMPosition__=function(t){for(var e,n,r=0;r<this.components.length;r++){if(n=this.components[r],!n.getLength)throw new Error("The provided component can not be used with the generic mapper implementation. getLength() missing.");if(!n.mapCharPos)throw new Error("The provided component can not be used with the generic mapper implementation. getRange() missing.");if(e=n.getLength(),e>t)return n.mapCharPos(t);t-=e}return n.mapCharPos(e)},this.__createRange__=function(t){var e=document.createRange();return e.selectNode(t),e},this.addSubSurface=function(t,e){for(var n=0;n<e.components.length;n++){var r=e.components[n];r.name=t,this.components.push(r)}}},r.prototype=new r.Prototype,e.exports=r},{"./surface_components":103}],102:[function(t,e){"use strict";var n=t("substance-application").View,r=t("underscore"),i=function(t,e){n.call(this),this.node=t,this.viewFactory=e,this.$el.addClass("content-node").addClass(t.type),this.$el.attr("id",this.node.id)};i.Prototype=function(){this.render=function(){return this.disposeChildViews(),this.el.innerHTML="",this.content=document.createElement("DIV"),this.content.classList.add("content"),this.el.appendChild(this.content),this},this.dispose=function(){this.stopListening(),this.disposeChildViews()},this.disposeChildViews=function(){this.childViews&&r.each(this.childViews,function(t){t&&t.dispose()})},this.onGraphUpdate=function(t){return t.path[0]!==this.node.id||"update"!==t.type&&"set"!==t.type?!1:(this.onNodeUpdate(t),!0)},this.onNodeUpdate=function(){}},i.Prototype.prototype=n.prototype,i.prototype=new i.Prototype,e.exports=i},{"substance-application":4,underscore:151}],103:[function(t,e){"use strict";var n=t("underscore"),r=function(t){var e=document.createRange();return e.selectNode(t),e},i=function(t){this.surface=t,this.node=t.node,this.path=null,this.__range__=null};i.Prototype=function(){this.getRange=function(){return this.__range__||(this.__range__=r(this.getElement())),this.__range__},this.element=function(t){return this.__getElement__=t,this},this.length=function(t){return this.__getLength__=t,this},this.mapping=function(t){return this.__mapCharPos__=t,this},this.getElement=function(){if(!this.el&&(this.el=this.__getElement__.call(this),!this.el))throw new Error("You tried to access a component which has not been rendered!");return this.el},this.__getElement__=function(){throw new Error("This method is abstract and must be overridden")},this.getLength=function(){return this.__getLength__.call(this)},this.__getLength__=function(){throw new Error("This is abstract and must be overridden")},this.mapCharPos=function(t){return this.__mapCharPos__.call(this,t)},this.__mapCharPos__=function(){throw new Error("This method is abstract and must be overridden")}},i.prototype=new i.Prototype;var o=function(t,e,n){i.call(this,t),this.type="property",this.path=[t.node.id,e],this.propertyPath=n||this.path};o.Prototype=function(){},o.Prototype.prototype=i.prototype,o.prototype=new o.Prototype;var s=function(t,e,r){i.call(this,t),this.type="custom",n.isString(e)&&(e=[t.node.id,e]),this.path=e,n.extend(this,r)};s.Prototype=function(){},s.Prototype.prototype=i.prototype,s.prototype=new s.Prototype,e.exports={PropertyComponent:o,CustomComponent:s}},{underscore:151}],104:[function(t,e){"use strict";e.exports={Model:t("./paragraph"),View:t("./paragraph_view")}},{"./paragraph":105,"./paragraph_view":106}],105:[function(t,e){"use strict";var n=t("underscore"),r=t("../node/node"),i=function(t,e){r.call(this,t,e)};i.type={id:"paragraph",parent:"content",properties:{children:["array","content"]}},i.description={name:"Paragraph",remarks:["A Paragraph can have inline elements such as images."],properties:{children:"An array of content node references"}},i.example={type:"paragraph",id:"paragraph_1","children ":["text_1","image_1","text_2"]},i.Prototype=function(){this.getChildren=function(){return n.map(this.properties.children,function(t){return this.document.get(t)},this)}},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i,i.prototype.defineProperties(),e.exports=i},{"../node/node":100,underscore:151}],106:[function(t,e){"use strict";var n=t("../node/node_view"),r=function(t,e){n.call(this,t,e)};r.Prototype=function(){this.render=function(){return n.prototype.render.call(this),this
-},this.onNodeUpdate=function(t){t.path[0]===this.node.id&&"children"===t.path[1]&&this.render()}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../node/node_view":102}],107:[function(t,e){"use strict";e.exports={Model:t("./remark"),View:t("./remark_view"),Surface:t("../issue/issue_surface")}},{"../issue/issue_surface":90,"./remark":108,"./remark_view":109}],108:[function(t,e){"use strict";var n=t("../issue/issue"),r=function(t,e){n.call(this,t,e)};r.type={id:"remark",parent:"issue",properties:{}},r.description={name:"Remark",remarks:["References a range in a text-ish node and tags it as emphasized"],properties:{}},r.example={type:"remark",id:"remark_1",title:"Can you explain?",description:"I don't get the argument here."},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"../issue/issue":89}],109:[function(t,e){"use strict";var n=t("../issue/issue_view"),r=function(t,e){n.call(this,t,e)};r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,e.exports=r},{"../issue/issue_view":91}],110:[function(t,e){"use strict";e.exports={Model:t("./remark_reference")}},{"./remark_reference":111}],111:[function(t,e){"use strict";var n=t("../annotation/annotation"),r=function(t,e){n.call(this,t,e)};r.type={id:"remark_reference",parent:"annotation",properties:{target:"remark"}},r.description={name:"RemarkReference",remarks:["References a range in a text-ish node and references a remark"],properties:{target:"Referenced remark id"}},r.example={type:"remark_reference_1",id:"remark_reference_1",path:["text_54","content"],range:[85,95]},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,r.prototype.defineProperties(),e.exports=r},{"../annotation/annotation":44}],112:[function(t,e){"use strict";e.exports={Model:t("./strong")}},{"./strong":113}],113:[function(t,e){"use strict";var n=t("../annotation/annotation"),r=function(t,e){n.call(this,t,e)};r.type={id:"strong",parent:"annotation",properties:{}},r.description={name:"Strong",remarks:["References a range in a text-ish node and tags it as strong emphasized"],properties:{}},r.example={type:"strong",id:"strong_1",path:["text_54","content"],range:[85,95]},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"../annotation/annotation":44}],114:[function(t,e){"use strict";e.exports={Model:t("./subscript")}},{"./subscript":115}],115:[function(t,e){"use strict";var n=t("../annotation/annotation"),r=function(t,e){n.call(this,t,e)};r.type={id:"subscript",parent:"annotation",properties:{}},r.description={name:"Subscript",remarks:["References a range in a text-ish node and tags it as subscript"],properties:{}},r.example={type:"subscript",id:"subscript_1",path:["text_54","content"],range:[85,95]},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"../annotation/annotation":44}],116:[function(t,e){"use strict";e.exports={Model:t("./superscript")}},{"./superscript":117}],117:[function(t,e){"use strict";var n=t("../annotation/annotation"),r=function(t,e){n.call(this,t,e)};r.type={id:"superscript",parent:"annotation",properties:{}},r.description={name:"Superscript",remarks:["References a range in a text-ish node and tags it as strong emphasized"],properties:{}},r.example={type:"strong",id:"superscript_1",path:["text_54","content"],range:[85,95]},r.Prototype=function(){},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"../annotation/annotation":44}],118:[function(t,e){"use strict";e.exports={Model:t("./table"),View:t("./table_view")}},{"./table":119,"./table_view":120}],119:[function(t,e){"use strict";var n=t("underscore"),r=t("../node/node"),i=function(t,e){r.call(this,t,e)};i.type={id:"table",parent:"content",properties:{label:"string",source_id:"string",headers:["array","content"],cells:["array","array","content"],caption:"content"}},i.description={name:"Table",remarks:[],properties:{items:"An array of references which contain the content of each cell"}},i.example={type:"table",id:"table_1",headers:["text_1","text_2"],cells:[["cell_1_1","cell_1_2"],["cell_2_1","cell_2_2"]]},i.Prototype=function(){this.getHeaders=function(){return n.map(this.properties.headers,function(t){return this.document.get(t)},this)},this.getCells=function(){for(var t=[],e=0;e<this.properties.cells.length;e++){for(var n=this.properties.cells[e],r=[],i=0;i<n.length;i++)r.push(this.document.get(n[i]));t.push(r)}return t},this.getCaption=function(){var t;return this.properties.caption&&(t=this.document.get(this.properties.caption)),t}},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.prototype.constructor=i,i.prototype.defineProperties(),Object.defineProperties(i.prototype,{header:{get:function(){return this.properties.label},set:function(){throw new Error("This is a read-only alias property.")}}}),i.create=function(t){var e,n,r={},i=t.id,o={id:i,type:"table",label:t.label,headers:[],cells:[]};if(t.headers)for(var s=0;s<t.headers.length;s++){var a=t.headers[s];e="th_"+s+"_"+i,n={id:e,type:"text",content:a},r[e]=n,o.headers.push(e)}for(var c=0;c<t.cells.length;c++){for(var u=t.cells[c],h=[],p=0;p<u.length;p++){var l=u[p];e="td__"+c+"_"+p+"_"+i,n={id:e,type:"text",content:l},r[e]=n,h.push(e)}o.cells.push(h)}return t.caption&&(e="caption_"+i,n={id:e,type:"text",content:t.caption},r[e]=n,o.caption=e),r[o.id]=o,r},e.exports=i},{"../node/node":100,underscore:151}],120:[function(t,e){"use strict";var n=t("../node/node_view");t("underscore");var r=function(t,e){n.call(this,t,e)};r.Prototype=function(){this.render=function(){return n.prototype.render.call(this),this},this.onNodeUpdate=function(t){t.path[0]===this.node.id&&("headers"===t.path[1]||"cells"===t.path[1])&&this.render()}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.prototype.constructor=r,e.exports=r},{"../node/node_view":102,underscore:151}],121:[function(t,e){"use strict";e.exports={Model:t("./text_node"),View:t("./text_view"),Surface:t("./text_surface")}},{"./text_node":122,"./text_surface":123,"./text_view":124}],122:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-regexp"),i=t("substance-operator"),o=i.ObjectOperation,s=i.TextOperation,a=t("../node/node"),c=function(t,e){a.call(this,t,e)};c.type={id:"text",parent:"content",properties:{source_id:"string",content:"string"}},c.description={name:"Text",remarks:["A simple text fragement that can be annotated. Usually text nodes are combined in a paragraph."],properties:{source_id:"Text element source id",content:"Content"}},c.example={type:"paragraph",id:"paragraph_1",content:"Lorem ipsum dolor sit amet, adipiscing elit."},c.Prototype=function(){this.getChangePosition=function(t){if("content"===t.path[1]){var e=i.Helpers.last(t.diff);if(e.isInsert())return e.pos+e.length();if(e.isDelete())return e.pos}return-1},this.getLength=function(){return this.properties.content.length},this.insertOperation=function(t,e){return o.Update([this.properties.id,"content"],s.Insert(t,e))},this.deleteOperation=function(t,e){var n=this.properties.content;return o.Update([this.properties.id,"content"],s.Delete(t,n.substring(t,e)),"string")},this.prevWord=function(t){var e=this.properties.content,i=new r(/\b\w/g).match(e),o=n.select(i,function(e){return e.index<t},this);return 0===o.length?0:n.last(o).index},this.nextWord=function(t){var e=this.properties.content,n=new r(/\w\b/g).match(e.substring(t));if(0===n.length)return e.length;var i=n[0];return t+i.index+1},this.canJoin=function(t){return t instanceof c},this.join=function(t,e){var r=this.properties.content.length,i=e.content;t.update([this.id,"content"],[r,i]);var o=t.indexes.annotations.get(e.id);n.each(o,function(e){t.set([e.id,"path"],[this.properties.id,"content"]),t.set([e.id,"range"],[e.range[0]+r,e.range[1]+r])},this)},this.isBreakable=function(){return!0},this.break=function(t,e){var r=this.properties.content.substring(e),i=this.toJSON();i.type=this.splitInto?this.splitInto:this.properties.type,i.id=t.uuid(this.properties.type),i.content=r,t.create(i);var o=t.indexes.annotations.get(this.properties.id);return n.each(o,function(n){n.range[0]>=e&&(t.set([n.id,"path"],[i.id,"content"]),t.set([n.id,"range"],[n.range[0]-e,n.range[1]-e]))}),t.update([this.properties.id,"content"],s.Delete(e,r)),i}},c.Prototype.prototype=a.prototype,c.prototype=new c.Prototype,c.prototype.constructor=c,c.prototype.defineProperties(),e.exports=c},{"../node/node":100,"substance-operator":125,"substance-regexp":132,underscore:151}],123:[function(t,e){"use strict";var n=t("../node/node_surface"),r=function(t,e,r){n.call(this,t,e),r=r||{},this.property=r.property||"content";var i=this;r.property?this.components.push(this.propertyComponent(r.property,r.propertyPath)):this.components.push(this.propertyComponent(i.property).length(function(){return i.node[i.property].length}))};r.Prototype=function(){this.getCharPosition=function(t,e){if(!this.view)throw new Error("No view attached.");if(0===this.view._fragments.length||t===this.view._fragments[0].el.parentElement)return 0;for(var n,r=0;r<this.view._fragments.length;r++){var i=this.view._fragments[r];if(i.el===t){n=i;break}}if(!n)throw console.error("AAAAArg",t),new Error("Could not lookup text element.");var o=n.charPos+e;return o},this.getDOMPosition=function(t){if(!this.view)throw new Error("No view attached.");var e=this.view._lookupPostion(t),n=e[0],r=e[1],i=document.createRange();return i.setStart(n.el,r),i},this.getComponent=function(){return this.components[0]}},r.Prototype.prototype=n.prototype,r.prototype=new r.Prototype,r.textProperty=function(t,e,n){var i={property:e};n&&(i[n]=n);var o=new r(t.node,t.surfaceProvider,i),s=o.components[0];return s.element(function(){return t.view.childViews[e].el}).length(function(){return t.node[e].length+1}),s.name=e,s},e.exports=r},{"../node/node_surface":101}],124:[function(t,e){"use strict";function n(t){if(t.constructor&&t.constructor.annotationBehavior)return t.constructor.annotationBehavior;throw new Error("Missing AnnotationBehavior.")}var r,i=t("../node/node_view"),o=t("substance-application").$$,s=t("substance-util").Fragmenter,a=t("substance-document").Annotator,c=function(t,e,r){i.call(this,t),r=r||{},this.property=r.property||"content",this.$el.addClass("content-node text"),"text"===t.type&&this.$el.addClass("text-node"),r.property&&(this.$el.removeAttr("id"),this.$el.removeClass("content-node"),this.$el.addClass(r.property)),this.$el.attr("data-path",this.property),this._annotations={},this.annotationBehavior=n(t.document),this._fragments=[]};c.Prototype=function(){this.render=function(t){return i.prototype.render.call(this,t),this.renderContent(),this},this.renderContent=function(){console.log("Rerendering TextView..."),this.content.innerHTML="",this._annotations=this.node.document.getIndex("annotations").get([this.node.id,this.property]),this.renderWithAnnotations(this._annotations)},this.insert=function(t,e){console.log("Trying incremental insert....");var n=this._lookupPostion(t),r=n[0],i=r.el,o=n[1],s=i.textContent;s=s.substring(0,o)+e+s.substring(o),i.textContent=s;for(var a=r.index+1;a<this._fragments.length;a++)this._fragments[a].charPos+=e.length},this.delete=function(t,e){var n=this._lookupPostion(t),r=n[0],i=r.el,o=n[1],s=i.textContent;if(e>=s.length)return this.renderContent(),void 0;s=s.substring(0,o)+s.substring(o+e),i.textContent=s;for(var a=r.index+1;a<this._fragments.length;a++)this._fragments[a].charPos-=e},this._lookupPostion=function(t){for(var e,n,r=0;r<this._fragments.length;r++){if(e=this._fragments[r],n=e.getLength(),n>t)return[e,t];if(!(t>n)){var i=this._fragments[r+1];return i&&i.level<e.level?[i,0]:[e,n]}t-=n}return[e,n]},this.onNodeUpdate=function(t){if(t.path[1]===this.property)if("update"===t.type){var e=t.diff;if(e.isInsert())return this.insert(e.pos,e.str),!0;if(e.isDelete())return this.delete(e.pos,e.str.length),!0}else if("set"===t.type)return this.renderContent(),!0;return!1},this.onGraphUpdate=function(t){return i.prototype.onGraphUpdate.call(this,t)?!0:!a.changesAnnotations(this.node.document,t,[this.node.id,this.property])||"create"!==t.type&&"delete"!==t.type?!1:(console.log("Rerendering TextView due to annotation update",t),this.renderContent(),!0)},this.createAnnotationElement=function(t){var e;return e="link"===t.type?o("a.annotation."+t.type,{id:t.id,href:this.node.document.get(t.id).url}):o("span.annotation."+t.type,{id:t.id})},this.renderWithAnnotations=function(t){var e=this,n=this.node[this.property],r=document.createDocumentFragment(),i=new s(this.annotationBehavior.levels);this._fragments=[];var o=null,a=0,u=0,h=0;i.onText=function(t,n){var r=document.createTextNode(n);e._fragments.push(new c.DefaultFragment(r,a++,u,h)),u+=n.length,t.appendChild(r)},i.onEnter=function(t,n){o=t,h++;var r=e.createAnnotationElement(t);return n.appendChild(r),r},i.onExit=function(){h--},i.start(r,n,t),this.content.innerHTML="",this.content.appendChild(r)},this.dispose=function(){this.stopListening()}},c.Prototype.prototype=i.prototype,c.prototype=new c.Prototype;var u=function(t,e){for(var n=0;n<e.length;n++)t.unshift(e[n])};r=function(t,e){var n=[];for(u(n,t.childNodes);n.length;){var r=n.shift();if(r.nodeType===Node.TEXT_NODE){var i=r.textContent;if(i.length>=e)return[r,e];e-=i.length}else u(n,r.childNodes)}},c.Fragment=function(t,e,n,r){this.el=t,this.index=e,this.charPos=n,this.level=r},c.Fragment.Prototype=function(){this.getLength=function(){throw new Error("This method is abstract")}},c.Fragment.prototype=new c.Fragment.Prototype,c.DefaultFragment=function(){c.Fragment.apply(this,arguments)},c.DefaultFragment.Prototype=function(){this.getLength=function(){return this.el.length}},c.DefaultFragment.Prototype.prototype=c.Fragment.prototype,c.DefaultFragment.prototype=new c.DefaultFragment.Prototype,e.exports=c},{"../node/node_view":102,"substance-application":4,"substance-document":35,"substance-util":144}],125:[function(t,e){"use strict";e.exports={Operation:t("./src/operation"),Compound:t("./src/compound"),ArrayOperation:t("./src/array_operation"),TextOperation:t("./src/text_operation"),ObjectOperation:t("./src/object_operation"),Helpers:t("./src/operation_helpers")}},{"./src/array_operation":126,"./src/compound":127,"./src/object_operation":128,"./src/operation":129,"./src/operation_helpers":130,"./src/text_operation":131}],126:[function(t,e){"use strict";function n(t,e,n){t.pos===e.pos?n?e.pos+=1:t.pos+=1:t.pos<e.pos?e.pos+=1:t.pos+=1}function r(t,e){return t.pos===e.pos?(e.type=l,t.type=l,void 0):(t.pos<e.pos?e.pos-=1:t.pos-=1,void 0)}function i(t,e){if(t.type===d){var n=t;t=e,e=n}t.pos<=e.pos?e.pos+=1:t.pos-=1}function o(t,e,n,r){if(t.type!==g)return o(e,t,n,!r);var i={type:d,pos:t.pos},s={type:f,pos:t.target},a={inplace:!0,check:n};e.type===d&&t.pos===e.pos?(t.type=l,e.pos=t.target):e.type===g&&t.pos===e.pos?r?(e.pos=t.target,t.type=l):(t.pos=e.target,e.type=l):(r?(C(i,e,a),C(s,e,a)):(C(e,i,a),C(e,s,a)),t.pos=i.pos,t.target=s.pos)}var s,a=t("underscore"),c=t("substance-util"),u=c.errors,h=t("./operation"),p=t("./compound"),l="NOP",d="delete",f="insert",g="move",y=function(t){if(void 0===t.type)throw new u.OperationError("Illegal argument: insufficient data.");if(this.type=t.type,this.type!==l){if(this.pos=t.pos,this.val=t.val,this.target=t.target,this.type!==l&&this.type!==f&&this.type!==d&&this.type!==g)throw new u.OperationError("Illegal type.");if(this.type===f||this.type===d){if(void 0===this.pos||void 0===this.val)throw new u.OperationError("Illegal argument: insufficient data.");if(!a.isNumber(this.pos)&&this.pos<0)throw new u.OperationError("Illegal argument: expecting positive number as pos.")}else if(this.type===g){if(void 0===this.pos||void 0===this.target)throw new u.OperationError("Illegal argument: insufficient data.");if(!a.isNumber(this.pos)&&this.pos<0)throw new u.OperationError("Illegal argument: expecting positive number as pos.");if(!a.isNumber(this.target)&&this.target<0)throw new u.OperationError("Illegal argument: expecting positive number as target.")}}};y.fromJSON=function(t){if(a.isArray(t))return t[0]===g?new s(t[1],t[2]):new y(t);if(t.type===g)return s.fromJSON(t);if(t.type===p.TYPE){for(var e=[],n=0;n<t.ops.length;n++)e.push(y.fromJSON(t.ops[n]));return y.Compound(e)}return new y(t)},y.Prototype=function(){this.clone=function(){return new y(this)},this.apply=function(t){if(this.type===l)return t;var e=t instanceof y.ArrayAdapter?t:new y.ArrayAdapter(t);if(this.type===f)e.insert(this.pos,this.val);else{if(this.type!==d)throw new u.OperationError("Illegal state.");e.delete(this.pos,this.val)}return t},this.invert=function(){var t=this.toJSON();if(this.type===f)t.type=d;else if(this.type===d)t.type=f;else{if(this.type!==l)throw new u.OperationError("Illegal state.");t.type=l}return new y(t)},this.hasConflict=function(t){return y.hasConflict(this,t)},this.toJSON=function(){var t={type:this.type};return this.type===l?t:(t.pos=this.pos,t.val=this.val,t)},this.isInsert=function(){return this.type===f},this.isDelete=function(){return this.type===d},this.isNOP=function(){return this.type===l},this.isMove=function(){return this.type===g}},y.Prototype.prototype=h.prototype,y.prototype=new y.Prototype;var v=0,m=1,w=2,_=4,b={};b[l]=v,b[d]=m,b[f]=w,b[g]=_;var x=[];x[m|m]=function(t,e){return t.pos===e.pos},x[m|w]=function(){return!1},x[w|w]=function(t,e){return t.pos===e.pos};var C,P=function(t,e){if(t.type===l||e.type===l)return!1;var n=b[t.type]|b[e.type];return x[n]?x[n](t,e):!1};C=function(t,e,s){if(s=s||{},s.check&&P(t,e))throw h.conflict(t,e);return s.inplace||(t=c.clone(t),e=c.clone(e)),t.type===l||e.type===l||(t.type===f&&e.type===f?n(t,e,!0):t.type===d&&e.type===d?r(t,e,!0):t.type===g||e.type===g?o(t,e,s.check,!0):i(t,e,!0)),[t,e]};var E=function(t,e){return a.isArray(t)?t=t[0]===g?new s(t[1],t[2]):new y(t):t instanceof y||(t=y.fromJSON(t)),t.apply(e)};y.transform=p.createTransform(C),y.hasConflict=P,y.perform=E,y.apply=E;var s=function(t,e){if(this.type=g,this.pos=t,this.target=e,!a.isNumber(this.pos)||!a.isNumber(this.target)||this.pos<0||this.target<0)throw new u.OperationError("Illegal argument")};s.Prototype=function(){this.clone=function(){return new s(this.pos,this.target)},this.apply=function(t){if(this.type===l)return t;var e=t instanceof y.ArrayAdapter?t:new y.ArrayAdapter(t),n=t[this.pos];return e.move(n,this.pos,this.target),t},this.invert=function(){return new s(this.target,this.pos)},this.toJSON=function(){return{type:g,pos:this.pos,target:this.target}}},s.Prototype.prototype=y.prototype,s.prototype=new s.Prototype,s.fromJSON=function(t){return new s(t.pos,t.target)};var S=function(t,e){var n,r,i=[0];for(n=0;n<t.length;n++)for(r=0;r<e.length;r++)i[r+1]=i[r+1]||0,i[r+1]=a.isEqual(t[n],e[r])?Math.max(i[r+1],i[r]+1):Math.max(i[r+1],i[r]);var o=[];for(r=e.length;r>=0;r--)i[r]>i[r-1]&&o.unshift(e[r-1]);return o};y.Insert=function(t,e){return new y({type:f,pos:t,val:e})},y.Delete=function(t,e){var n=t;return a.isArray(n)&&(n=n.indexOf(e)),0>n?new y({type:l}):new y({type:d,pos:n,val:e})},y.Move=function(t,e){return new s(t,e)},y.Push=function(t,e){var n=t.length;return y.Insert(n,e)},y.Pop=function(t){var e=t.length-1;return y.Delete(e,t[e])},y.Update=function(t,e){var n,r,i,o=S(t,e),s=o,a=t,c=e;for(n=0,r=0,i=0,o=[];r<a.length||i<c.length;)s[n]===a[r]&&a[r]===c[i]?(n++,r++,i++,o.push(1)):s[n]===a[r]?o.push(["+",c[i++]]):o.push(["-",a[r++]]);return y.Sequence(o)},y.Compound=function(t){return 1===t.length?t[0]:new p(t)},y.Clear=function(t){for(var e=[],n=0;n<t.length;n++)e.push(y.Delete(0,t[n]));return y.Compound(e)},y.Sequence=function(t){for(var e=0,n=[],r=0;r<t.length;r++){var i=t[r];if(a.isNumber(i)&&i>0)e+=i;else if("+"===i[0])n.push(y.Insert(e,i[1])),e+=1;else{if("-"!==i[0])throw new u.OperationError("Illegal operation.");n.push(y.Delete(e,i[1]))}}return new p(n)},y.create=function(t,e){var n,r,i=e[0];if(i===f||"+"===i)return r=e[1],n=e[2],y.Insert(r,n);if(i===d||"-"===i)return r=e[1],n=t[r],y.Delete(r,n);if(i===g||">>"===i){r=e[1];var o=e[2];return y.Move(r,o)}throw new u.OperationError("Illegal specification.")};var k=function(t){this.array=t};k.prototype={insert:function(t,e){if(this.array.length<t)throw new u.OperationError("Provided array is too small.");this.array.splice(t,0,e)},"delete":function(t,e){if(this.array.length<t)throw new u.OperationError("Provided array is too small.");if(this.array[t]!==e)throw new u.OperationError("Unexpected value at position "+t+". Expected "+e+", found "+this.array[t]);this.array.splice(t,1)},move:function(t,e,n){if(this.array.length<e)throw new u.OperationError("Provided array is too small.");if(this.array.splice(e,1),this.array.length<n)throw new u.OperationError("Provided array is too small.");this.array.splice(n,0,t)}},y.ArrayAdapter=k,y.NOP=l,y.DELETE=d,y.INSERT=f,y.MOVE=g,e.exports=y},{"./compound":127,"./operation":129,"substance-util":144,underscore:151}],127:[function(t,e){"use strict";t("underscore");var n=t("substance-util"),r=t("./operation"),i="compound",o=function(t){if(this.type=i,this.ops=t,this.alias=void 0,!t||0===t.length)throw new r.OperationError("No operations given.")};o.Prototype=function(){this.clone=function(){for(var t=[],e=0;e<this.ops.length;e++)t.push(n.clone(this.ops[e]));return new o(t)},this.apply=function(t){for(var e=0;e<this.ops.length;e++)t=this.ops[e].apply(t);return t},this.invert=function(){for(var t=[],e=0;e<this.ops.length;e++)t.unshift(this.ops[e].invert());return new o(t)},this.toJSON=function(){var t={type:i,ops:this.ops};return this.alias&&(t.alias=this.alias),t}},o.Prototype.prototype=r.prototype,o.prototype=new o.Prototype,o.TYPE=i;var s=function(t,e,n,r,o){var a;if(e.type===i)for(a=0;a<e.ops.length;a++)s(t,e.ops[a],n,r,o);else for(a=0;a<t.ops.length;a++){var c,u;n?(c=t.ops[a],u=e):(c=e,u=t.ops[a]),o(c,u,{inplace:!0,check:r})}};o.createTransform=function(t){return function(e,r,o){return o=o||{},e.type===i||r.type===i?(o.inplace||(e=n.clone(e),r=n.clone(r)),e.type===i?s(e,r,!0,o.check,t):r.type===i&&s(r,e,!1,o.check,t),[e,r]):t(e,r,o)}},e.exports=o},{"./operation":129,"substance-util":144,underscore:151}],128:[function(t,e){"use strict";function n(t){return t instanceof a?n(t.ops[0]):t instanceof c?"string":t instanceof u?"array":"other"}var r=t("underscore"),i=t("substance-util"),o=i.errors,s=t("./operation"),a=t("./compound"),c=t("./text_operation"),u=t("./array_operation"),h="NOP",p="create",l="delete",d="update",f="set",g=function(t){if(this.type=t.type,this.path=t.path,this.type===p||this.type===l)this.val=t.val;else if(this.type===d){if(void 0===t.diff)throw new o.OperationError("Illegal argument: update by value or by diff must be provided");this.diff=t.diff,this.propertyType=t.propertyType}else this.type===f&&(this.val=t.val,this.original=t.original)};g.fromJSON=function(t){if(t.type===a.TYPE){for(var e=[],n=0;n<t.ops.length;n++)e.push(g.fromJSON(t.ops[n]));return g.Compound(e)}var r=new g(t);if("update"===t.type)switch(t.propertyType){case"string":r.diff=c.fromJSON(r.diff);break;case"array":r.diff=u.fromJSON(r.diff);break;default:throw new Error("Don't know how to deserialize this operation:"+JSON.stringify(t))}return r},g.Prototype=function(){this.clone=function(){return new g(this)},this.isNOP=function(){return this.type===h?!0:this.type===d?this.diff.isNOP():void 0},this.apply=function(t){if(this.type===h)return t;var e=t instanceof g.Object?t:new g.Object(t);if(this.type===p)return e.create(this.path,i.clone(this.val)),t;var n=e.get(this.path);if(this.type===l){if(void 0===n)throw new o.OperationError("Property "+JSON.stringify(this.path)+" not found.");e.delete(this.path,n)}else if(this.type===d)if("object"===this.propertyType)n=g.apply(this.diff,n),e.inplace()||e.update(this.path,n,this.diff);else if("array"===this.propertyType)n=u.apply(this.diff,n),e.inplace()||e.update(this.path,n,this.diff);else{if("string"!==this.propertyType)throw new o.OperationError("Unsupported type for operational update.");n=c.apply(this.diff,n),e.update(this.path,n,this.diff)}else{if(this.type!==f)throw new o.OperationError("Illegal state.");e.set(this.path,i.clone(this.val))}return t},this.invert=function(){if(this.type===h)return{type:h};var t=new g(this);if(this.type===p)t.type=l;else if(this.type===l)t.type=p;else if(this.type===d){var e;"string"===this.propertyType?e=c.fromJSON(this.diff).invert():"array"===this.propertyType&&(e=u.fromJSON(this.diff).invert()),t.diff=e,t.propertyType=this.propertyType}else{if(this.type!==f)throw new o.OperationError("Illegal state.");t.val=this.original,t.original=this.val}return t},this.hasConflict=function(t){return g.hasConflict(this,t)},this.toJSON=function(){if(this.type===h)return{type:h};var t={type:this.type,path:this.path};return this.type===p||this.type===l?t.val=this.val:this.type===d?(t.diff=this.diff,t.propertyType=this.propertyType):this.type===f&&(t.val=this.val,t.original=this.original),t}},g.Prototype.prototype=s.prototype,g.prototype=new g.Prototype,g.Object=function(t){this.obj=t},g.Object.Prototype=function(){function t(t,e,n,r){for(var i=e,o=0;o<n.length-1;o++){if(void 0===i)throw new Error("Key error: could not find element for path "+JSON.stringify(t.path));void 0===i[n[o]]&&r&&(i[n[o]]={}),i=i[n[o]]}return{parent:i,key:n[o]}}this.get=function(e){var n=t(this,this.obj,e);return n.parent[n.key]},this.create=function(e,n){var r=t(this,this.obj,e,!0);if(void 0!==r.parent[r.key])throw new o.OperationError("Value already exists. path ="+JSON.stringify(e));r.parent[r.key]=n},this.update=function(t,e){this.set(t,e)},this.set=function(e,n){var r=t(this,this.obj,e);r.parent[r.key]=n},this.delete=function(e){var n=t(this,this.obj,e);delete n.parent[n.key]},this.inplace=function(){return!0}},g.Object.prototype=new g.Object.Prototype;var y=function(t,e){return t.type===h||e.type===h?!1:r.isEqual(t.path,e.path)},v=function(t,e){t.type=h,e.type=h},m=function(){throw new o.OperationError("Can not transform two concurring creates of the same property")},w=function(t,e,n){return t.type!==l?w(e,t,!0):(n?(t.val=e.val,e.type=h):t.type=h,void 0)},_=function(t,e,n){if(t.type!==l)return _(e,t,!0);var r;"string"===e.propertyType?r=c.fromJSON(e.diff):"array"===e.propertyType&&(r=u.fromJSON(e.diff)),n?(t.val=r.apply(t.val),e.type=h):(t.type=h,e.type=p,e.val=r.apply(t.val))},b=function(){throw new o.OperationError("Can not transform a concurring create and update of the same property")},x=function(t,e){var n,r,i;"string"===e.propertyType?(n=c.fromJSON(t.diff),r=c.fromJSON(e.diff),i=c.transform(n,r,{inplace:!0})):"array"===e.propertyType?(n=u.fromJSON(t.diff),r=u.fromJSON(e.diff),i=u.transform(n,r,{inplace:!0})):"object"===e.propertyType&&(n=g.fromJSON(t.diff),r=g.fromJSON(e.diff),i=g.transform(n,r,{inplace:!0})),t.diff=i[0],e.diff=i[1]},C=function(t,e,n){return t.type!==p?C(e,t,!0):(n?(t.type=f,t.original=e.val,e.type=h):(t.type=h,e.original=t.val),void 0)},P=function(t,e,n){return t.type!==l?P(e,t,!0):(n?(t.val=e.val,e.type=h):(t.type=h,e.type=p,e.original=void 0),void 0)},E=function(){throw new o.OperationError("Can not transform update/set of the same property.")},S=function(t,e){t.type=h,e.original=t.val},k=0,O=1,N=2,T=4,I=8,A={};A[h]=k,A[p]=O,A[l]=N,A[d]=T,A[f]=I;var R=[];R[N|N]=v,R[N|O]=w,R[N|T]=_,R[O|O]=m,R[O|T]=b,R[T|T]=x,R[O|I]=C,R[N|I]=P,R[T|I]=E,R[I|I]=S;var V=function(t,e,n){n=n||{};var r=y(t,e);if(n.check&&r)throw s.conflict(t,e);return n.inplace||(t=i.clone(t),e=i.clone(e)),r?(R[A[t.type]|A[e.type]](t,e),[t,e]):[t,e]};g.transform=a.createTransform(V),g.hasConflict=y;var $=function(t,e){return t instanceof g||(t=g.fromJSON(t)),t.apply(e)};g.apply=$,g.Create=function(t,e){return new g({type:p,path:t,val:e})},g.Delete=function(t,e){return new g({type:l,path:t,val:e})},g.Update=function(t,e,r){return r=r||n(e),new g({type:d,path:t,diff:e,propertyType:r})},g.Set=function(t,e,n){return new g({type:f,path:t,val:n,original:e})},g.Compound=function(t){return 0===t.length?null:new a(t)};var j=function(t,e,n,i,s,a){for(var c=Object.getOwnPropertyNames(e),u=0;u<c.length;u++){var h=c[u],p=n.concat(h);if(void 0===e[h]&&void 0!==t[h])i.push(g.Delete(p,t[h]));else if(r.isObject(e[h])){if(!r.isObject(t[h]))throw new o.OperationError("Incompatible arguments: newVals must have same structure as obj.");j(t[h],e[h],p,i,s,a)}else if(void 0===t[h])s.push(g.Create(p,e[h]));else{var l=t[h],d=e[h];r.isEqual(l,d)||a.push(g.Set(p,l,d))}}};g.Extend=function(t,e){var n=[],r=[],i=[];return j(t,e,[],n,r,i),g.Compound(n.concat(r).concat(i))},g.NOP=h,g.CREATE=p,g.DELETE=l,g.UPDATE=d,g.SET=f,e.exports=g},{"./array_operation":126,"./compound":127,"./operation":129,"./text_operation":131,"substance-util":144,underscore:151}],129:[function(t,e){"use strict";var n=t("substance-util"),r=n.errors,i=r.define("OperationError",-1),o=r.define("Conflict",-1),s=function(){};s.Prototype=function(){this.clone=function(){throw new Error("Not implemented.")},this.apply=function(){throw new Error("Not implemented.")},this.invert=function(){throw new Error("Not implemented.")},this.hasConflict=function(){throw new Error("Not implemented.")}},s.prototype=new s.Prototype,s.conflict=function(t,e){var n=new r.Conflict("Conflict: "+JSON.stringify(t)+" vs "+JSON.stringify(e));return n.a=t,n.b=e,n},s.OperationError=i,s.Conflict=o,e.exports=s},{"substance-util":144}],130:[function(t,e){"use strict";var n=t("./text_operation"),r=t("./array_operation"),i={};i.last=function(t){return"compound"===t.type?t.ops[t.ops.length-1]:t},i.each=function(t,e,n,r){if("compound"===t.type){for(var o=t.ops.length,s=0;o>s;s++){var a=t.ops[s];if(r&&(a=t.ops[o-s-1]),"compound"===a.type){if(i.each(a,e,n,r)===!1)return!1}else if(e.call(n,a)===!1)return!1}return!0}return e.call(n,t)},i.invert=function(t,e){switch(e){case"string":return n.fromJSON(t).invert();case"array":return r.fromJSON(t).invert();default:throw new Error("Don't know how to invert this operation.")}},e.exports=i},{"./array_operation":126,"./text_operation":131}],131:[function(t,e){"use strict";function n(t,e,n){t.pos===e.pos?n?e.pos+=t.str.length:t.pos+=e.str.length:t.pos<e.pos?e.pos+=t.str.length:t.pos+=e.str.length}function r(t,e,n){if(t.pos>e.pos)return r(e,t,!n);if(t.pos===e.pos&&t.str.length>e.str.length)return r(e,t,!n);if(e.pos<t.pos+t.str.length){var i=e.pos-t.pos,o=t.str.length-i,s=i+e.str.length;t.str=t.str.slice(0,i)+t.str.slice(s),e.str=e.str.slice(o),e.pos-=i}else e.pos-=t.str.length}function i(t,e){if(t.type===p)return i(e,t);if(t.pos<=e.pos)e.pos+=t.str.length;else if(t.pos>=e.pos+e.str.length)t.pos-=e.str.length;else{var n=t.pos-e.pos;e.str=e.str.slice(0,n)+t.str+e.str.slice(n),t.str=""}}var o=t("underscore"),s=t("substance-util"),a=s.errors,c=t("./operation"),u=t("./compound"),h="+",p="-",l=function(t){if(o.isArray(t)&&(t={type:t[0],pos:t[1],str:t[2]}),void 0===t.type||void 0===t.pos||void 0===t.str)throw new a.OperationError("Illegal argument: insufficient data.");if(this.type=t.type,this.pos=t.pos,this.str=t.str,!this.isInsert()&&!this.isDelete())throw new a.OperationError("Illegal type.");if(!o.isString(this.str))throw new a.OperationError("Illegal argument: expecting string.");if(!o.isNumber(this.pos)&&this.pos<0)throw new a.OperationError("Illegal argument: expecting positive number as pos.")};l.fromJSON=function(t){if(t.type===u.TYPE){for(var e=[],n=0;n<t.ops.length;n++)e.push(l.fromJSON(t.ops[n]));return l.Compound(e)}return new l(t)},l.Prototype=function(){this.clone=function(){return new l(this)},this.isNOP=function(){return"NOP"===this.type||0===this.str.length},this.isInsert=function(){return this.type===h},this.isDelete=function(){return this.type===p},this.length=function(){return this.str.length},this.apply=function(t){if(this.isEmpty())return t;var e=t instanceof l.StringAdapter?t:new l.StringAdapter(t);if(this.type===h)e.insert(this.pos,this.str);
-else{if(this.type!==p)throw new a.OperationError("Illegal operation type: "+this.type);e.delete(this.pos,this.str.length)}return e.get()},this.invert=function(){var t={type:this.isInsert()?"-":"+",pos:this.pos,str:this.str};return new l(t)},this.hasConflict=function(t){return l.hasConflict(this,t)},this.isEmpty=function(){return 0===this.str.length},this.toJSON=function(){return{type:this.type,pos:this.pos,str:this.str}}},l.Prototype.prototype=c.prototype,l.prototype=new l.Prototype;var d=function(t,e){if(t.type===h&&e.type===h)return t.pos===e.pos;if(t.type===p&&e.type===p)return!(t.pos>=e.pos+e.str.length||e.pos>=t.pos+t.str.length);var n,r;return t.type===p?(n=t,r=e):(n=e,r=t),r.pos>=n.pos&&r.pos<n.pos+n.str.length},f=function(t,e,o){if(o=o||{},o.check&&d(t,e))throw c.conflict(t,e);return o.inplace||(t=s.clone(t),e=s.clone(e)),t.type===h&&e.type===h?n(t,e,!0):t.type===p&&e.type===p?r(t,e,!0):i(t,e),[t,e]},g=function(t,e){return o.isArray(t)?t=new l(t):t instanceof l||(t=l.fromJSON(t)),t.apply(e)};l.transform=u.createTransform(f),l.apply=g;var y=function(t){this.str=t};y.prototype={insert:function(t,e){if(this.str.length<t)throw new a.OperationError("Provided string is too short.");this.str=this.str.slice(0,t)+e+this.str.slice(t)},"delete":function(t,e){if(this.str.length<t+e)throw new a.OperationError("Provided string is too short.");this.str=this.str.slice(0,t)+this.str.slice(t+e)},get:function(){return this.str}},l.Insert=function(t,e){return new l(["+",t,e])},l.Delete=function(t,e){return new l(["-",t,e])},l.Compound=function(t){return 1===t.length?t[0]:new u(t)},l.fromOT=function(t,e){var n=[],r=0,i=0;return o.isArray(e)||(e=o.toArray(arguments).slice(1)),o.each(e,function(e){if(o.isString(e))n.push(l.Insert(i,e)),i+=e.length;else if(0>e){var s=-e;n.push(l.Delete(i,t.slice(r,r+s))),r+=s}else r+=e,i+=e}),0===n.length?null:l.Compound(n)},l.fromSequence=l.fromOT;var v=function(t){o.isArray(t)?(this.start=t[0],this.length=t[1]):(this.start=t.start,this.length=t.length)},m=function(t,e,n,r){var i=!1;{if(e.type!==u.TYPE){var s,a;if(o.isArray(t)?(s=t[0],a=t[1]):(s=t.start,a=s+t.length),e.type===p){var c=e.pos,l=e.pos+e.str.length;s>=c&&(s-=Math.min(l-c,s-c),i=!0),a>=c&&(a-=Math.min(l-c,a-c),i=!0)}else if(e.type===h){var d=e.pos,f=e.str.length;(s>d||d===s&&!n)&&(s+=f,i=!0),(a>d||d===a&&r)&&(a+=f,i=!0)}return i&&(o.isArray(t)?(t[0]=s,t[1]=a):(t.start=s,t.length=a-s)),i}for(var g=0;g<e.ops.length;g++){var y=e.ops[g];m(t,y)}}};v.Prototype=function(){this.clone=function(){return new v(this)},this.toJSON=function(){var t={start:this.start,length:this.length};return t},this.transform=function(t,e){return m(this.range,t,e)}},v.prototype=new v.Prototype,v.transform=function(t,e,n,r){return m(t,e,n,r)},v.fromJSON=function(t){return new v(t)},l.StringAdapter=y,l.Range=v,l.INSERT=h,l.DELETE=p,e.exports=l},{"./compound":127,"./operation":129,"substance-util":144,underscore:151}],132:[function(t,e){"use strict";e.exports=t("./src/regexp")},{"./src/regexp":133}],133:[function(t,e){"use strict";var n=function(t){this.index=t.index,this.match=[];for(var e=0;e<t.length;e++)this.match.push(t[e])};n.Prototype=function(){this.captures=function(){return this.match.slice(1)},this.toString=function(){return this.match[0]}},n.prototype=new n.Prototype;var r=function(t){this.exp=t};r.Prototype=function(){this.match=function(t){if(void 0===t)throw new Error("No string given");if(this.exp.global){var e,r=[];for(this.exp.compile(this.exp);null!==(e=this.exp.exec(t));)r.push(new n(e));return r}return this.exp.exec(t)}},r.prototype=new r.Prototype,r.Match=n,e.exports=r},{}],134:[function(t,e){"use strict";var n=t("./src/surface");n.addEditingBehavior=t("./src/surface_editing"),n.EditorController=t("./src/editor_controller"),n.SurfaceController=t("./src/surface_controller"),e.exports=n},{"./src/editor_controller":137,"./src/surface":138,"./src/surface_controller":139,"./src/surface_editing":140}],135:[function(t,e){var n={selection:["up","down","left","right","shift+up","shift+down","shift+left","shift+right","ctrl+up","ctrl+down","ctrl+left","ctrl+right","ctrl+shift+up","ctrl+shift+down","ctrl+shift+left","ctrl+shift+right","alt+up","alt+down","alt+left","alt+right","alt+shift+up","alt+shift+down","alt+shift+left","alt+shift+right","command+up","command+down","command+left","command+right","command+shift+up","command+shift+down","command+shift+left","command+shift+right"],backspace:["backspace"],"delete":["del"],"break":["enter"],"soft-break":["shift+enter"],blank:["space","shift+space"],indent:["tab"],unindent:["shift+tab"],undo:["command+z"],redo:["command+shift+z"],copy:["command+c"],paste:["command+v"],strong:["ctrl+b"],emphasis:["ctrl+i"],heading:["ctrl+command+h"]};e.exports=n},{}],136:[function(t,e){var n={selection:["up","down","left","right","shift+up","shift+down","shift+left","shift+right","ctrl+up","ctrl+down","ctrl+left","ctrl+right","ctrl+shift+up","ctrl+shift+down","ctrl+shift+left","ctrl+shift+right"],backspace:["backspace"],"delete":["del"],"break":["enter"],"soft-break":["shift+enter"],blank:["space","shift+space"],indent:["tab"],unindent:["shift+tab"],undo:["ctrl+z"],redo:["ctrl+shift+z"],copy:["ctrl+c"],paste:["ctrl+v"],strong:["ctrl+b"],emphasis:["ctrl+i"],heading:["ctrl+alt+h"]};e.exports=n},{}],137:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=function(t,e){this.session=t,this.editorFactory=e,this.editors={}};i.Prototype=function(){n.extend(this,r.Events),this.delete=function(t){var e=this.session.startSimulation(),n=e.selection;n.isNull()||(n.isCollapsed()&&n.expand(t,"char"),c(this,e)&&(e.save(),this.session.selection.set(n),i(this)))},this.copy=function(){console.log("I am sorry. Currently disabled.")},this.cut=function(){console.log("I am sorry. Currently disabled.")},this.paste=function(){console.log("I am sorry. Currently disabled.")},this.breakNode=function(){var t=this.session.selection;if(t.isNull())return console.error("Can not break, as no position has been selected."),void 0;var e=this.session.startSimulation();a(this,e)&&(e.save(),t.set(e.selection),i(this))},this.annotate=function(t,n){var r=this.session.selection;if(r.isNull())throw new Error("Nothing selected.");if(r.hasMultipleNodes())throw new Error("Can only annotate within a single node/component.");var o=this.session.startSimulation();if("link"===t)n.url="http://example.com";else if("remark_reference"===t||"error_reference"===t){n=n||{};var s=f(this,o,t);n.target=s}e(this,o,t,n),o.save(),this.session.selection.set(o.selection),i(this)},this.deleteAnnotation=function(t){var e=this.session.document,n=e.get(t),r=this.session.container.lookup(n.path);e.delete(t),this.session.selection.set({start:[r.pos,n.range[0]],end:[r.pos,n.range[1]]})},this.updateNode=function(t,e,n){this.session.document.set([t,e],n),i(this)},this.write=function(t){var e=this.session.selection;if(e.isNull())return console.error("Can not write, as no position has been selected."),void 0;var n=this.session.startSimulation();s(this,n,t)&&(n.save(),e.set(n.selection),i(this))},this.indent=function(t){var e=this.session.selection;if(e.isNull())return console.error("Nothing is selected."),void 0;if(e.hasMultipleNodes())return console.error("Indenting Multi-Node selection is not supported yet."),void 0;var n=this.session.startSimulation(),r=n.selection,s=r.getCursor(),a=s.pos,c=n.container.getRootNodeFromPos(a),u=n.container.getComponent(a),h=o(this,c);return h.canIndent(n,u,t)?(h.indent(n,u,t),n.save(),i(this),void 0):(console.log("Can not indent at the given position."),void 0)},this.addReference=function(t,n,r){var o=this.session.selection;if(o.isNull())return console.error("Nothing is selected."),void 0;var a=this.session.startSimulation();if(s(this,a,t)){var c=a.selection,u=c.getCursor();c.set({start:[u.pos,u.charPos-t.length],end:[u.pos,u.charPos]}),e(this,a,n,r),c.collapse("right"),a.save(),o.set(a.selection),i(this)}},this.changeType=function(t,e){var n=this.session.selection;if(console.log("EditorController.changeType()",t,e),n.isNull())return console.error("Nothing selected."),void 0;if(n.hasMultipleNodes())return console.error("Can not switch type of multiple nodes."),void 0;var r=this.session.startSimulation(),s=r.selection.start[0],a=r.container.getRootNodeFromPos(s),c=o(this,a);c.canChangeType(r,a,t)&&(c.changeType(r,a,s,t,e),r.save(),i(this))},this.canInsertNode=function(){var t=this.session.selection,e=this.session.container;if(t.isNull())return!1;var n=t.range().start,r=n[0],i=n[1],s=e.getComponent(r),a=s.node,c=o(this,a);return c.canBreak(this.session,s,i)},this.insertNode=function(t,e){var o=this.session.selection;if(o.isNull())throw new Error("Selection is null!");var s=this.session.startSimulation(),c=s.selection;if(a(this,s)){var u=c.range().start,h=s.container.getNodePos(u[0]),p={id:t+"_"+r.uuid(),type:t};e&&n.extend(p,e),s.document.create(p),s.document.show(s.view,p.id,h);var l=s.container.getNodeComponents(p.id);l.length>0&&c.set([l[0].pos,0]),s.save(),this.session.selection.set(s.selection),i(this)}};var t=[{action:"createNode",type:"heading",data:{level:1}}];r.freeze(t),this.getAllowedActions=function(){return this.canInsertNode()?t:[]},this.undo=function(){this.session.document.chronicle&&this.session.document.chronicle.rewind()},this.redo=function(){this.session.document.chronicle&&this.session.document.chronicle.forward()},this.dispose=function(){this.session.dispose()},this.isEditor=function(){return!0},this.createComment=function(t){this.session.document.comment(t)};var e=function(t,e,n,r){var i=e.selection.range(),s=i.start[0],a=[i.start[1],i.end[1]],c=e.container.getRootNodeFromPos(s),u=e.container.getComponent(s),h=o(t,c);return h.canAnnotate(e,u,n,a)?(h.annotate(e,u,n,a,r),e.selection.set(i),void 0):(console.log("Can not annotate component",u),void 0)},i=function(t){t.session.document.chronicle.mark("master"),t.trigger("document:edited")},o=function(t,e){return t.editors[e.id]||(t.editors[e.id]=t.editorFactory.createEditor(e)),t.editors[e.id]},s=function(t,e,n){var r=e.selection,i=r.getCursor(),s=i.pos,a=i.charPos,u=e.container.getRootNodeFromPos(s),h=e.container.getComponent(s),p=o(t,u);return p.canInsertContent(e,h,a)?r.isCollapsed()||c(t,e)?(a=r.getCursor().charPos,p.insertContent(e,h,a,n),r.set([s,a+n.length]),!0):(console.log("Could not delete the selected content"),!1):(console.log("Can not insert at the given position."),!1)},a=function(t,e){var n=e.selection,r=n.range().start,i=r[0],s=r[1],a=e.container.getComponent(i),u=e.container.getRootNodeFromPos(i),h=o(t,u);return h.canBreak(e,a,s)?n.isCollapsed()||c(t,e)?(s=n.getCursor().charPos,h.breakNode(e,a,s),!0):(console.log("Could not delete the selected content"),!1):!1},c=function(t,e){var n,r=e.selection,i=r.range().start;if(r.hasMultipleNodes())n=h(t,e);else{var o=r.start[0],s=e.container.getComponent(o);n=u(t,e,s)}return r.set(i),n},u=function(t,e,n){var r=e.selection,i=n.node,s=r.startChar(),a=r.endChar(),c=o(t,i);return c.canDeleteContent(e,n,s,a)?(c.deleteContent(e,n,s,a),!0):(console.log("Can not delete content",i.type,s,a),!1)},h=function(t,e){var n,r,i,s=e.selection.getRanges(),a=e.container,c=[],u=o(t,{type:"view",id:a.name});for(n=0;n<s.length;n++){r=s[n],i=r.component.node;var h,l,d=a.getNodeComponents(i.id),f=n,g=f+d.length-1;if(g<s.length&&r.isFull()&&s[g].isFull())l=u,h=l.canDeleteNode(e,i,r.component.nodePos),c.push({type:"node",editor:l,range:r});else{l=o(t,i);for(var y=f;g>=y;y++)r=s[y],h=l.canDeleteContent(e,r.component,r.start,r.end),c.push({type:"content",editor:l,range:r})}if(n=g,!h)return console.log("Can't delete component:",r.component),!1}var v=s.length>0&&s[0].isPartial()&&s[s.length-1].isPartial();for(n=c.length-1;n>=0;n--){var m=c[n];r=m.range,"content"===m.type?m.editor.deleteContent(e,r.component,r.start,r.end):(i=r.component.node,m.editor.deleteNode(e,i,r.component.nodePos),e.document.delete(i.id))}return v&&p(t,e,s[0],s[s.length-1]),!0},p=function(t,e,n,r){var i=n.component.node,s=r.component.node,a=o(t,i),c=o(t,{type:"view",id:e.container.name});return a.canJoin(e,i,s)?c.canDeleteNode(e,s,r.component.nodePos)?(a.join(e,i,s),c.deleteNode(e,s,r.component.nodePos),e.document.delete(s.id),!0):!1:!1},l={error_reference:"error",remark_reference:"remark"},d={error:"errors",remark:"remarks"},f=function(t,e,n){var i=l[n],o=d[i];if(!i)throw new Error("Unsupported issue type:"+n);var s=e.document,a={id:i+"_"+r.uuid(),type:i,created_at:new Date,creator:Math.random()>.5?"Michael Aufreiter":"Oliver Buchtala"};return s.create(a),s.show(o,[a.id]),a.id}},i.prototype=new i.Prototype,Object.defineProperties(i.prototype,{selection:{get:function(){return this.session.selection},set:function(){throw new Error("Immutable.")}},annotator:{get:function(){return this.session.annotator},set:function(){throw new Error("Immutable.")}},container:{get:function(){return this.session.container},set:function(){throw new Error("Immutable.")}},document:{get:function(){return this.session.document},set:function(){throw new Error("Immutable.")}},view:{get:function(){return console.error("TODO: rename this property."),this.session.container.name},set:function(){throw new Error("Immutable.")}}}),e.exports=i},{"substance-util":144,underscore:151}],138:[function(t,e){var n="undefined"!=typeof self?self:"undefined"!=typeof window?window:{},r=t("underscore"),i=t("substance-application").View,o=t("substance-util"),s=t("./surface_keyboard"),a=function(t,e,n){if(i.call(this),n=n||{},this.docCtrl=t,this.renderer=e,this.document=t.session.document,this.nodeTypes=this.document.nodeTypes,this.nodeViews=this.renderer.nodeViews,this.$el.addClass("surface"),this.listenTo(this.document,"property:updated",this.onUpdateView),this.listenTo(this.document,"graph:reset",this.reset),t.isEditor()){var r=n.keymap||a._getDefaultKeyMap();a.addEditingBehavior(this,new s(t,r))}};a.Prototype=function(){function t(t,e,n){var r=t.childNodes;if(e<r.length){var i=r[e];t.insertBefore(n,i)}else t.appendChild(n)}var e=function(t){for(var e=[],n=t;void 0!==n;){if(n.getAttribute){var r=n.getAttribute("data-path");r&&e.unshift(r)}if($(n).is(".content-node")){var i=n.getAttribute("id");if(!i)throw new Error("Every element with class 'content-node' must have an 'id' attribute.");return e.unshift(i),e}n=n.parentElement}return null},n=function(t,n){var r,i,o=this.docCtrl.container,s=e(t);if(!s)throw new Error("Could not find node.");var a=o.lookup(s);if(!a)return null;if(!a.surface.hasView()){var c=a.path[0],u=a.surface.surfaceProvider.getNodeSurface(c),h=this.nodeViews[c];u.attachView(h)}if(!a.surface.hasView())throw new Error("NodeView.attachView() must propagate down to child views.");return r=a.pos,i=a.surface.getCharPosition(t,n),[r,i]};this.updateSelection=function(){var t=window.getSelection();if(null===t.anchorNode)return console.error("Ooops. Please try to fix this."),void 0;if($(t.anchorNode.parentElement).is(".cursor"))return this.docCtrl.selection.collapse("cursor"),void 0;var e,r,i=t.getRangeAt(0);if(e=[i.startContainer,i.startOffset],r=[i.endContainer,i.endOffset],i.endContainer===t.anchorNode&&i.endOffset===t.anchorOffset){var o=e;e=r,r=o}var s=n.call(this,e[0],e[1]);if(!s)return t.removeAllRanges(),this.docCtrl.selection.clear(),void 0;var a;if(i.collapsed)a=s;else if(a=n.call(this,r[0],r[1]),!a)return t.removeAllRanges(),this.docCtrl.selection.clear(),void 0;this.docCtrl.selection.set({start:s,end:a})};var i=function(t){var e=this.docCtrl.container,n=e.getComponent(t[0]);if(!n.surface.hasView()){var r=this.nodeViews[n.node.id];n.surface.attachView(r)}var i=n.surface.getDOMPosition(t[1]);return i};this.renderSelection=function(){var t=this.docCtrl.selection;if(!t.isNull()){var e=document.createRange(),n=i.call(this,t.start);e.setStart(n.startContainer,n.startOffset);var r=window.getSelection();if(r.removeAllRanges(),r.addRange(e),!t.isCollapsed()){var o=i.call(this,[t.cursor.pos,t.cursor.charPos]);r.extend(o.endContainer,o.endOffset)}}},this.render=function(){var t=document.createElement("input");t.className="image-files",t.setAttribute("type","file"),t.setAttribute("name","files[]");var e=document.createElement("div");e.className="controls";var n=document.createElement("div");n.className="nodes";var r=document.createElement("div");return r.className="cursor",this.el.appendChild(t),this.el.appendChild(e),this.el.appendChild(n),this.el.appendChild(r),n.appendChild(this.renderer.render()),this.$("input.image-files").hide(),this.$cursor=this.$(".cursor"),this.$cursor.hide(),this._nodesEl=n,this},this.reset=function(){r.each(this.nodeViews,function(t){t.dispose()}),this.render()},this.dispose=function(){this.stopListening(),r.each(this.nodeViews,function(t){t.dispose()},this)},this.getContainer=function(){return this.docCtrl.container},this.onUpdateView=function(e,n){if(2===e.length&&e[0]===this.docCtrl.session.container.name&&"nodes"===e[1]){var r,i,o,s,a=this._nodesEl;if(n.isInsert()){if(r=n.val,i=this.document.get(r),this.nodeTypes[i.type]){var c=this.renderer.createView(i);this.nodeViews[r]=c,s=c.render().el,t(a,n.pos,s)}}else if(n.isDelete())r=n.val,this.nodeViews[r]&&this.nodeViews[r].dispose(),delete this.nodeViews[r],o=a.children,a.removeChild(o[n.pos]);else if(n.isMove())o=a.children,s=o[n.pos],a.removeChild(s),t(a,n.target,s);else if("NOP"!==n.type)throw new Error("Illegal state.")}}},r.extend(a.Prototype,o.Events.Listener),a.Prototype.prototype=i.prototype,a.prototype=new a.Prototype,a._getDefaultKeyMap=function(){var e=t("./default_keymap_osx");if(void 0!==n.navigator){var r=n.navigator.platform;r.toLowerCase().search("linux")>=0?e=t("./default_keymap_unix"):r.toLowerCase().search("win32")>=0&&(e=t("./default_keymap_unix"))}return e},e.exports=a},{"./default_keymap_osx":135,"./default_keymap_unix":136,"./surface_keyboard":141,"substance-application":4,"substance-util":144,underscore:151}],139:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util"),i=function(t){this.session=t};i.Prototype=function(){n.extend(this,r.Events),this.isEditor=function(){return!1}},i.prototype=new i.Prototype,Object.defineProperties(i.prototype,{selection:{get:function(){return this.session.selection},set:function(){throw new Error("Immutable.")}},annotator:{get:function(){return this.session.annotator},set:function(){throw new Error("Immutable.")}},container:{get:function(){return this.session.container},set:function(){throw new Error("Immutable.")}},document:{get:function(){return this.session.document},set:function(){throw new Error("Immutable.")}},view:{get:function(){return console.error("TODO: rename this property."),this.session.container.name},set:function(){throw new Error("Immutable.")}}}),e.exports=i},{"substance-util":144,underscore:151}],140:[function(t,e){"use strict";var n=function(t,e){var n=t.el,r=t.$el,i=t.docCtrl;n.setAttribute("contenteditable","true"),n.spellcheck=!1;var o=[],s=!1,a=function(e){t.updateSelection(e)},c=function(){s=!0},u=function(t){if(s&&o.length>0){var e=o[0];e.el.textContent=e.val}s=!1,t.data?(i.write(t.data),t.preventDefault()):console.error("It happened that the textinput event had no data. Investigate!")},h=new MutationObserver(function(t){t.forEach(function(t){s&&o.push({mutation:t,el:t.target,val:t.oldValue})})}),p={subtree:!0,characterData:!0,characterDataOldValue:!0},l=function(){return t.renderSelection.apply(t,arguments)};e.bind("paste",function(){s=!1},"keypress");var d=t.dispose;t.dispose=function(){d.call(t),n.removeEventListener("keydown",c),n.removeEventListener("textInput",u,!0),n.removeEventListener("input",u,!0),r.off("mouseup",a),h.disconnect(),e.disconnect()},t.onCursorMoved=function(){setTimeout(function(){t.updateSelection()},0)},t.manipulate=function(t,e){return function(n){s=!1,setTimeout(t,0),e||n.preventDefault()}};var f=function(){t.listenTo(i.session.selection,"selection:changed",l),n.addEventListener("keydown",c),n.addEventListener("textInput",u,!0),n.addEventListener("input",u,!0),r.mouseup(a),h.observe(n,p),e.connect(t)};f()};e.exports=n},{}],141:[function(t,e){var n=t("substance-commander"),r=function(t,e){var r=new n.Mousetrap;this.keymap=e,this.connect=function(n){r.bind(e.selection,function(){n.onCursorMoved()},"keydown"),r.bind(e.backspace,n.manipulate(function(){t.delete("left")}),"keydown"),r.bind(e["delete"],n.manipulate(function(){t.delete("right")}),"keydown"),r.bind(e["break"],n.manipulate(function(){t.breakNode()}),"keydown"),r.bind(e["soft-break"],n.manipulate(function(){t.write("\n")}),"keydown"),r.bind(e.blank,n.manipulate(function(){t.write(" ")}),"keydown"),r.bind(e.indent,n.manipulate(function(){t.indent("right")}),"keydown"),r.bind(e.unindent,n.manipulate(function(){t.indent("left")}),"keydown"),r.bind(e.undo,n.manipulate(function(){t.undo()}),"keydown"),r.bind(e.redo,n.manipulate(function(){t.redo()}),"keydown"),r.bind(e.strong,n.manipulate(function(){t.annotate("strong")}),"keydown"),r.bind(e.emphasis,n.manipulate(function(){t.annotate("emphasis")}),"keydown"),r.bind(e.heading,n.manipulate(function(){t.insertNode("heading",{level:1})}),"keydown"),r.connect(n.el)},this.disconnect=function(){r.disconnect()},this.bind=function(t,n,i){r.bind(e[t],n,i)}};e.exports=r},{"substance-commander":24}],142:[function(t,e){"use strict";var n=t("./toc_view");e.exports=n},{"./toc_view":143}],143:[function(t,e){"use strict";var n=t("substance-application").View,r=t("substance-application").$$,i=t("substance-data");i.Graph.Index;var o=t("underscore"),s=function(t){n.call(this),this.docCtrl=t,this.$el.addClass("toc")};s.Prototype=function(){this.render=function(){return this.el.innerHTML="",this.headings=o.filter(this.docCtrl.container.getNodes(),function(t){return"heading"===t.type}),this.headings.length<=2&&!this.SHOW_ALWAYS?this:(o.each(this.headings,function(t){this.el.appendChild(r("a.heading-ref.level-"+t.level,{id:"toc_"+t.id,text:t.content,"sbs-click":"jumpToNode("+t.id+")"}))},this),this)},this.setActiveNode=function(t){this.$(".heading-ref.active").removeClass("active"),this.$("#toc_"+t).addClass("active")}},s.Prototype.prototype=n.prototype,s.prototype=new s.Prototype,e.exports=s},{"substance-application":4,"substance-data":28,underscore:151}],144:[function(t,e){"use strict";var n=t("./src/util");n.async=t("./src/async"),n.errors=t("./src/errors"),n.html=t("./src/html"),n.dom=t("./src/dom"),n.Fragmenter=t("./src/fragmenter"),e.exports=n},{"./src/async":145,"./src/dom":146,"./src/errors":147,"./src/fragmenter":148,"./src/html":149,"./src/util":150}],145:[function(t,e){"use strict";function n(t,e){function n(t){var e=a[c];if(!e)return h.length>0?r(new Error("Multiple errors occurred.",t)):r(null,t);var s=i.once(function(t,e){if(t){if(u)return r(t,null);h.push(t)}c+=1,n(e)});try{0===e.length?(e(),s(null,t)):1===e.length?e(s):e(t,s)}catch(p){console.log("util.async caught error:",p),o.printStackTrace(p),r(p)}}var r=t["finally"]||function(t,n){e(t,n)};r=i.once(r);var s=t.data||{},a=t.functions;if(!i.isFunction(e))return e("Illegal arguments: a callback function must be provided");var c=0,u=void 0===t.stopOnError?!0:t.stopOnError,h=[];n(s)}function r(t){return function(e,r){function o(t,e){return function(n,r){2===p.length?p(t,r):3===p.length?p(t,e,r):p(t,e,n,r)}}function s(t,e){return function(n,r){2===p.length?p(t,r):3===p.length?p(t,e,r):p(t,e,n,r)}}var a=t.selector?t.selector(e):t.items,c=t["finally"]||function(t,e){r(t,e)};if(c=i.once(c),!a)return c(null,e);var u=i.isArray(a);t.before&&t.before(e);var h=[],p=t.iterator;if(u)for(var l=0;l<a.length;l++)h.push(o(a[l],l));else for(var d in a)h.push(s(a[d],d));var f={functions:h,data:e,"finally":c,stopOnError:t.stopOnError};n(f,r)}}var i=t("underscore"),o=t("./util.js"),s={};s.sequential=function(t,e){i.isArray(t)&&(t={functions:t}),n(t,e)},s.iterator=function(t,e){var n;return n=1==arguments.length?t:{items:t,iterator:e},r(n)},s.each=function(t,e){var n=r(t);n(null,e)},e.exports=s},{"./util.js":150,underscore:151}],146:[function(t,e){"use strict";var n=t("underscore"),r={};r.ChildNodeIterator=function(t){this.nodes=n.isArray(t)?t:t.childNodes,this.length=this.nodes.length,this.pos=-1},r.ChildNodeIterator.prototype={hasNext:function(){return this.pos<this.length-1},next:function(){return this.pos+=1,this.nodes[this.pos]},back:function(){return this.pos>=0&&(this.pos-=1),this}},r.getChildren=function(t){if(void 0!==t.children)return t.children;for(var e=[],n=t.firstElementChild;n;)e.push(n),n=n.nextElementSibling;return e},r.getNodeType=function(t){if(t.nodeType===Node.TEXT_NODE)return"text";if(t.nodeType===Node.COMMENT_NODE)return"comment";if(t.tagName)return t.tagName.toLowerCase();throw new Error("Unknown node type")},e.exports=r},{underscore:151}],147:[function(t,e){"use strict";t("underscore");var n=t("./util"),r={};r.SubstanceError=function(t,e,r){1==arguments.length&&(r=t,t="SubstanceError",e=-1),this.message=r,this.name=t,this.code=e,this.__stack=n.callstack(1)},r.SubstanceError.Prototype=function(){this.toString=function(){return this.name+":"+this.message},this.toJSON=function(){return{name:this.name,message:this.message,code:this.code,stack:this.stack}},this.printStackTrace=function(){n.printStackTrace(this)}},r.SubstanceError.prototype=new r.SubstanceError.Prototype,Object.defineProperty(r.SubstanceError.prototype,"stack",{get:function(){for(var t=[],e=0;e<this.__stack.length;e++){var n=this.__stack[e];t.push(n.file+":"+n.line+":"+n.col+" ("+n.func+")")}return t.join("\n")},set:function(){throw new Error("immutable.")}}),r.define=function(t,e){return void 0===e&&(e=-1),r[t]=r.SubstanceError.bind(null,t,e),r[t].prototype=r.SubstanceError.prototype,r[t]},e.exports=r},{"./util":150,underscore:151}],148:[function(t,e){"use strict";var n=t("underscore"),r=1,i=-1,o=function(t){if(!t)throw new Error("Requires a specification of element levels.");this.levels=t};o.Prototype=function(){var t=function(t,e){if(t.pos<e.pos)return-1;if(t.pos>e.pos)return 1;if(t.mode<e.mode)return-1;if(t.mode>e.mode)return 1;if(t.mode===r){if(t.level<e.level)return-1;if(t.level>e.level)return 1}if(t.mode===i){if(t.level>e.level)return-1;if(t.level<e.level)return 1}return 0},e=function(t){var e=[];return n.each(t,function(t){var n=this.levels[t.type];void 0!==n&&(e.push({pos:t.range[0],mode:r,level:n,id:t.id,type:t.type}),e.push({pos:t.range[1],mode:i,level:n,id:t.id,type:t.type}))},this),e};this.onText=function(){},this.onEnter=function(){return null},this.onExit=function(){},this.enter=function(t,e){return this.onEnter(t,e)},this.exit=function(t,e){this.onExit(t,e)},this.createText=function(t,e){this.onText(t,e)},this.start=function(n,o,s){var a=e.call(this,s);a.sort(t.bind(this));for(var c=[{context:n,entry:null}],u=0,h=0;h<a.length;h++){var p=a[h];this.createText(c[c.length-1].context,o.substring(u,p.pos)),u=p.pos;var l,d=1;if(p.mode===r){for(;d<c.length&&!(p.level<c[d].entry.level);d++);c.splice(d,0,{entry:p})}else if(p.mode===i){for(;d<c.length&&c[d].entry.id!==p.id;d++);for(l=d;l<c.length;l++)this.exit(c[l].entry,c[l-1].context);c.splice(d,1)}for(l=d;l<c.length;l++)c[l].context=this.enter(c[l].entry,c[l-1].context)}this.createText(n,o.substring(u))}},o.prototype=new o.Prototype,e.exports=o},{underscore:151}],149:[function(t,e){"use strict";var n={},r=t("underscore");n.templates={},n.renderTemplate=function(t,e){return n.templates[t](e)},"undefined"!=typeof window&&(window.console||(window.console={log:function(){}})),n.tpl=function(t,e){e=e||{};var n=$("script[name="+t+"]").html();return r.template(n,e)},e.exports=n},{underscore:151}],150:[function(t,e,n){"use strict";var r=t("underscore"),i={};i.uuid=function(t,e){var n,r="0123456789abcdefghijklmnopqrstuvwxyz".split(""),i=[],o=16;if(e=e||32)for(n=0;e>n;n++)i[n]=r[0|Math.random()*o];else{var s;for(i[8]=i[13]=i[18]=i[23]="-",i[14]="4",n=0;36>n;n++)i[n]||(s=0|16*Math.random(),i[n]=r[19==n?8|3&s:s])}return(t?t:"")+i.join("")},i.uuidGen=function(t){var e=1;return t=void 0!==t?t:"uuid_",function(n){return n=n||t,n+e++}};var o=function(t,e){var n,r=-1,i=t.length,o=e[0],s=e[1],a=e[2];switch(e.length){case 0:for(;++r<i;)(n=t[r]).callback.call(n.ctx);return;case 1:for(;++r<i;)(n=t[r]).callback.call(n.ctx,o);return;case 2:for(;++r<i;)(n=t[r]).callback.call(n.ctx,o,s);return;case 3:for(;++r<i;)(n=t[r]).callback.call(n.ctx,o,s,a);return;default:for(;++r<i;)(n=t[r]).callback.apply(n.ctx,e)}},s=/\s+/,a=function(t,e,n,r){if(!n)return!0;if("object"==typeof n){for(var i in n)t[e].apply(t,[i,n[i]].concat(r));return!1}if(s.test(n)){for(var o=n.split(s),a=0,c=o.length;c>a;a++)t[e].apply(t,[o[a]].concat(r));return!1}return!0};i.Events={on:function(t,e,n){if(!a(this,"on",t,[e,n])||!e)return this;this._events=this._events||{};var r=this._events[t]||(this._events[t]=[]);return r.push({callback:e,context:n,ctx:n||this}),this},once:function(t,e,n){if(!a(this,"once",t,[e,n])||!e)return this;var i=this,o=r.once(function(){i.off(t,o),e.apply(this,arguments)});return o._callback=e,this.on(t,o,n)},off:function(t,e,n){var i,o,s,c,u,h,p,l;if(!this._events||!a(this,"off",t,[e,n]))return this;if(!t&&!e&&!n)return this._events={},this;for(c=t?[t]:r.keys(this._events),u=0,h=c.length;h>u;u++)if(t=c[u],s=this._events[t]){if(this._events[t]=i=[],e||n)for(p=0,l=s.length;l>p;p++)o=s[p],(e&&e!==o.callback&&e!==o.callback._callback||n&&n!==o.context)&&i.push(o);i.length||delete this._events[t]}return this},trigger:function(t){if(!this._events)return this;var e=Array.prototype.slice.call(arguments,1);if(!a(this,"trigger",t,e))return this;var n=this._events[t],r=this._events.all;return n&&o(n,e),r&&o(r,arguments),this},triggerLater:function(){var t=this,e=arguments;setTimeout(function(){t.trigger.apply(t,e)},0)},stopListening:function(t,e,n){var r=this._listeners;if(!r)return this;var i=!e&&!n;"object"==typeof e&&(n=this),t&&((r={})[t._listenerId]=t);for(var o in r)r[o].off(e,n,this),i&&delete this._listeners[o];return this}};var c={listenTo:"on",listenToOnce:"once"};r.each(c,function(t,e){i.Events[e]=function(e,n,i){var o=this._listeners||(this._listeners={}),s=e._listenerId||(e._listenerId=r.uniqueId("l"));return o[s]=e,"object"==typeof n&&(i=this),e[t](n,i,this),this}}),i.Events.bind=i.Events.on,i.Events.unbind=i.Events.off,i.Events.Listener={listenTo:function(t,e,n){if(!r.isFunction(n))throw new Error("Illegal argument: expecting function as callback, was: "+n);return this._handlers=this._handlers||[],t.on(e,n,this),this._handlers.push({unbind:function(){t.off(e,n)}}),this},stopListening:function(){if(this._handlers)for(var t=0;t<this._handlers.length;t++)this._handlers[t].unbind()}},i.propagate=function(t,e){if(!r.isFunction(e))throw"Illegal argument: provided callback is not a function";return function(n){return n?e(n):(e(null,t),void 0)}};var u=function(){};i.inherits=function(t,e,n){var i;return i=e&&e.hasOwnProperty("constructor")?e.constructor:function(){t.apply(this,arguments)},r.extend(i,t),u.prototype=t.prototype,i.prototype=new u,e&&r.extend(i.prototype,e),n&&r.extend(i,n),i.prototype.constructor=i,i.__super__=t.prototype,i},i.getJSON=function(e,r){if("undefined"!=typeof n){var i=t("fs"),o=JSON.parse(i.readFileSync(e,"utf8"));r(null,o)}else $.getJSON(e).done(function(t){r(null,t)}).error(function(t){r(t,null)})},i.prototype=function(t){return Object.getPrototypeOf?Object.getPrototypeOf(t):t.__proto__},i.inherit=function(t,e){var n,i=r.isFunction(t)?new t:t;if(r.isFunction(e))e.prototype=i,n=new e;else{var o=function(){};o.prototype=i,n=r.extend(new o,e)}return n},i.pimpl=function(t){var e=function(t){this.self=t};return e.prototype=t,function(t){return t=t||this,new e(t)}},i.parseStackTrace=function(t){var e,n=/([^@]*)@(.*):(\d+)/,r=/\s*at ([^(]*)[(](.*):(\d+):(\d+)[)]/,i=t.stack.split("\n"),o=[];for(e=0;e<i.length;e++){var s=n.exec(i[e]);if(s||(s=r.exec(i[e])),s){var a={func:s[1],file:s[2],line:s[3],col:s[4]||0};""===a.func&&(a.func="<anonymous>"),o.push(a)}}return o},i.callstack=function(t){var e;try{throw new Error}catch(n){e=n}var r=i.parseStackTrace(e);return t=t||0,r.splice(t+1)},i.stacktrace=function(t){var e=0===arguments.length?i.callstack().splice(1):i.parseStackTrace(t),n=[];
-return r.each(e,function(t){n.push(t.file+":"+t.line+":"+t.col+" ("+t.func+")")}),n.join("\n")},i.printStackTrace=function(t,e){if(t.stack){var n;if(void 0!==t.__stack)n=t.__stack;else{if(!r.isString(t.stack))return;n=i.parseStackTrace(t)}e=e||n.length,e=Math.min(e,n.length);for(var o=0;e>o;o++){var s=n[o];console.log(s.file+":"+s.line+":"+s.col,"("+s.func+")")}}},i.diff=function(t,e){var n;return r.isArray(t)&&r.isArray(e)?(n=r.difference(e,t),0===n.length?null:n):r.isObject(t)&&r.isObject(e)?(n={},r.each(Object.keys(e),function(r){var o=i.diff(t[r],e[r]);o&&(n[r]=o)}),r.isEmpty(n)?null:n):t!==e?e:void 0},i.deepclone=function(t){return void 0===t?void 0:null===t?null:JSON.parse(JSON.stringify(t))},i.clone=function(t){return null===t||void 0===t?t:r.isFunction(t.clone)?t.clone():i.deepclone(t)},i.freeze=function(t){var e;if(r.isObject(t)){if(Object.isFrozen(t))return t;var n=Object.keys(t);for(e=0;e<n.length;e++){var o=n[e];t[o]=i.freeze(t[o])}return Object.freeze(t)}if(r.isArray(t)){var s=t;for(e=0;e<s.length;e++)s[e]=i.freeze(s[e]);return Object.freeze(s)}return t},i.later=function(t,e){return function(){var n=arguments;setTimeout(function(){t.apply(e,n)},0)}},i.isEmpty=function(t){return!t.match(/\w/)},e.exports=i},{fs:156,underscore:151}],151:[function(t,e,n){(function(){var t=this,r=t._,i={},o=Array.prototype,s=Object.prototype,a=Function.prototype,c=o.push,u=o.slice,h=o.concat,p=s.toString,l=s.hasOwnProperty,d=o.forEach,f=o.map,g=o.reduce,y=o.reduceRight,v=o.filter,m=o.every,w=o.some,_=o.indexOf,b=o.lastIndexOf,x=Array.isArray,C=Object.keys,P=a.bind,E=function(t){return t instanceof E?t:this instanceof E?(this._wrapped=t,void 0):new E(t)};"undefined"!=typeof n?("undefined"!=typeof e&&e.exports&&(n=e.exports=E),n._=E):t._=E,E.VERSION="1.5.2";var S=E.each=E.forEach=function(t,e,n){if(null!=t)if(d&&t.forEach===d)t.forEach(e,n);else if(t.length===+t.length){for(var r=0,o=t.length;o>r;r++)if(e.call(n,t[r],r,t)===i)return}else for(var s=E.keys(t),r=0,o=s.length;o>r;r++)if(e.call(n,t[s[r]],s[r],t)===i)return};E.map=E.collect=function(t,e,n){var r=[];return null==t?r:f&&t.map===f?t.map(e,n):(S(t,function(t,i,o){r.push(e.call(n,t,i,o))}),r)};var k="Reduce of empty array with no initial value";E.reduce=E.foldl=E.inject=function(t,e,n,r){var i=arguments.length>2;if(null==t&&(t=[]),g&&t.reduce===g)return r&&(e=E.bind(e,r)),i?t.reduce(e,n):t.reduce(e);if(S(t,function(t,o,s){i?n=e.call(r,n,t,o,s):(n=t,i=!0)}),!i)throw new TypeError(k);return n},E.reduceRight=E.foldr=function(t,e,n,r){var i=arguments.length>2;if(null==t&&(t=[]),y&&t.reduceRight===y)return r&&(e=E.bind(e,r)),i?t.reduceRight(e,n):t.reduceRight(e);var o=t.length;if(o!==+o){var s=E.keys(t);o=s.length}if(S(t,function(a,c,u){c=s?s[--o]:--o,i?n=e.call(r,n,t[c],c,u):(n=t[c],i=!0)}),!i)throw new TypeError(k);return n},E.find=E.detect=function(t,e,n){var r;return O(t,function(t,i,o){return e.call(n,t,i,o)?(r=t,!0):void 0}),r},E.filter=E.select=function(t,e,n){var r=[];return null==t?r:v&&t.filter===v?t.filter(e,n):(S(t,function(t,i,o){e.call(n,t,i,o)&&r.push(t)}),r)},E.reject=function(t,e,n){return E.filter(t,function(t,r,i){return!e.call(n,t,r,i)},n)},E.every=E.all=function(t,e,n){e||(e=E.identity);var r=!0;return null==t?r:m&&t.every===m?t.every(e,n):(S(t,function(t,o,s){return(r=r&&e.call(n,t,o,s))?void 0:i}),!!r)};var O=E.some=E.any=function(t,e,n){e||(e=E.identity);var r=!1;return null==t?r:w&&t.some===w?t.some(e,n):(S(t,function(t,o,s){return r||(r=e.call(n,t,o,s))?i:void 0}),!!r)};E.contains=E.include=function(t,e){return null==t?!1:_&&t.indexOf===_?-1!=t.indexOf(e):O(t,function(t){return t===e})},E.invoke=function(t,e){var n=u.call(arguments,2),r=E.isFunction(e);return E.map(t,function(t){return(r?e:t[e]).apply(t,n)})},E.pluck=function(t,e){return E.map(t,function(t){return t[e]})},E.where=function(t,e,n){return E.isEmpty(e)?n?void 0:[]:E[n?"find":"filter"](t,function(t){for(var n in e)if(e[n]!==t[n])return!1;return!0})},E.findWhere=function(t,e){return E.where(t,e,!0)},E.max=function(t,e,n){if(!e&&E.isArray(t)&&t[0]===+t[0]&&t.length<65535)return Math.max.apply(Math,t);if(!e&&E.isEmpty(t))return-1/0;var r={computed:-1/0,value:-1/0};return S(t,function(t,i,o){var s=e?e.call(n,t,i,o):t;s>r.computed&&(r={value:t,computed:s})}),r.value},E.min=function(t,e,n){if(!e&&E.isArray(t)&&t[0]===+t[0]&&t.length<65535)return Math.min.apply(Math,t);if(!e&&E.isEmpty(t))return 1/0;var r={computed:1/0,value:1/0};return S(t,function(t,i,o){var s=e?e.call(n,t,i,o):t;s<r.computed&&(r={value:t,computed:s})}),r.value},E.shuffle=function(t){var e,n=0,r=[];return S(t,function(t){e=E.random(n++),r[n-1]=r[e],r[e]=t}),r},E.sample=function(t,e,n){return arguments.length<2||n?t[E.random(t.length-1)]:E.shuffle(t).slice(0,Math.max(0,e))};var N=function(t){return E.isFunction(t)?t:function(e){return e[t]}};E.sortBy=function(t,e,n){var r=N(e);return E.pluck(E.map(t,function(t,e,i){return{value:t,index:e,criteria:r.call(n,t,e,i)}}).sort(function(t,e){var n=t.criteria,r=e.criteria;if(n!==r){if(n>r||void 0===n)return 1;if(r>n||void 0===r)return-1}return t.index-e.index}),"value")};var T=function(t){return function(e,n,r){var i={},o=null==n?E.identity:N(n);return S(e,function(n,s){var a=o.call(r,n,s,e);t(i,a,n)}),i}};E.groupBy=T(function(t,e,n){(E.has(t,e)?t[e]:t[e]=[]).push(n)}),E.indexBy=T(function(t,e,n){t[e]=n}),E.countBy=T(function(t,e){E.has(t,e)?t[e]++:t[e]=1}),E.sortedIndex=function(t,e,n,r){n=null==n?E.identity:N(n);for(var i=n.call(r,e),o=0,s=t.length;s>o;){var a=o+s>>>1;n.call(r,t[a])<i?o=a+1:s=a}return o},E.toArray=function(t){return t?E.isArray(t)?u.call(t):t.length===+t.length?E.map(t,E.identity):E.values(t):[]},E.size=function(t){return null==t?0:t.length===+t.length?t.length:E.keys(t).length},E.first=E.head=E.take=function(t,e,n){return null==t?void 0:null==e||n?t[0]:u.call(t,0,e)},E.initial=function(t,e,n){return u.call(t,0,t.length-(null==e||n?1:e))},E.last=function(t,e,n){return null==t?void 0:null==e||n?t[t.length-1]:u.call(t,Math.max(t.length-e,0))},E.rest=E.tail=E.drop=function(t,e,n){return u.call(t,null==e||n?1:e)},E.compact=function(t){return E.filter(t,E.identity)};var I=function(t,e,n){return e&&E.every(t,E.isArray)?h.apply(n,t):(S(t,function(t){E.isArray(t)||E.isArguments(t)?e?c.apply(n,t):I(t,e,n):n.push(t)}),n)};E.flatten=function(t,e){return I(t,e,[])},E.without=function(t){return E.difference(t,u.call(arguments,1))},E.uniq=E.unique=function(t,e,n,r){E.isFunction(e)&&(r=n,n=e,e=!1);var i=n?E.map(t,n,r):t,o=[],s=[];return S(i,function(n,r){(e?r&&s[s.length-1]===n:E.contains(s,n))||(s.push(n),o.push(t[r]))}),o},E.union=function(){return E.uniq(E.flatten(arguments,!0))},E.intersection=function(t){var e=u.call(arguments,1);return E.filter(E.uniq(t),function(t){return E.every(e,function(e){return E.indexOf(e,t)>=0})})},E.difference=function(t){var e=h.apply(o,u.call(arguments,1));return E.filter(t,function(t){return!E.contains(e,t)})},E.zip=function(){for(var t=E.max(E.pluck(arguments,"length").concat(0)),e=new Array(t),n=0;t>n;n++)e[n]=E.pluck(arguments,""+n);return e},E.object=function(t,e){if(null==t)return{};for(var n={},r=0,i=t.length;i>r;r++)e?n[t[r]]=e[r]:n[t[r][0]]=t[r][1];return n},E.indexOf=function(t,e,n){if(null==t)return-1;var r=0,i=t.length;if(n){if("number"!=typeof n)return r=E.sortedIndex(t,e),t[r]===e?r:-1;r=0>n?Math.max(0,i+n):n}if(_&&t.indexOf===_)return t.indexOf(e,n);for(;i>r;r++)if(t[r]===e)return r;return-1},E.lastIndexOf=function(t,e,n){if(null==t)return-1;var r=null!=n;if(b&&t.lastIndexOf===b)return r?t.lastIndexOf(e,n):t.lastIndexOf(e);for(var i=r?n:t.length;i--;)if(t[i]===e)return i;return-1},E.range=function(t,e,n){arguments.length<=1&&(e=t||0,t=0),n=arguments[2]||1;for(var r=Math.max(Math.ceil((e-t)/n),0),i=0,o=new Array(r);r>i;)o[i++]=t,t+=n;return o};var A=function(){};E.bind=function(t,e){var n,r;if(P&&t.bind===P)return P.apply(t,u.call(arguments,1));if(!E.isFunction(t))throw new TypeError;return n=u.call(arguments,2),r=function(){if(!(this instanceof r))return t.apply(e,n.concat(u.call(arguments)));A.prototype=t.prototype;var i=new A;A.prototype=null;var o=t.apply(i,n.concat(u.call(arguments)));return Object(o)===o?o:i}},E.partial=function(t){var e=u.call(arguments,1);return function(){return t.apply(this,e.concat(u.call(arguments)))}},E.bindAll=function(t){var e=u.call(arguments,1);if(0===e.length)throw new Error("bindAll must be passed function names");return S(e,function(e){t[e]=E.bind(t[e],t)}),t},E.memoize=function(t,e){var n={};return e||(e=E.identity),function(){var r=e.apply(this,arguments);return E.has(n,r)?n[r]:n[r]=t.apply(this,arguments)}},E.delay=function(t,e){var n=u.call(arguments,2);return setTimeout(function(){return t.apply(null,n)},e)},E.defer=function(t){return E.delay.apply(E,[t,1].concat(u.call(arguments,1)))},E.throttle=function(t,e,n){var r,i,o,s=null,a=0;n||(n={});var c=function(){a=n.leading===!1?0:new Date,s=null,o=t.apply(r,i)};return function(){var u=new Date;a||n.leading!==!1||(a=u);var h=e-(u-a);return r=this,i=arguments,0>=h?(clearTimeout(s),s=null,a=u,o=t.apply(r,i)):s||n.trailing===!1||(s=setTimeout(c,h)),o}},E.debounce=function(t,e,n){var r,i,o,s,a;return function(){o=this,i=arguments,s=new Date;var c=function(){var u=new Date-s;e>u?r=setTimeout(c,e-u):(r=null,n||(a=t.apply(o,i)))},u=n&&!r;return r||(r=setTimeout(c,e)),u&&(a=t.apply(o,i)),a}},E.once=function(t){var e,n=!1;return function(){return n?e:(n=!0,e=t.apply(this,arguments),t=null,e)}},E.wrap=function(t,e){return function(){var n=[t];return c.apply(n,arguments),e.apply(this,n)}},E.compose=function(){var t=arguments;return function(){for(var e=arguments,n=t.length-1;n>=0;n--)e=[t[n].apply(this,e)];return e[0]}},E.after=function(t,e){return function(){return--t<1?e.apply(this,arguments):void 0}},E.keys=C||function(t){if(t!==Object(t))throw new TypeError("Invalid object");var e=[];for(var n in t)E.has(t,n)&&e.push(n);return e},E.values=function(t){for(var e=E.keys(t),n=e.length,r=new Array(n),i=0;n>i;i++)r[i]=t[e[i]];return r},E.pairs=function(t){for(var e=E.keys(t),n=e.length,r=new Array(n),i=0;n>i;i++)r[i]=[e[i],t[e[i]]];return r},E.invert=function(t){for(var e={},n=E.keys(t),r=0,i=n.length;i>r;r++)e[t[n[r]]]=n[r];return e},E.functions=E.methods=function(t){var e=[];for(var n in t)E.isFunction(t[n])&&e.push(n);return e.sort()},E.extend=function(t){return S(u.call(arguments,1),function(e){if(e)for(var n in e)t[n]=e[n]}),t},E.pick=function(t){var e={},n=h.apply(o,u.call(arguments,1));return S(n,function(n){n in t&&(e[n]=t[n])}),e},E.omit=function(t){var e={},n=h.apply(o,u.call(arguments,1));for(var r in t)E.contains(n,r)||(e[r]=t[r]);return e},E.defaults=function(t){return S(u.call(arguments,1),function(e){if(e)for(var n in e)void 0===t[n]&&(t[n]=e[n])}),t},E.clone=function(t){return E.isObject(t)?E.isArray(t)?t.slice():E.extend({},t):t},E.tap=function(t,e){return e(t),t};var R=function(t,e,n,r){if(t===e)return 0!==t||1/t==1/e;if(null==t||null==e)return t===e;t instanceof E&&(t=t._wrapped),e instanceof E&&(e=e._wrapped);var i=p.call(t);if(i!=p.call(e))return!1;switch(i){case"[object String]":return t==String(e);case"[object Number]":return t!=+t?e!=+e:0==t?1/t==1/e:t==+e;case"[object Date]":case"[object Boolean]":return+t==+e;case"[object RegExp]":return t.source==e.source&&t.global==e.global&&t.multiline==e.multiline&&t.ignoreCase==e.ignoreCase}if("object"!=typeof t||"object"!=typeof e)return!1;for(var o=n.length;o--;)if(n[o]==t)return r[o]==e;var s=t.constructor,a=e.constructor;if(s!==a&&!(E.isFunction(s)&&s instanceof s&&E.isFunction(a)&&a instanceof a))return!1;n.push(t),r.push(e);var c=0,u=!0;if("[object Array]"==i){if(c=t.length,u=c==e.length)for(;c--&&(u=R(t[c],e[c],n,r)););}else{for(var h in t)if(E.has(t,h)&&(c++,!(u=E.has(e,h)&&R(t[h],e[h],n,r))))break;if(u){for(h in e)if(E.has(e,h)&&!c--)break;u=!c}}return n.pop(),r.pop(),u};E.isEqual=function(t,e){return R(t,e,[],[])},E.isEmpty=function(t){if(null==t)return!0;if(E.isArray(t)||E.isString(t))return 0===t.length;for(var e in t)if(E.has(t,e))return!1;return!0},E.isElement=function(t){return!(!t||1!==t.nodeType)},E.isArray=x||function(t){return"[object Array]"==p.call(t)},E.isObject=function(t){return t===Object(t)},S(["Arguments","Function","String","Number","Date","RegExp"],function(t){E["is"+t]=function(e){return p.call(e)=="[object "+t+"]"}}),E.isArguments(arguments)||(E.isArguments=function(t){return!(!t||!E.has(t,"callee"))}),"function"!=typeof/./&&(E.isFunction=function(t){return"function"==typeof t}),E.isFinite=function(t){return isFinite(t)&&!isNaN(parseFloat(t))},E.isNaN=function(t){return E.isNumber(t)&&t!=+t},E.isBoolean=function(t){return t===!0||t===!1||"[object Boolean]"==p.call(t)},E.isNull=function(t){return null===t},E.isUndefined=function(t){return void 0===t},E.has=function(t,e){return l.call(t,e)},E.noConflict=function(){return t._=r,this},E.identity=function(t){return t},E.times=function(t,e,n){for(var r=Array(Math.max(0,t)),i=0;t>i;i++)r[i]=e.call(n,i);return r},E.random=function(t,e){return null==e&&(e=t,t=0),t+Math.floor(Math.random()*(e-t+1))};var V={escape:{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#x27;"}};V.unescape=E.invert(V.escape);var $={escape:new RegExp("["+E.keys(V.escape).join("")+"]","g"),unescape:new RegExp("("+E.keys(V.unescape).join("|")+")","g")};E.each(["escape","unescape"],function(t){E[t]=function(e){return null==e?"":(""+e).replace($[t],function(e){return V[t][e]})}}),E.result=function(t,e){if(null==t)return void 0;var n=t[e];return E.isFunction(n)?n.call(t):n},E.mixin=function(t){S(E.functions(t),function(e){var n=E[e]=t[e];E.prototype[e]=function(){var t=[this._wrapped];return c.apply(t,arguments),F.call(this,n.apply(E,t))}})};var j=0;E.uniqueId=function(t){var e=++j+"";return t?t+e:e},E.templateSettings={evaluate:/<%([\s\S]+?)%>/g,interpolate:/<%=([\s\S]+?)%>/g,escape:/<%-([\s\S]+?)%>/g};var D=/(.)^/,M={"'":"'","\\":"\\","\r":"r","\n":"n","	":"t","\u2028":"u2028","\u2029":"u2029"},L=/\\|'|\r|\n|\t|\u2028|\u2029/g;E.template=function(t,e,n){var r;n=E.defaults({},n,E.templateSettings);var i=new RegExp([(n.escape||D).source,(n.interpolate||D).source,(n.evaluate||D).source].join("|")+"|$","g"),o=0,s="__p+='";t.replace(i,function(e,n,r,i,a){return s+=t.slice(o,a).replace(L,function(t){return"\\"+M[t]}),n&&(s+="'+\n((__t=("+n+"))==null?'':_.escape(__t))+\n'"),r&&(s+="'+\n((__t=("+r+"))==null?'':__t)+\n'"),i&&(s+="';\n"+i+"\n__p+='"),o=a+e.length,e}),s+="';\n",n.variable||(s="with(obj||{}){\n"+s+"}\n"),s="var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};\n"+s+"return __p;\n";try{r=new Function(n.variable||"obj","_",s)}catch(a){throw a.source=s,a}if(e)return r(e,E);var c=function(t){return r.call(this,t,E)};return c.source="function("+(n.variable||"obj")+"){\n"+s+"}",c},E.chain=function(t){return E(t).chain()};var F=function(t){return this._chain?E(t).chain():t};E.mixin(E),S(["pop","push","reverse","shift","sort","splice","unshift"],function(t){var e=o[t];E.prototype[t]=function(){var n=this._wrapped;return e.apply(n,arguments),"shift"!=t&&"splice"!=t||0!==n.length||delete n[0],F.call(this,n)}}),S(["concat","join","slice"],function(t){var e=o[t];E.prototype[t]=function(){return F.call(this,e.apply(this._wrapped,arguments))}}),E.extend(E.prototype,{chain:function(){return this._chain=!0,this},value:function(){return this._wrapped}})}).call(this)},{}],152:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-document"),i=t("substance-application").Controller,o=t("./reader_view");t("substance-util");var s=r.Session,a=r.Container,c=t("substance-surface").SurfaceController,u=function(t,e){this.document=t,this.options=e||{}};u.Prototype=function(){this.hasFigures=function(){return this.figuresCtrl&&this.figuresCtrl.container.nodes.length>0},this.hasInfo=function(){return this.infoCtrl&&this.infoCtrl.container.nodes.length>0},this.createView=function(){return this.view||(this.view=new o(this,this.options)),this.view},this.initialize=function(t,e){var n=this.document;this.currentContext=t.contextId;var r=new a.DefaultNodeSurfaceProvider(n);this.contentCtrl=new c(new s(new a(n,"content",r))),n.get("figures")&&(this.figuresCtrl=new c(new s(new a(n,"figures",r)))),n.get("info")&&(this.infoCtrl=new c(new s(new a(n,"info",r)))),this.referenceIndex=n.indexes.references||n.addIndex("references",{types:["figure_reference","contributor_reference","remark_reference","error_reference"],property:"target"}),this.createView().render(),e(null)},this.afterTransition=function(t){this.view&&this.view.updateState(this.state,t)},this.getContextId=function(){return this.state.contextId||"toc"},this.getResourceReferenceContainers=function(t){var e=this.referenceIndex.get(t),r=this.contentCtrl.session.container,i=n.uniq(n.map(e,function(t){return r.lookupRootNode(t.path[0])}));return i}},u.Prototype.prototype=i.prototype,u.prototype=new u.Prototype,e.exports=u},{"./reader_view":153,"substance-application":4,"substance-document":35,"substance-surface":134,"substance-util":144,underscore:151}],153:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-util");r.html;var i,o,s,a=t("substance-surface"),c=t("lens-outline"),u=t("substance-application").View,h=t("substance-toc"),p=t("substance-data"),l=p.Graph.Index,d=t("substance-application").$$,f=0,g=function(t,e){u.call(this),this.readerCtrl=t,this.options=e||{};var r=this.readerCtrl.document;this.$el.addClass("article"),this.$el.addClass(r.schema.id),this.bodyScroll={figures:0,info:0,toc:0},this.contentView=o(this,r,"content"),this.contentView.el.classList.add("content"),this.tocView=new h(this.readerCtrl.contentCtrl),this.tocView.$el.addClass("resource-view"),this.readerCtrl.hasFigures()&&s(this,r,"figures"),this.readerCtrl.hasInfo()&&s(this,r,"info"),this.resources=new l(this.readerCtrl.document,{types:["figure_reference","citation_reference","contributor_reference"],property:"target"}),this.outline=new c(this.contentView),this.resourcesOutline=new c(this.figuresView),this.contentView.$el.on("scroll",n.bind(this.onContentScroll,this)),this.figuresView&&this.figuresView.$el.on("scroll",n.bind(this.onResourceContentScroll,this)),this.citationsView&&this.citationsView.$el.on("scroll",n.bind(this.onResourceContentScroll,this)),this.infoView&&this.infoView.$el.on("scroll",n.bind(this.onResourceContentScroll,this)),this.$el.on("click",".annotation.figure_reference",n.bind(this.toggleFigureReference,this)),this.$el.on("click",".annotation.citation_reference",n.bind(this.toggleCitationReference,this)),this.$el.on("click",".resources .content-node .toggle-resource",n.bind(this.toggleResource,this)),this.$el.on("click",".authors .toggle-author",n.bind(this.toggleAuthor,this)),this.$el.on("click",".annotation.cross_reference",n.bind(this.followCrossReference,this)),this.$el.on("click",".document .content-node.heading",n.bind(this.setAnchor,this)),this.outline.$el.on("click",".node",n.bind(this._jumpToNode,this))};g.Prototype=function(){this.toggleAuthor=function(t){console.log("toggling author...");var e=t.currentTarget.getAttribute("data-id"),n=this.readerCtrl.state;return n.resourceId===e?this.readerCtrl.switchState({id:"main",contextId:"toc"}):this.readerCtrl.switchState({id:"main",contextId:"info",resourceId:e}),!1},this.setAnchor=function(t){this.toggleNode("toc",$(t.currentTarget).attr("id"))},this.gotoTop=function(){return this.jumpToNode("cover"),$(document).scrollTop(0),!1},this.toggleFullscreen=function(t){var e=this.readerCtrl.state;this.readerCtrl.modifyState({id:"main",resource:t,fullscreen:!e.fullscreen})},this._jumpToNode=function(t){var e=$(t.currentTarget).attr("id").replace("outline_","");return this.jumpToNode(e),!1},this.toggleFigureReference=function(t){this.toggleResourceReference("figures",t),t.preventDefault()},this.toggleCitationReference=function(t){this.toggleResourceReference("citations",t),t.preventDefault()},this.toggleResourceReference=function(t,e){var n=this.readerCtrl.state,r=$(e.currentTarget).attr("id"),i=this.readerCtrl.document.get(r),o=i.target;this.saveScroll(),o===n.resourceId?this.readerCtrl.switchState({contextId:this.readerCtrl.currentContext||"toc"}):this.readerCtrl.switchState({id:"main",contextId:t,resourceId:o})},this.followCrossReference=function(t){var e=$(t.currentTarget).attr("id"),n=this.readerCtrl.document.get(e);this.jumpToNode(n.target)},this.onContentScroll=function(){var t=this.contentView.$el.scrollTop();this.outline.updateVisibleArea(t),this.markActiveHeading(t)},this.onResourceContentScroll=function(){var t=this.resourcesOutline.surface.$el.scrollTop();this.resourcesOutline.updateVisibleArea(t)},this.markActiveHeading=function(t){var e=$(".nodes").height();if(0!==this.tocView.headings.length){var r=n.first(this.tocView.headings).id;this.contentView.$(".content-node.heading").each(function(){t>=$(this).position().top+f&&(r=this.id)}),t+this.contentView.$el.height()>=e&&(r=n.last(this.tocView.headings).id),this.tocView.setActiveNode(r)}},this.toggleResource=function(t){var e=$(t.currentTarget).parent().parent().attr("id"),n=this.readerCtrl.state,r={contextId:n.contextId};n.resourceId!==e&&(r.resourceId=e),this.readerCtrl.switchState(r)},this.jumpToNode=function(t){var e=$("#"+t);if(!(e.length<=0)){var n=e.position().top+f;this.contentView.$el.scrollTop(n)}},this.isElementInViewport=function(t){var e=t.getBoundingClientRect(),n=$(window).height(),r=e.top>=0&&e.top<=n,i=e.bottom>=0&&e.bottom<=n,o=e.top<0&&e.bottom>0;return r||i||o},this.jumpToResource=function(t,e){var n=$("#"+t),r=n.position().top;n.length<=0||(!this.isElementInViewport(n[0])||e)&&(this.figuresView&&this.figuresView.$el.scrollTop(r),this.citationsView&&this.citationsView.$el.scrollTop(r),this.infoView&&this.infoView.$el.scrollTop(r),$(document).scrollTop(r))},this.toggleNode=function(){console.log("TODO: implement toggle node")},this.getScroll=function(){return $(document).scrollTop()},this.recoverScroll=function(){var t=this.bodyScroll[this.readerCtrl.state.contextId];$(document).scrollTop(t)},this.saveScroll=function(){this.bodyScroll[this.readerCtrl.state.contextId]=this.getScroll()},this.switchContext=function(t){this.saveScroll(),this.readerCtrl.currentContext=t,this.readerCtrl.switchState({id:"main",contextId:t})},this.updateState=function(t,e){t&&(this.$el.removeClass(),this.$el.addClass("article substance-article"),this.contentView.$(".content-node.active").removeClass("active"),this.$(".annotation.active").removeClass("active"),this.$(".context-toggle").removeClass("focus"),this.$el.addClass("state-"+t.id),this.$el.addClass(this.readerCtrl.getContextId()),void 0!==t.nodeId&&this.contentView.$("#"+t.nodeId).addClass("active"),this.updateResource(e),this.updateOutline(),("toc"===e.contextId&&!t.resourceId||"toc"===t.contextId)&&this.recoverScroll())},this.updateResource=function(t){var e=this.readerCtrl.state,r=this;if(e){this.$(".resources .content-node.active").removeClass("active fullscreen"),this.$(".toggle-author").removeClass("active");var i;if(void 0!==e.resourceId){n.delay(function(){if(e.nodeId&&r.jumpToNode(e.nodeId),e.resourceId){var n="toc"===t.contextId;r.jumpToResource(e.resourceId,n)}});var o=this.$("#"+e.resourceId);o.addClass("active"),e.fullscreen&&o.addClass("fullscreen"),i=this.resources.get(e.resourceId),n.each(i,function(t){this.contentView.$("#"+t.id).addClass("active")},this),this.$("#toggle_"+e.resourceId).addClass("active")}}},this.updateOutline=function(){var t=this,e=this.readerCtrl.state;if(e){var n,r=this.readerCtrl.getContextId(),i={context:r};if(void 0!==e.resourceId)n=this.readerCtrl.getResourceReferenceContainers(e.resourceId),i.highlightedNodes=n;else if(void 0!==e.nodeId)i.selectedNode=e.nodeId;else if("focus"===e.id){var o=this.readerCtrl.focusCtrl.state;n=this.readerCtrl.getResourceReferenceContainers(o.resourceId),i.highlightedNodes=n,i.context=o.contextId}if(t.outline.update(i),"toc"===e.contextId)return $(t.resourcesOutline.el).addClass("hidden"),void 0;t.resourcesOutline.surface="figures"===e.contextId?this.figuresView:"remarks"===e.contextId?this.remarksView:"errors"===e.contextId?this.errorsView:this.infoView,$(t.resourcesOutline.el).removeClass("hidden"),t.resourcesOutline.update({context:e.contextId,highlightedNodes:[e.resourceId]})}},this.getResourceReferenceContainers=function(){var t=this.readerCtrl.state;if(!t.resource)return[];var e=this.resources.get(t.resource),r=this.readerCtrl.content.container,i=n.uniq(n.map(e,function(t){var e=r.getRoot(t.path[0]);return e}));return i},this.render=function(){var e=this;this.el.appendChild(t(this)),this.$(".document").append(e.outline.el),this.resourcesEl=this.el.querySelector(".resources"),this.resourcesEl.appendChild(e.resourcesOutline.el);var r=n.debounce(function(){e.updateOutline()},1);return $(window).resize(r),n.delay(function(){e.updateOutline()},0),this},this.dispose=function(){this.contentView.dispose(),this.figuresView&&this.figuresView.dispose(),this.citationsView&&this.citationsView.dispose(),this.infoView&&this.infoView.dispose(),this.resourcesOutline.dispose(),this.outline.dispose(),this.resources.dispose(),this.stopListening()};var t=function(t){var e=document.createDocumentFragment(),n=d(".document");n.appendChild(t.contentView.render().el);var r=[];t.tocView&&r.push(d("a.context-toggle.toc",{href:"#","sbs-click":"switchContext(toc)",title:"Text",html:'</i><i class="icon-align-left"></i><span> Text</span>'})),t.figuresView&&r.push(d("a.context-toggle.figures",{href:"#","sbs-click":"switchContext(figures)",title:"Figures",html:'<i class="icon-picture"></i><span> Figures</span>'})),t.infoView&&r.push(d("a.context-toggle.info",{href:"#","sbs-click":"switchContext(info)",title:"Article Info",html:'<i class="icon-info-sign"></i><span>Info</span>'}));var i=d(".context-toggles",{children:r}),o=d(".medial-strip");if(t.options.back){var s=d("a.back-nav",{href:"#",title:"Go back",html:'<i class=" icon-chevron-up"></i>'});s.onclick=function(e){t.options.back(),e.preventDefault()},o.appendChild(s)}o.appendChild(d(".separator-line")),o.appendChild(i);var a=d(".resources");return a.appendChild(o),a.appendChild(t.tocView.render().el),t.figuresView&&a.appendChild(t.figuresView.render().el),t.infoView&&a.appendChild(t.infoView.render().el),e.appendChild(n),e.appendChild(a),e}},g.Prototype.prototype=u.prototype,g.prototype=new g.Prototype,g.prototype.constructor=g,i=function(t,e){return new t.constructor.Renderer(t,e)},o=function(t,e,n){var r=t.readerCtrl[n+"Ctrl"],o=i(e,n),s=new a(r,o),c=o.render;return o.render=function(){var t=c.apply(o,arguments);return r.session.container.rebuild(),t},r.session.container.renderer=o,s},s=function(t,e,n){var r=n+"View";t[r]=o(t,e,n);var i=t[r].el;i.classList.add(n),i.classList.add("resource-view"),i.setAttribute("id",n)},e.exports=g},{"lens-outline":2,"substance-application":4,"substance-data":28,"substance-surface":134,"substance-toc":142,"substance-util":144,underscore:151}],154:[function(t,e){"use strict";t("underscore");var n=t("substance-application"),r=n.$$,i=t("./reader_controller"),o=t("substance-article"),s=t("./substance_router");t("substance-commander").Keyboard;var a=t("substance-util");a.html;var c=function(t){n.call(this,t),this.doc=o.fromSnapshot(t.document),this.controller=new i(this.doc,{});var e=new s(this);this.setRouter(e)};c.Article=t("substance-article"),c.Outline=t("lens-outline"),c.Prototype=function(){this.render=function(){var t=r("#container"),e=r("#main");t.appendChild(e),this.el.appendChild(t)},this.afterTransition=function(t,e){e||(console.log("Substance.afterTransition",t,e),this.$("#main").html(this.controller.view.el),this.updateTitle(this.doc.title))}},c.Prototype.prototype=n.prototype,c.prototype=new c.Prototype,c.prototype.constructor=c,c.util=t("substance-util"),c.Application=t("substance-application"),c.Commander=t("substance-commander"),c.Document=t("substance-document"),c.Operator=t("substance-operator"),c.Chronicle=t("substance-chronicle"),c.Data=t("substance-data"),c.RegExp=t("substance-regexp"),c.Surface=t("substance-surface"),e.exports=c},{"./reader_controller":152,"./substance_router":155,"lens-outline":2,"substance-application":4,"substance-article":10,"substance-chronicle":15,"substance-commander":24,"substance-data":28,"substance-document":35,"substance-operator":125,"substance-regexp":132,"substance-surface":134,"substance-util":144,underscore:151}],155:[function(t,e){"use strict";var n=t("underscore"),r=t("substance-application").Router,i=function(t){r.call(this),this.app=t,n.each(i.routes,function(t){this[t.command]?this.route(t.route,t.name,n.bind(this[t.command],this)):console.error("Unknown route handler: ",t.command)},this),this.route(/^state=.*$/,"state",n.bind(this.openState,this))};i.Prototype=function(){this.start=function(){r.history.start()};var t={updateRoute:!1,replace:!1};this.openState=function(){var e=r.history.getFragment(),n=this.app.stateFromFragment(e);console.log("stateFromFragment",e),this.app.switchState(n,t)},this.openReader=function(){this.app.switchState({id:"main",contextId:"toc"},t)},this.navigate=function(t,e){r.history.navigate(t,e)}},i.Prototype.prototype=r.prototype,i.prototype=new i.Prototype,i.routes=[{route:":context/:node/:resource/:fullscreen",name:"document-resource",command:"openReader"},{route:":context/:node/:resource",name:"document-resource",command:"openReader"},{route:":context/:node/:resource",name:"document-resource",command:"openReader"},{route:":context/:node",name:"document-node",command:"openReader"},{route:":context",name:"document-context",command:"openReader"},{route:"",name:"document",command:"openReader"}],e.exports=i},{"substance-application":4,underscore:151}],156:[function(){},{}]},{},[1]);
+;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+window.Substance = require("./src/substance");
+},{"./src/substance":150}],2:[function(require,module,exports){
+"use strict";
+
+var Outline = require('./outline');
+
+module.exports = Outline;
+
+},{"./outline":3}],3:[function(require,module,exports){
+"use strict";
+
+var View = require("substance-application").View;
+var $$ = require("substance-application").$$;
+var _ = require("underscore");
+
+// Lens.Outline
+// ==========================================================================
+//
+// Takes a surface, which is projected to a minimap
+
+var Outline = function(surface) {
+  View.call(this);
+
+  this.surface = surface;
+
+  // Initial view state, telling which node is selected and which are highlighted
+  this.state = {
+    selectedNode: null,
+    highlightedNodes: []
+  };
+
+  this.$el.addClass('lens-outline');
+
+  _.bindAll(this, 'mouseDown', 'mouseUp', 'mouseMove', 'updateVisibleArea');
+
+  // Mouse event handlers
+  // --------
+
+  this.$el.mousedown(this.mouseDown);
+
+  $(window).mousemove(this.mouseMove);
+  $(window).mouseup(this.mouseUp);
+};
+
+Outline.Prototype = function() {
+
+  // Render Document Outline
+  // -------------
+  //
+  // Renders outline and calculates bounds
+
+  this.render = function() {
+    var that = this;
+    var totalHeight = 0;
+
+    var fragment = document.createDocumentFragment();
+    this.visibleArea = $$('.visible-area');
+    fragment.appendChild(this.visibleArea);
+
+
+    // Initial Calculations
+    // --------
+
+    var contentHeight = this.surface.$('.nodes').height();
+    var panelHeight = this.surface.$el.height();
+
+    var factor = (contentHeight / panelHeight);
+    this.factor = factor;
+
+    // Content height is smaller as the panel height, we don't need a scrollbar
+    if (panelHeight > contentHeight) {
+      this.$el.addClass('needless');
+      this.el.innerHTML = "";
+      return;
+    }
+
+    // Render nodes
+    // --------
+
+    var container = this.surface.getContainer();
+    var nodes = container.getNodes();
+
+    _.each(nodes, function(node) {
+      var dn = this.surface.$('#'+node.id);
+      var height = dn.outerHeight(true) / factor;
+
+      // Outline node construction
+      var $node = $('<div class="node">')
+        .attr({
+          id: 'outline_'+node.id,
+        })
+        .css({
+          "position": "absolute",
+          "height": height-1,
+          "top": totalHeight
+        })
+        .addClass(node.type)
+        .append('<div class="arrow">');
+      fragment.appendChild($node[0]);
+      totalHeight += height;
+    }, this);
+
+    // Init scroll pos
+    var scrollTop = that.surface.$el.scrollTop();
+
+    that.el.innerHTML = "";
+    that.el.appendChild(fragment);
+    that.updateVisibleArea(scrollTop);
+
+    return this;
+  };
+
+
+  // Update visible area
+  // -------------
+  //
+  // Should get called from the user when the content area is scrolled
+
+  this.updateVisibleArea = function(scrollTop) {
+    $(this.visibleArea).css({
+      "top": scrollTop / this.factor,
+      "height": this.surface.$el.height() / this.factor
+    });
+  };
+
+
+  // Update Outline
+  // -------------
+  //
+  // Usage:
+  //
+  // outline.update({
+  //   selectedNode: "node_14",
+  //   highlightNodes: []
+  // })
+
+  this.update = function(state) {
+    this.render();
+    this.state = state;
+
+    // Reset
+    this.$('.node').removeClass('selected').removeClass('highlighted');
+    this.$el.removeClass('figures').removeClass('citations').removeClass('errors').removeClass('remarks');
+
+    // Set context
+    this.$el.addClass(state.context);
+
+    // Mark selected node
+    this.$('#outline_' + state.selectedNode).addClass('selected');
+
+    // Mark highlighted nodes
+    _.each(state.highlightedNodes, function(n) {
+      this.$('#outline_'+n).addClass('highlighted');
+    }, this);
+
+  };
+
+
+  // Handle Mouse down event
+  // -----------------
+  //
+
+  this.mouseDown = function(e) {
+    this._mouseDown = true;
+    var y = e.pageY;
+
+    if (e.target !== this.visibleArea) {
+      // Jump to mousedown position
+      this.offset = $(this.visibleArea).height()/2;
+      this.mouseMove(e);
+    } else {
+      this.offset = y - $(this.visibleArea).position().top;
+    }
+
+    return false;
+  };
+
+  // Handle Mouse Up
+  // -----------------
+  //
+  // Mouse lifted, no scroll anymore
+
+  this.mouseUp = function() {
+    this._mouseDown = false;
+  };
+
+  // Handle Scroll
+  // -----------------
+  //
+  // Handle scroll event
+  // .visible-area handle
+
+  this.mouseMove = function(e) {
+    if (this._mouseDown) {
+      var y = e.pageY;
+      // find offset to visible-area.top
+      var scroll = (y - this.offset)*this.factor;
+      this.surface.$el.scrollTop(scroll);
+    }
+  };
+};
+
+Outline.Prototype.prototype = View.prototype;
+Outline.prototype = new Outline.Prototype();
+
+module.exports = Outline;
+
+},{"substance-application":4,"underscore":147}],4:[function(require,module,exports){
+"use strict";
+
+var Application = require("./src/application");
+Application.View = require("./src/view");
+Application.Router = require("./src/router");
+Application.Controller = require("./src/controller");
+Application.ElementRenderer = require("./src/renderers/element_renderer");
+Application.$$ = Application.ElementRenderer.$$;
+
+module.exports = Application;
+
+},{"./src/application":5,"./src/controller":6,"./src/renderers/element_renderer":7,"./src/router":8,"./src/view":9}],5:[function(require,module,exports){
+"use strict";
+
+var View = require("./view");
+var util = require("substance-util");
+// var Controller = require("./controller");
+var _ = require("underscore");
+
+// Substance.Application
+// ==========================================================================
+//
+// Application abstraction suggesting strict MVC
+
+var Application = function(config) {
+  View.call(this);
+  this.config = config;
+
+  this.__controller__ = null;
+};
+
+Application.Prototype = function() {
+
+  this.setRouter = function(router) {
+    this.router = router;
+  };
+
+  // Start Application
+  // ----------
+  //
+
+  this.start = function() {
+    // First setup the top level view
+    this.$el = $('body');
+    this.el = this.$el[0];
+    this.render();
+
+    // Now the normal app lifecycle can begin
+    // Because app state changes require the main view to be present
+    // Triggers an initial app state change according to url hash fragment
+    if (this.router) this.router.start();
+  };
+
+  // Switches the application state
+  // --------
+  // appState: a list of state objects
+
+  var DEFAULT_SWITCH_OPTIONS = {
+    updateRoute: true,
+    replace: false
+  };
+
+  this.switchState = function(appState, options, cb) {
+    var self = this;
+    options = _.extend(DEFAULT_SWITCH_OPTIONS, options || {});
+
+    // keep the old state for afterTransition-handler
+    var oldAppState = this.getState();
+
+    this.controller.__switchState__(appState, function(error) {
+      if (error) {
+        if (cb) {
+          cb(error);
+        } else {
+          console.error(error.message);
+          util.printStackTrace(error);
+        }
+        return;
+      }
+      if (options["updateRoute"]) {
+        self.updateRoute(options);
+      }
+
+      if (self.afterTransition) {
+        try {
+          self.afterTransition(appState, oldAppState);
+        } catch (err) {
+          if (cb) {
+            cb(err);
+          } else {
+            console.error(err.message);
+            util.printStackTrace(err);
+          }
+          return;
+        }
+      }
+
+      if (cb) cb(null);
+    });
+  };
+
+  this.stateFromFragment = function(fragment) {
+    function _createState(stateNames) {
+      var state = [];
+      for (var i = 0; i < stateNames.length; i++) {
+        state.push({id: stateNames[i]});
+      }
+      return state;
+    }
+
+    var state;
+    var params = fragment.split(";");
+
+    var i, pair;
+    var values = [];
+    for (i=0; i<params.length; i++) {
+      pair = params[i].split("=");
+      var key = pair[0];
+      var val = pair[1];
+      if (!key || val === undefined) {
+        continue;
+      }
+      if (key === "state") {
+        var stateNames = val.split(".");
+        state = _createState(stateNames);
+      } else {
+        pair = key.split(".");
+        values.push({state: pair[0], key: pair[1], value: val});
+      }
+    }
+
+    for (i=0; i<values.length; i++) {
+      var item = values[i];
+      var data = state[item.state];
+      data[item.key] = item.value;
+    }
+
+    return state;
+  };
+
+  this.getState = function() {
+    if (!this.controller.state) return null;
+
+    var appState = [];
+    var controller = this.controller;
+    while(controller) {
+      appState.push(controller.state);
+      controller = controller.childController;
+    }
+    return appState;
+  };
+
+  this.updateRoute = function(options) {
+    if (!this.router) return;
+
+    options = options || {};
+
+    var appState = this.getState();
+    var stateIds = [];
+    var stateParams = [];
+    for (var i = 0; i < appState.length; i++) {
+      var s = appState[i];
+      if (!s) continue;
+      stateIds.push(s.id);
+      for (var key in s) {
+        var val = s[key];
+        if (key === "id" || key === "__id__") {
+          continue;
+        }
+        // Note: currently only String variables are allowed as state variables
+        if (!_.isString(val)) {
+          console.error("Only String state variables are allowed");
+          continue;
+        }
+        stateParams.push(i+"."+key+"="+val);
+      }
+    }
+    var stateString = "state="+stateIds.join(".") + ";" + stateParams.join(";");
+    this.router.navigate(stateString, {trigger: false, replace: options.replace});
+  };
+
+  // Called by a sub controller when a sub-state has been changed
+  this.stateChanged = function(controller, oldState, options) {
+    if (options["updateRoute"]) {
+      this.updateRoute(options);
+    }
+  };
+};
+
+Application.Prototype.prototype = View.prototype;
+Application.prototype = new Application.Prototype();
+
+Object.defineProperty(Application.prototype, "controller", {
+  set: function(controller) {
+    controller.setChangeListener(this);
+    this.__controller__ = controller;
+  },
+  get: function() {
+    return this.__controller__;
+  }
+});
+
+module.exports = Application;
+
+},{"./view":9,"substance-util":140,"underscore":147}],6:[function(require,module,exports){
+"use strict";
+
+var util = require("substance-util");
+var _ = require("underscore");
+
+// Substance.Application.Controller
+// ==========================================================================
+//
+// Application Controller abstraction suggesting strict MVC
+
+var Controller = function() {
+
+  // an object that has a method 'stateChanged()'
+  this.changeListener = null;
+
+  // the state is represented by a unique name
+  this.state = null;
+
+  // Each controller can have a single (active) child controller
+  this.__childController__ = null;
+};
+
+Controller.Prototype = function() {
+
+  // A built-in transition function for switching to an initial state
+  // --------
+  //
+
+  this.intitialize = function(/*state, cb*/) {};
+
+  // A built-in transition function which is the opposite to `initialize`
+  // ----
+  this.dispose = function() {
+    if (this.__childController__) this.__childController__.dispose();
+    this.__childController__ = null;
+    this.state = null;
+  };
+
+  this.transition = function(newState, cb) {
+    cb(null);
+  };
+
+  this.switchState = function(state, options, cb) {
+    var self = this;
+
+    if (arguments.length === 1 && _.isFunction(options)) {
+      cb = options;
+      options = {};
+    }
+
+    options = options || {updateRoute: true, replace: false};
+
+    cb = cb || function(err) {
+      if (err) {
+        console.error("Error during switch state", state, options);
+        util.printStackTrace(err);
+        throw new Error(err);
+      }
+    };
+
+    var oldState = this.state;
+    this.__switchState__(state, function(error) {
+      if (error) return cb(error);
+      if (self.changeListener) self.changeListener.stateChanged(this, oldState, options);
+      cb(null);
+    });
+  };
+
+  this.__switchState__ = function(state, cb) {
+    // console.log("Controller.switchState", JSON.stringify(state));
+    var self = this;
+
+    cb = cb || function(err) {
+      if (err) throw new Error(err);
+    };
+
+    if (!_.isArray(state)) {
+      state = [state];
+    }
+
+    var _state = state.shift();
+    var _skipped;
+
+    var _afterTransition = function() {
+      if (!_skipped) {
+        var oldState = self.state;
+        self.state = _state;
+        self.afterTransition(oldState);
+      }
+      cb(null);
+    };
+
+    var _transition = function() {
+      // console.log("Transition to", _state);
+      try {
+        self.transition(_state, function(error, skipped) {
+          if (error) return cb(error);
+
+          _skipped = skipped;
+
+          // The transition has been done in this level, i.e., child controllers
+          // might have been created.
+          // If a child controller exists we recurse into the next level.
+          // After that the controller gets triggered about the finished transition.
+
+          if (self.childController) {
+            if (state.length > 0) {
+              self.childController.__switchState__(state, function(error) {
+                if (error) return cb(error);
+                _afterTransition();
+              });
+            }
+            else if (self.childController.AUTO_INIT) {
+              self.childController.initialize(null, function(error){
+                if (error) return cb(error);
+                _afterTransition();
+              });
+            }
+            else {
+              return cb("Unsufficient state data provided! Child controller needs a transition!");
+            }
+
+          } else {
+            _afterTransition();
+          }
+        });
+      } catch (err) {
+        cb(err);
+      }
+    };
+
+    // If no transitions are given we still can use dispose/initialize
+    // to reach the new state
+    if (!this.state) {
+      // console.log("Initializing...", _state);
+      this.initialize(_state, function(error) {
+        if (error) return cb(error);
+        self.state = {id: "initialized"};
+        _transition();
+      });
+    } else {
+      _transition();
+    }
+  };
+
+  this.afterTransition = function() {};
+
+  this.setChildController = function(childController) {
+    if (this.__childController__ && this.__childController__.state) {
+      console.error("The child controller has not been disposed. Call 'disposeChildController()' first. However, let me do this for you once more...");
+      this.__childController__.dispose();
+    }
+    if (!childController) {
+      return;
+    }
+    if (!this.changeListener) {
+      // We need to establish a consistent connection between (Sub-)Controllers and the Application
+      // instance to be able to notify the app about changes in the sub state
+      // For now, I decided to propagate the application when sub-controllers are attached
+      // to parent controllers.
+      // This makes sense w.r.t the current mechanism of state transitions which
+      // works from top to down. I.e., a parent controller is either the top-level controller
+      // or itself a child of an already attached controller.
+      // A global/singleton Application instance would be possible, however I reject introducing
+      // such an evil thing. It breaks modularity and makes testing harder.
+      // Alternatively one could require this to be given when constructing Controllers,
+      // however, this would require to change all constructors.
+      console.error("This controller does not have a changeListener attached, so the child controller will not trigger corresponding application state changes.");
+    } else {
+      childController.changeListener = this.changeListener;
+    }
+    this.__childController__ = childController;
+  };
+
+  this.disposeChildController = function() {
+    if (this.__childController__) {
+      this.__childController__.dispose();
+      this.__childController__ = null;
+    }
+  };
+
+  this.setChangeListener = function(changeListener) {
+    this.changeListener = changeListener;
+  };
+
+};
+
+Controller.Prototype.prototype = util.Events;
+Controller.prototype = new Controller.Prototype();
+
+Controller.State = function(id) {
+  if (_.isString(id)) {
+    this.__id__ = id;
+  } else {
+    var obj = arguments[0];
+    this.__id__ = obj["id"];
+    _.each(obj, function(val, key) {
+      if (key === "id") return;
+      this[key] = val;
+    }, this);
+  }
+};
+
+Object.defineProperty(Controller.State.prototype, "id", {
+  set: function() {
+    throw new Error("Property 'id' is immutable");
+  },
+  get: function() {
+    return this.__id__;
+  }
+});
+
+Object.defineProperty(Controller.prototype, "childController", {
+  set: function(childController) {
+    this.setChildController(childController);
+  },
+  get: function() {
+    return this.__childController__;
+  }
+});
+
+module.exports = Controller;
+
+},{"substance-util":140,"underscore":147}],7:[function(require,module,exports){
+"use strict";
+
+var util = require("substance-util");
+var SRegExp = require("substance-regexp");
+
+// Substance.Application.ElementRenderer
+// ==========================================================================
+//
+// This is just a simple helper that allows us to create DOM elements
+// in a data-driven way
+
+var ElementRenderer = function(attributes) {
+  this.attributes = attributes;
+
+  // Pull off preserved properties from attributes
+  // --------
+
+  this.tagName = attributes.tag;  
+  this.children = attributes.children || [];
+  this.text = attributes.text || "";
+  this.html = attributes.html;
+  
+  delete attributes.children;
+  delete attributes.text;
+  delete attributes.html;
+  delete attributes.tag;
+
+  return this.render();
+};
+
+
+ElementRenderer.Prototype = function() {
+
+  // Do the actual rendering
+  // --------
+
+  this.render = function() {
+    var el = document.createElement(this.tagName);
+    if (this.html) {
+      el.innerHTML = this.html;
+    } else {
+      el.textContent = this.text;  
+    }
+
+    // Set attributes based on element spec
+    for(var attrName in this.attributes) {
+      var val = this.attributes[attrName];
+      el.setAttribute(attrName, val);
+    }
+
+    // Append childs
+    for (var i=0; i<this.children.length; i++) {
+      var child = this.children[i];
+      el.appendChild(child);
+    }
+
+    // Remember element
+    // Probably we should ditch this
+    this.el = el;
+    return el;
+  };
+};
+
+
+// Provides a shortcut syntax interface to ElementRenderer
+// --------
+
+var $$ = function(descriptor, options) {
+  var options = options  || {};
+
+  // Extract tagName, defaults to 'div'
+  var tagName = /^([a-zA-Z0-9]*)/.exec(descriptor);
+  options.tag = tagName && tagName[1] ? tagName[1] : 'div';
+
+  // Any occurence of #some_chars
+  var id = /#([a-zA-Z0-9_]*)/.exec(descriptor);
+  if (id && id[1]) options.id = id[1];
+
+  // Any occurence of .some-chars
+  // if (!options.class) {
+  //   var re = new RegExp(/\.([a-zA-Z0-9_-]*)/g);
+  //   var classes = [];
+  //   var classMatch;
+  //   while (classMatch = re.exec(descriptor)) {
+  //     classes.push(classMatch[1]);
+  //   }
+  //   options.class = classes.join(' ');
+  // }
+
+  // Any occurence of .some-chars
+  var matchClasses = new SRegExp(/\.([a-zA-Z0-9_-]*)/g);
+  // options.class = options.class ? options.class+' ' : '';
+  if (!options.class) {
+    options.class = matchClasses.match(descriptor).map(function(m) {
+      return m.match[1];
+    }).join(' ');
+  }
+  
+  return new ElementRenderer(options);
+};
+
+
+
+ElementRenderer.$$ = $$;
+
+// Setup prototype chain
+ElementRenderer.Prototype.prototype = util.Events;
+ElementRenderer.prototype = new ElementRenderer.Prototype();
+
+module.exports = ElementRenderer;
+},{"substance-regexp":133,"substance-util":140}],8:[function(require,module,exports){
+"use strict";
+
+var util = require("substance-util");
+var _ = require("underscore");
+
+// Application.Router
+// ---------------
+//
+// Implementation borrowed from Backbone.js
+
+// Routers map faux-URLs to actions, and fire events when routes are
+// matched. Creating a new one sets its `routes` hash, if not set statically.
+var Router = function(options) {
+  options || (options = {});
+  if (options.routes) this.routes = options.routes;
+  this._bindRoutes();
+  this.initialize.apply(this, arguments);
+};
+
+// Cached regular expressions for matching named param parts and splatted
+// parts of route strings.
+var optionalParam = /\((.*?)\)/g;
+var namedParam    = /(\(\?)?:\w+/g;
+var splatParam    = /\*\w+/g;
+var escapeRegExp  = /[\-{}\[\]+?.,\\\^$|#\s]/g;
+
+// Set up all inheritable **Application.Router** properties and methods.
+_.extend(Router.prototype, util.Events, {
+
+  // Initialize is an empty function by default. Override it with your own
+  // initialization logic.
+  initialize: function(){},
+
+  // Manually bind a single named route to a callback. For example:
+  //
+  //     this.route('search/:query/p:num', 'search', function(query, num) {
+  //       ...
+  //     });
+  //
+  route: function(route, name, callback) {
+    if (!_.isRegExp(route)) route = this._routeToRegExp(route);
+    if (_.isFunction(name)) {
+      callback = name;
+      name = '';
+    }
+    if (!callback) callback = this[name];
+    var router = this;
+    Router.history.route(route, function(fragment) {
+      var args = router._extractParameters(route, fragment);
+      callback && callback.apply(router, args);
+      router.trigger.apply(router, ['route:' + name].concat(args));
+      router.trigger('route', name, args);
+      Router.history.trigger('route', router, name, args);
+    });
+    return this;
+  },
+
+  // Simple proxy to `Router.history` to save a fragment into the history.
+  navigate: function(fragment, options) {
+    Router.history.navigate(fragment, options);
+    return this;
+  },
+
+  // Bind all defined routes to `Router.history`. We have to reverse the
+  // order of the routes here to support behavior where the most general
+  // routes can be defined at the bottom of the route map.
+  _bindRoutes: function() {
+    if (!this.routes) return;
+    this.routes = _.result(this, 'routes');
+    var route, routes = _.keys(this.routes);
+    while ((route = routes.pop()) != null) {
+      this.route(route, this.routes[route]);
+    }
+  },
+
+  // Convert a route string into a regular expression, suitable for matching
+  // against the current location hash.
+  _routeToRegExp: function(route) {
+    route = route.replace(escapeRegExp, '\\$&')
+                 .replace(optionalParam, '(?:$1)?')
+                 .replace(namedParam, function(match, optional){
+                   return optional ? match : '([^\/]+)';
+                 })
+                 .replace(splatParam, '(.*?)');
+    return new RegExp('^' + route + '$');
+  },
+
+  // Given a route, and a URL fragment that it matches, return the array of
+  // extracted decoded parameters. Empty or unmatched parameters will be
+  // treated as `null` to normalize cross-browser behavior.
+  _extractParameters: function(route, fragment) {
+    var params = route.exec(fragment).slice(1);
+    return _.map(params, function(param) {
+      return param ? decodeURIComponent(param) : null;
+    });
+  }
+});
+
+
+
+
+// Router.History
+// ----------------
+
+// Handles cross-browser history management, based on either
+// [pushState](http://diveintohtml5.info/history.html) and real URLs, or
+// [onhashchange](https://developer.mozilla.org/en-US/docs/DOM/window.onhashchange)
+// and URL fragments. If the browser supports neither (old IE, natch),
+// falls back to polling.
+var History = Router.History = function() {
+  this.handlers = [];
+  _.bindAll(this, 'checkUrl');
+
+  // Ensure that `History` can be used outside of the browser.
+  if (typeof window !== 'undefined') {
+    this.location = window.location;
+    this.history = window.history;
+  }
+};
+
+// Cached regex for stripping a leading hash/slash and trailing space.
+var routeStripper = /^[#\/]|\s+$/g;
+
+// Cached regex for stripping leading and trailing slashes.
+var rootStripper = /^\/+|\/+$/g;
+
+// Cached regex for detecting MSIE.
+var isExplorer = /msie [\w.]+/;
+
+// Cached regex for removing a trailing slash.
+var trailingSlash = /\/$/;
+
+// Has the history handling already been started?
+History.started = false;
+
+// Set up all inheritable **Router.History** properties and methods.
+_.extend(History.prototype, util.Events, {
+
+  // The default interval to poll for hash changes, if necessary, is
+  // twenty times a second.
+  interval: 50,
+
+  // Gets the true hash value. Cannot use location.hash directly due to bug
+  // in Firefox where location.hash will always be decoded.
+  getHash: function(window) {
+    var match = (window || this).location.href.match(/#(.*)$/);
+    return match ? match[1] : '';
+  },
+
+  // Get the cross-browser normalized URL fragment, either from the URL,
+  // the hash, or the override.
+  getFragment: function(fragment, forcePushState) {
+    if (fragment == null) {
+      if (this._hasPushState || !this._wantsHashChange || forcePushState) {
+        fragment = this.location.pathname;
+        var root = this.root.replace(trailingSlash, '');
+        if (!fragment.indexOf(root)) fragment = fragment.substr(root.length);
+      } else {
+        fragment = this.getHash();
+      }
+    }
+    return fragment.replace(routeStripper, '');
+  },
+
+  // Start the hash change handling, returning `true` if the current URL matches
+  // an existing route, and `false` otherwise.
+  start: function(options) {
+    if (History.started) throw new Error("Router.history has already been started");
+    History.started = true;
+
+    // Figure out the initial configuration. Do we need an iframe?
+    // Is pushState desired ... is it available?
+    this.options          = _.extend({}, {root: '/'}, this.options, options);
+    this.root             = this.options.root;
+    this._wantsHashChange = this.options.hashChange !== false;
+    this._wantsPushState  = !!this.options.pushState;
+    this._hasPushState    = !!(this.options.pushState && this.history && this.history.pushState);
+    var fragment          = this.getFragment();
+    var docMode           = document.documentMode;
+    var oldIE             = (isExplorer.exec(navigator.userAgent.toLowerCase()) && (!docMode || docMode <= 7));
+
+    // Normalize root to always include a leading and trailing slash.
+    this.root = ('/' + this.root + '/').replace(rootStripper, '/');
+
+    if (oldIE && this._wantsHashChange) {
+      this.iframe = $('<iframe src="javascript:0" tabindex="-1" />').hide().appendTo('body')[0].contentWindow;
+      this.navigate(fragment);
+    }
+
+    // Depending on whether we're using pushState or hashes, and whether
+    // 'onhashchange' is supported, determine how we check the URL state.
+    if (this._hasPushState) {
+      $(window).on('popstate', this.checkUrl);
+    } else if (this._wantsHashChange && ('onhashchange' in window) && !oldIE) {
+      $(window).on('hashchange', this.checkUrl);
+    } else if (this._wantsHashChange) {
+      this._checkUrlInterval = setInterval(this.checkUrl, this.interval);
+    }
+
+    // Determine if we need to change the base url, for a pushState link
+    // opened by a non-pushState browser.
+    this.fragment = fragment;
+    var loc = this.location;
+    var atRoot = loc.pathname.replace(/[^\/]$/, '$&/') === this.root;
+
+    // If we've started off with a route from a `pushState`-enabled browser,
+    // but we're currently in a browser that doesn't support it...
+    if (this._wantsHashChange && this._wantsPushState && !this._hasPushState && !atRoot) {
+      this.fragment = this.getFragment(null, true);
+      this.location.replace(this.root + this.location.search + '#' + this.fragment);
+      // Return immediately as browser will do redirect to new url
+      return true;
+
+    // Or if we've started out with a hash-based route, but we're currently
+    // in a browser where it could be `pushState`-based instead...
+    } else if (this._wantsPushState && this._hasPushState && atRoot && loc.hash) {
+      this.fragment = this.getHash().replace(routeStripper, '');
+      this.history.replaceState({}, document.title, this.root + this.fragment + loc.search);
+    }
+
+    if (!this.options.silent) return this.loadUrl();
+  },
+
+  // Disable Router.history, perhaps temporarily. Not useful in a real app,
+  // but possibly useful for unit testing Routers.
+  stop: function() {
+    $(window).off('popstate', this.checkUrl).off('hashchange', this.checkUrl);
+    clearInterval(this._checkUrlInterval);
+    History.started = false;
+  },
+
+  // Add a route to be tested when the fragment changes. Routes added later
+  // may override previous routes.
+  route: function(route, callback) {
+    this.handlers.unshift({route: route, callback: callback});
+  },
+
+  // Checks the current URL to see if it has changed, and if it has,
+  // calls `loadUrl`, normalizing across the hidden iframe.
+  checkUrl: function(e) {
+    var current = this.getFragment();
+    if (current === this.fragment && this.iframe) {
+      current = this.getFragment(this.getHash(this.iframe));
+    }
+    if (current === this.fragment) return false;
+    if (this.iframe) this.navigate(current);
+    this.loadUrl() || this.loadUrl(this.getHash());
+  },
+
+  // Attempt to load the current URL fragment. If a route succeeds with a
+  // match, returns `true`. If no defined routes matches the fragment,
+  // returns `false`.
+  loadUrl: function(fragmentOverride) {
+    var fragment = this.fragment = this.getFragment(fragmentOverride);
+    var matched = _.any(this.handlers, function(handler) {
+      if (handler.route.test(fragment)) {
+        handler.callback(fragment);
+        return true;
+      }
+    });
+    return matched;
+  },
+
+  // Save a fragment into the hash history, or replace the URL state if the
+  // 'replace' option is passed. You are responsible for properly URL-encoding
+  // the fragment in advance.
+  //
+  // The options object can contain `trigger: true` if you wish to have the
+  // route callback be fired (not usually desirable), or `replace: true`, if
+  // you wish to modify the current URL without adding an entry to the history.
+  navigate: function(fragment, options) {
+    if (!History.started) return false;
+    if (!options || options === true) options = {trigger: options};
+    fragment = this.getFragment(fragment || '');
+    if (this.fragment === fragment) return;
+    this.fragment = fragment;
+    var url = this.root + fragment;
+
+    // If pushState is available, we use it to set the fragment as a real URL.
+    if (this._hasPushState) {
+      this.history[options.replace ? 'replaceState' : 'pushState']({}, document.title, url);
+
+    // If hash changes haven't been explicitly disabled, update the hash
+    // fragment to store history.
+    } else if (this._wantsHashChange) {
+      this._updateHash(this.location, fragment, options.replace);
+      if (this.iframe && (fragment !== this.getFragment(this.getHash(this.iframe)))) {
+        // Opening and closing the iframe tricks IE7 and earlier to push a
+        // history entry on hash-tag change.  When replace is true, we don't
+        // want this.
+        if(!options.replace) this.iframe.document.open().close();
+        this._updateHash(this.iframe.location, fragment, options.replace);
+      }
+
+    // If you've told us that you explicitly don't want fallback hashchange-
+    // based history, then `navigate` becomes a page refresh.
+    } else {
+      return this.location.assign(url);
+    }
+    if (options.trigger) this.loadUrl(fragment);
+  },
+
+  // Update the hash location, either replacing the current entry, or adding
+  // a new one to the browser history.
+  _updateHash: function(location, fragment, replace) {
+    if (replace) {
+      var href = location.href.replace(/(javascript:|#).*$/, '');
+      location.replace(href + '#' + fragment);
+    } else {
+      // Some browsers require that `hash` contains a leading #.
+      location.hash = '#' + fragment;
+    }
+  }
+});
+
+Router.history = new History;
+
+
+module.exports = Router;
+},{"substance-util":140,"underscore":147}],9:[function(require,module,exports){
+"use strict";
+
+var util = require("substance-util");
+
+// Substance.View
+// ==========================================================================
+//
+// Application View abstraction, inspired by Backbone.js
+
+var View = function(options) {
+  var that = this;
+
+  // Either use the provided element or make up a new element
+  this.$el = $('<div/>');
+  this.el = this.$el[0];
+
+  this.dispatchDOMEvents();
+};
+
+
+View.Prototype = function() {
+
+  // Default dispose function
+  // --------
+  //
+
+  this.dispose = function() {
+    this.stopListening();
+  };
+
+  // Shorthand for selecting elements within the view
+  // ----------
+  //
+
+  this.$ = function(selector) {
+    return this.$el.find(selector);
+  };
+
+  // Dispatching DOM events (like clicks)
+  // ----------
+  //
+
+  this.dispatchDOMEvents = function() {
+
+    var that = this;
+
+    // showReport(foo) => ["showReport(foo)", "showReport", "foo"]
+    // showReport(12) => ["showReport(12)", "showReport", "12"]
+    function extractFunctionCall(str) {
+      var match = /(\w+)\((.*)\)/.exec(str);
+      if (!match) throw new Error("Invalid click handler '"+str+"'");
+
+      return {
+        "method": match[1],
+        "args": match[2].split(',')
+      };
+    }
+
+    this.$el.delegate('[sbs-click]', 'click', function(e) {
+
+      // Matches things like this
+      // showReport(foo) => ["showReport(foo)", "showReport", "foo"]
+      // showReport(12) => ["showReport(12)", "showReport", "12"]
+      var fnCall = extractFunctionCall($(e.currentTarget).attr('sbs-click'));
+
+      // Event bubbles up if there is no handler
+      var method = that[fnCall.method];
+      if (method) {
+        method.apply(that, fnCall.args);
+        return false;
+      }
+    });
+  };
+
+  this.updateTitle = function(newTitle) {
+    document.title = newTitle;
+    window.history.replaceState({}, document.title, window.location.href);
+  };
+
+};
+
+
+View.Prototype.prototype = util.Events;
+View.prototype = new View.Prototype();
+
+module.exports = View;
+
+},{"substance-util":140}],10:[function(require,module,exports){
+"use strict";
+
+var Article = require("./src/article");
+Article.Renderer = require("./src/renderer");
+Article.ViewFactory = require("./src/view_factory");
+
+module.exports = Article;
+
+},{"./src/article":12,"./src/renderer":13,"./src/view_factory":14}],11:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+var nodes = {};
+
+// TODO: we should change the 'substance-nodes' module in that way,
+// that it provides a function that gives the cloned set
+_.each(require("substance-nodes"), function(spec, name) {
+  nodes[name] = _.clone(spec);
+});
+
+module.exports = nodes;
+
+},{"substance-nodes":43,"underscore":147}],12:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+var Document = require("substance-document");
+var Annotator = Document.Annotator;
+
+// Substance.Article
+// -----------------
+
+var Article = function(options) {
+  options = options || {};
+
+  // TODO: Check if format is compatible
+
+  // Extend Schema
+  // --------
+
+  options.schema = util.deepclone(Document.schema);
+  options.schema.id = "substance-article";
+  options.schema.version = "0.3.0";
+
+  // Merge in custom types
+  _.each(Article.types, function(type, key) {
+    options.schema.types[key] = type;
+  });
+
+  // Merge in node types
+  _.each(Article.nodeTypes, function(node, key) {
+    options.schema.types[key] = node.Model.type;
+  });
+
+  // Merge in custom indexes
+  _.each(Article.indexes, function(index, key) {
+    options.schema.indexes[key] = index;
+  });
+
+
+  // Call parent constructor
+  // --------
+
+  Document.call(this, options);
+
+  this.nodeTypes = Article.nodeTypes;
+
+  // Seed the doc
+  // --------
+
+  if (options.seed === undefined) {
+    this.create({
+      id: "document",
+      type: "document",
+      guid: options.id, // external global document id
+      creator: options.creator,
+      created_at: options.created_at,
+      views: ["content"], // is views really needed on the instance level
+      title: "",
+      abstract: "",
+    });
+
+    // Create views on the doc
+    _.each(Article.views, function(view) {
+      this.create({
+        id: view,
+        "type": "view",
+        nodes: []
+      });
+    }, this);
+  }
+};
+
+Article.Prototype = function() {
+
+  this.fromSnapshot = function(data, options) {
+    return Article.fromSnapshot(data, options);
+  };
+
+  this.getAuthorNames = function() {
+    return _.map(this.getAuthors(), function(a) {
+      return a.name;
+    });
+  };
+
+  this.getAuthors = function() {
+    return _.map(this.authors, function(cid) {
+      return this.get(cid);
+    }, this);
+  };
+
+  // Set publication date
+  // --------
+  // 
+
+  this.setPublishedOn = function(dat) {
+    this.set(["document", "published_on"], dat);
+  };
+
+  // Set document id (stored on document node)
+  // --------
+  // 
+
+  this.setId = function(docId) {
+    this.set(["document", "guid"], docId);
+  }
+
+  // Set document title (stored on document node)
+  // --------
+  // 
+
+  this.setTitle = function(title) {
+    this.set(["document", "title"], title);
+  };
+
+  // Set authors (stored on document node)
+  // --------
+  // 
+
+  this.setAuthors = function(authors) {
+    this.set(["document", "authors"], authors);
+  };
+};
+
+// Factory method
+// --------
+//
+// TODO: Ensure the snapshot doesn't get chronicled
+
+Article.fromSnapshot = function(data, options) {
+  options = options || {};
+  options.seed = data;
+  return new Article(options);
+};
+
+
+// Define available views
+// --------
+
+Article.views = ["content", "figures", "citations", "info"];
+
+// Register node types
+// --------
+
+
+Article.nodeTypes = require("../nodes");
+
+
+// Define annotation types
+// --------
+
+Article.annotationBehavior = {
+  groups: {
+    "emphasis": "style",
+    "strong": "style",
+    "link": "style",
+    "math": "style",
+    "issue": "marker"
+  },
+  expansion: {
+    "emphasis": {
+      left: Annotator.isOnNodeStart,
+    },
+    "strong": {
+      left: Annotator.isOnNodeStart,
+    }
+  },
+  split: ["emphasis", "strong"],
+  levels: {
+    idea: 1,
+    question: 1,
+    remark: 1,
+    error: 1,
+    issue: 1,
+    link: 1,
+    math: 1,
+    strong: 2,
+    emphasis: 2,
+    code: 2,
+    subscript: 2,
+    superscript: 2,
+    underline: 2,
+    cross_reference: 1,
+    figure_reference: 1,
+    person_reference: 1,
+    contributor_reference: 1,
+    citation_reference: 1,
+    remark_reference: 1,
+    error_reference: 1
+  }
+};
+
+// Custom type definitions
+// --------
+//
+
+Article.types = {
+
+  // Document
+  // --------
+
+  "document": {
+    "properties": {
+      "views": ["array", "view"],
+      "guid": "string",
+      "creator": "string",
+      "authors": ["array", "contributor"],
+      "title": "string",
+      "abstract": "string",
+      "published_on": "date", // should be part of the main type?
+      "meta": "object"
+    }
+  }
+};
+
+// Custom indexes
+// --------
+//
+
+Article.indexes = {
+  // all comments are now indexed by node association
+  "comments": {
+    "type": "comment",
+    "properties": ["node"]
+  }
+};
+
+
+// From article definitions generate a nice reference document
+// --------
+//
+
+var ARTICLE_DOC_SEED = {
+  "id": "article",
+  "nodes": {
+    "document": {
+      "type": "document",
+      "id": "document",
+      "views": [
+        "content",
+        "info"
+      ],
+      "title": "The Anatomy of a Substance Article",
+      "authors": ["contributor_1", "contributor_2"],
+      "guid": "lens_article"
+    },
+
+    "content": {
+      "type": "view",
+      "id": "content",
+      "nodes": [
+        "cover",
+      ]
+    },
+
+    "cover": {
+      "id": "cover",
+      "type": "cover"
+    },
+
+    "contributor_1": {
+      "id": "contributor_1",
+      "type": "contributor",
+      "name": "Michael Aufreiter"
+    },
+
+    "contributor_2": {
+      "id": "contributor_2",
+      "type": "contributor",
+      "name": "Oliver Buchtala"
+    }
+  }
+};
+
+
+Article.describe = function() {
+  var doc = new Article({seed: ARTICLE_DOC_SEED});
+
+  var id = 0;
+
+  _.each(Article.nodeTypes, function(nodeType, key) {
+    if (key === "composite") return;
+    nodeType = nodeType.Model;
+
+    // Create a heading for each node type
+    var headingId = "heading_"+nodeType.type.id;
+
+    doc.create({
+      id: headingId,
+      type: "heading",
+      content: nodeType.description.name,
+      level: 1
+    });
+
+    // Turn remarks and description into an introduction paragraph
+    var introText = nodeType.description.remarks.join(' ');
+    var introId = "text_"+nodeType.type.id+"_intro";
+
+    doc.create({
+      id: introId,
+      type: "text",
+      content: introText,
+    });
+
+
+    // Show it in the content view
+    doc.show("content", [headingId, introId], -1);
+
+
+    // Include property description
+    // --------
+    //
+
+    doc.create({
+      id: headingId+"_properties",
+      type: "text",
+      content: nodeType.description.name+ " uses the following properties:"
+    });
+
+    doc.show("content", [headingId+"_properties"], -1);
+
+    var items = [];
+
+    _.each(nodeType.description.properties, function(propertyDescr, key) {
+
+      var listItemId = "text_" + (++id);
+      doc.create({
+        id: listItemId,
+        type: "text",
+        content: key +": " + propertyDescr
+      });
+
+      // Create code annotation for the propertyName
+      doc.create({
+        "id": id+"_annotation",
+        "type": "code",
+        "path": [listItemId, "content"],
+        "range":[0, key.length]
+      });
+
+      items.push(listItemId);
+    });
+
+    // Create list
+    doc.create({
+      id: headingId+"_property_list",
+      type: "list",
+      items: items,
+      ordered: false
+    });
+
+    // And show it
+    doc.show("content", [headingId+"_property_list"], -1);
+
+    // Include example
+    // --------
+
+    if (nodeType.example) {
+      doc.create({
+        id: headingId+"_example",
+        type: "text",
+        content: "Here's an example:"
+      });
+
+      doc.create({
+        id: headingId+"_example_codeblock",
+        type: "codeblock",
+        content: JSON.stringify(nodeType.example, null, '  '),
+      });
+      doc.show("content", [headingId+"_example", headingId+"_example_codeblock"], -1);
+    }
+  });
+
+  return doc;
+};
+
+
+Article.Prototype.prototype = Document.prototype;
+Article.prototype = new Article.Prototype();
+Article.prototype.constructor = Article;
+
+// Add convenience accessors for builtin document attributes
+Object.defineProperties(Article.prototype, {
+  id: {
+    get: function() {
+      return this.get("document").guid;
+    },
+    set: function(id) {
+      throw new Error("This is a read-only property alias.");
+    }
+  },
+  creator: {
+    get: function() {
+      return this.get("document").creator;
+    },
+    set: function() {
+      this.get("document").creator = creator;
+    }
+  },
+  authors: {
+    get: function() {
+      return this.get("document").authors;
+    },
+    set: function() {
+      throw new Error("This is a read-only property alias.");
+    }
+  },
+  created_at: {
+    get: function() {
+      return this.get("document").created_at;
+    },
+    set: function() {
+      throw new Error("This is a read-only property alias.");
+    }
+  },
+  published_on: {
+    get: function() {
+      return this.get("document").published_on;
+    },
+    set: function() {
+      throw new Error("This is a read-only property alias.");
+    }
+  },
+  title: {
+    get: function() {
+      return this.get("document").title;
+    },
+    set: function() {
+      throw new Error("This is a read-only property alias.");
+    }
+  },
+  abstract: {
+    get: function() {
+      return this.get("document").abstract;
+    },
+    set: function() {
+      throw new Error("This is a read-only property alias.");
+    }
+  },
+  views: {
+    get: function() {
+      // Note: returing a copy to avoid inadvertent changes
+      return this.get("document").views.slice(0);
+    },
+    set: function(views) {
+      throw new Error("This is a read-only property alias.");
+    }
+  }
+});
+
+module.exports = Article;
+},{"../nodes":11,"substance-document":35,"substance-util":140,"underscore":147}],13:[function(require,module,exports){
+"use strict";
+
+var ViewFactory = require("./view_factory");
+var _ = require("underscore");
+
+// Renders an article
+// --------
+//
+
+var ArticleRenderer = function(document, viewName, options) {
+  ViewFactory.call(this, document);
+
+  this.viewName = viewName;
+  this.options = options || {};
+  this.nodeViews = {};
+};
+
+ArticleRenderer.Prototype = function() {
+
+  var __super__ = ViewFactory.prototype;
+
+  this.createView = function(node) {
+    if (this.nodeViews[node.id]) {
+      return this.nodeViews[node.id];
+    }
+    var nodeView = __super__.createView.call(this, node);
+    this.nodeViews[node.id] = nodeView;
+    return nodeView;
+  };
+
+  // Render it
+  // --------
+  //
+
+  this.render = function() {
+    _.each(this.nodeViews, function(nodeView) {
+      nodeView.dispose();
+    });
+
+    var frag = document.createDocumentFragment();
+
+    var nodeIds = this.document.get(this.viewName).nodes;
+    _.each(nodeIds, function(id) {
+      var node = this.document.get(id);
+      var view = this.createView(node);
+      frag.appendChild(view.render().el);
+
+      // Lets you customize the resulting DOM sticking on the el element
+      // Example: Lens focus controls
+      if (this.options.afterRender) {
+        this.options.afterRender(this.document, view);
+      }
+    }, this);
+
+    return frag;
+  };
+
+};
+
+ArticleRenderer.Prototype.prototype = ViewFactory.prototype;
+ArticleRenderer.prototype = new ArticleRenderer.Prototype();
+
+module.exports = ArticleRenderer;
+
+},{"./view_factory":14,"underscore":147}],14:[function(require,module,exports){
+"use strict";
+
+var ViewFactory = function(document) {
+  this.document = document;
+  this.nodeTypes = document.constructor.nodeTypes;
+};
+
+ViewFactory.Prototype = function() {
+
+  // Create a node view
+  // --------
+  //
+  // Experimental: using a factory which creates a view for a given node type
+  // As we want to be able to reuse views
+  // However, as the matter is still under discussion consider the solution here only as provisional.
+  // We should create views, not only elements, as we need more, e.g., event listening stuff
+  // which needs to be disposed later.
+
+  this.createView = function(node) {
+    var NodeView = this.nodeTypes[node.type].View;
+    if (!NodeView) {
+      throw new Error('Node type "'+node.type+'" not supported');
+    }
+    // Note: passing the renderer to the node views
+    // to allow creation of nested views
+    var nodeView = new NodeView(node, this);
+
+    // we connect the listener here to avoid to pass the document itself into the nodeView
+    nodeView.listenTo(this.document, "operation:applied", nodeView.onGraphUpdate);
+
+    return nodeView;
+  };
+
+};
+
+ViewFactory.prototype = new ViewFactory.Prototype();
+
+module.exports = ViewFactory;
+
+},{}],15:[function(require,module,exports){
+"use strict";
+
+var Chronicle = require('./src/chronicle');
+
+Chronicle.IndexImpl = require('./src/index_impl');
+Chronicle.ChronicleImpl = require('./src/chronicle_impl');
+Chronicle.DiffImpl = require('./src/diff_impl');
+Chronicle.TmpIndex = require('./src/tmp_index');
+
+Chronicle.create = Chronicle.ChronicleImpl.create;
+Chronicle.Index.create = Chronicle.IndexImpl.create;
+Chronicle.Diff.create = Chronicle.DiffImpl.create;
+
+Chronicle.ArrayOperationAdapter = require('./src/array_adapter');
+Chronicle.TextOperationAdapter = require('./src/text_adapter');
+
+Chronicle.IndexedDBBackend = require("./src/backends/indexeddb_backend");
+
+module.exports = Chronicle;
+
+},{"./src/array_adapter":16,"./src/backends/indexeddb_backend":17,"./src/chronicle":18,"./src/chronicle_impl":19,"./src/diff_impl":20,"./src/index_impl":21,"./src/text_adapter":22,"./src/tmp_index":23}],16:[function(require,module,exports){
+"use strict";
+
+var util = require('substance-util');
+var Chronicle = require('./chronicle');
+var ArrayOperation = require('substance-operator').ArrayOperation;
+
+var ArrayOperationAdapter = function(chronicle, array) {
+  Chronicle.Versioned.call(this, chronicle);
+  this.array = array;
+};
+
+ArrayOperationAdapter.Prototype = function() {
+
+  var __super__ = util.prototype(this);
+
+  this.apply = function(change) {
+    ArrayOperation.fromJSON(change).apply(this.array);
+  };
+
+  this.invert = function(change) {
+    return ArrayOperation.fromJSON(change).invert();
+  };
+
+  this.transform = function(a, b, options) {
+    return ArrayOperation.transform(a, b, options);
+  };
+
+  this.reset = function() {
+    __super__.reset.call(this);
+    while(this.array.length > 0) {
+      this.array.shift();
+    }
+  };
+
+};
+
+ArrayOperationAdapter.Prototype.prototype = Chronicle.Versioned.prototype;
+ArrayOperationAdapter.prototype = new ArrayOperationAdapter.Prototype();
+
+module.exports = ArrayOperationAdapter;
+
+},{"./chronicle":18,"substance-operator":126,"substance-util":140}],17:[function(require,module,exports){
+"use strict";
+
+var util = require("substance-util");
+var _ = require("underscore");
+var Chronicle = require("../chronicle");
+var Index = Chronicle.Index;
+
+var IndexedDbBackend = function(name, index) {
+  this.name = name;
+  this.index = index;
+  this.db = null;
+};
+
+IndexedDbBackend.Prototype = function() {
+
+  this.delete = function(cb) {
+    var self = this;
+    this.clear(function() {
+      window.indexedDB.deleteDatabase(self.name);
+      cb(null);
+    });
+  };
+
+  var __clearObjectStore = function(db, name, cb) {
+    var transaction = db.transaction([name], "readwrite");
+    var objectStore = transaction.objectStore(name);
+    var request = objectStore.clear();
+    request.onsuccess = function() {
+      cb(null);
+    };
+    request.onerror = function(err) {
+      cb(err);
+    };
+  };
+
+  this.clear = function(cb) {
+    var db = this.db;
+    var names = ["changes", "snapshots", "refs"];
+    util.async.each({
+      items: names,
+      iterator: function(name, cb) {
+        __clearObjectStore(db, name, cb);
+      }
+    }, cb);
+  };
+
+  this.open = function(cb) {
+    var self = this;
+    // reset this.db to make sure it is only available when successfully opened.
+    this.db = null;
+
+    var request = window.indexedDB.open(this.name, 1);
+    request.onupgradeneeded = function(event) {
+      var db = event.target.result;
+      db.createObjectStore("changes", { keyPath: "id" });
+      var snapshots = db.createObjectStore("snapshots", { keyPath: "sha" });
+      snapshots.createIndex("sha", "sha", {unique:true});
+      var refs = db.createObjectStore("refs", { keyPath: "name" });
+      refs.createIndex("name", "name", {unique:true});
+    };
+    request.onerror = function(event) {
+      console.error("Could not open database", self.name);
+      cb(event);
+    };
+    request.onsuccess = function(event) {
+      // console.log("Opened database", self.name);
+      self.db = event.target.result;
+      cb(null);
+    };
+  };
+
+  this.close = function(cb) {
+    // console.log("IndexedDbBackend.close()");
+    var self = this;
+    this.db.close();
+    if (cb) cb(null);
+  };
+
+  // Load all stored changes into the memory index
+  this.load = function(cb) {
+    var self = this;
+    var transaction = this.db.transaction(["changes", "refs"]);
+    var objectStore = transaction.objectStore("changes");
+
+    var iterator = objectStore.openCursor();
+    var changes = {};
+    iterator.onsuccess = function(event) {
+      var cursor = event.target.result;
+      if (cursor) {
+        changes[cursor.key] = cursor.value;
+        cursor.continue();
+        return;
+      }
+      // Note: Index.adapt() mimics a hash to be a Chronicle.Index.
+      self.index.import(Index.adapt(changes));
+
+      var refStore = transaction.objectStore("refs");
+      iterator = refStore.openCursor();
+      iterator.onsuccess = function(event) {
+        var cursor = event.target.result;
+        if (cursor) {
+          self.index.setRef(cursor.key, cursor.value["sha"]);
+          cursor.continue();
+          return;
+        }
+        cb(null);
+      };
+      iterator.onerror = function(event) {
+        console.error("Error during loading...", event);
+        cb(event);
+      };
+    };
+    iterator.onerror = function(event) {
+      console.error("Error during loading...", event);
+      cb(event);
+    };
+  };
+
+  var _saveChanges = function(self, cb) {
+    // TODO: we should use a special index which keeps track of new changes to be synched
+    // for now brute-forcely overwriting everything
+    var transaction = self.db.transaction(["changes"], "readwrite");
+    transaction.onerror = function(event) {
+      console.error("Error while saving changes.");
+      if (cb) cb(event);
+    };
+    transaction.oncomplete = function() {
+      if (cb) cb(null);
+    };
+
+    // NOTE: brute-force. Saving all changes everytime. Should be optimized someday.
+    var changes = transaction.objectStore("changes");
+    self.index.foreach(function(change) {
+      var data = change;
+      if (change instanceof Chronicle.Change) {
+        data = change.toJSON();
+      }
+      var request = changes.put(data);
+      request.onerror = function(event) {
+        console.error("Could not add change: ", change.id, event);
+      };
+    });
+  };
+
+  var _saveRefs = function(self, cb) {
+    // TODO: we should use a special index which keeps track of new changes to be synched
+    // for now brute-forcely overwriting everything
+    var transaction = self.db.transaction(["refs"], "readwrite");
+    transaction.onerror = function(event) {
+      console.error("Error while saving refs.");
+      if (cb) cb(event);
+    };
+    transaction.oncomplete = function() {
+      // console.log("...saved refs");
+      if (cb) cb(null);
+    };
+
+    var refs = transaction.objectStore("refs");
+    _.each(self.index.listRefs(), function(name) {
+      var data = {
+        name: name,
+        sha: self.index.getRef(name)
+      };
+      var request = refs.put(data);
+      request.onerror = function(event) {
+        console.error("Could not store ref: ", data, event);
+      };
+    });
+  };
+
+  this.save = function(cb) {
+    // console.log("IndexedDbBackend.save()");
+    var self = this;
+    _saveChanges(self, function(error) {
+      if (error) return cb(error);
+      // console.log("...saved changes.");
+      _saveRefs(self, cb);
+    });
+  };
+
+  this.saveSnapshot = function(sha, document, cb) {
+    var transaction = this.db.transaction(["snapshots"], "readwrite");
+    transaction.oncomplete = function() {
+      // console.log("Saved snapshot.");
+      cb(null);
+    };
+    transaction.onerror = function(event) {
+      console.error("Error while saving snapshot.");
+      cb(event);
+    };
+
+    var snapshots = transaction.objectStore("snapshots");
+    var data = document;
+    // if the provided document has a toJSON function
+    // apply it before serialization
+    if (data.toJSON) data = data.toJSON();
+    data.sha = sha;
+    var request = snapshots.put(data);
+    request.onerror = function(event) {
+      console.error("Could not add snapshot: ", data, event);
+    };
+  };
+
+  this.listSnapshots = function(cb) {
+    var transaction = this.db.transaction(["snapshots"], "readonly");
+    var objectStore = transaction.objectStore("snapshots");
+    var index = objectStore.index("sha");
+    var iterator = index.openCursor();
+    var snapshots = [];
+
+    iterator.onsuccess = function(event) {
+      var cursor = event.target.result;
+      if (cursor) {
+        snapshots.push(cursor.key);
+        cursor.continue();
+        return;
+      }
+      cb(null, snapshots);
+    };
+    iterator.onerror = function(event) {
+      console.error("Error during loading...", event);
+      cb(event);
+    };
+  };
+
+  this.getSnapshot = function(sha, cb) {
+    var transaction = this.db.transaction(["snapshots"], "readonly");
+    var snapshots = transaction.objectStore("snapshots");
+    var request = snapshots.get(sha);
+    request.onsuccess = function(event) {
+      var snapshot = event.target.result;
+      cb(null, snapshot);
+    };
+    request.onerror = function(event) {
+      console.error("Error: could not load snapshot for sha", sha);
+      cb(event);
+    };
+  };
+};
+IndexedDbBackend.prototype = new IndexedDbBackend.Prototype();
+
+module.exports = IndexedDbBackend;
+
+},{"../chronicle":18,"substance-util":140,"underscore":147}],18:[function(require,module,exports){
+"use strict";
+
+/*jshint unused: false*/ // deactivating this, as we define abstract interfaces here
+
+var _ = require('underscore');
+var util = require('substance-util');
+var errors = util.errors;
+
+errors.define("ChronicleError", -1);
+errors.define("ChangeError", -1);
+
+// A change recorded in the chronicle
+// ========
+//
+// Each change has an unique id (equivalent to git SHA).
+// A change can have multiple parents (merge).
+//
+// options:
+//   - id: a custom id for the change
+
+var Change = function(id, parent, data) {
+
+  this.type = 'change';
+
+  if (!id) {
+    throw new errors.ChangeError("Every change needs a unique id.");
+  }
+  this.id = id;
+
+  if (!parent) {
+    throw new errors.ChangeError("Every change needs a parent.");
+  }
+
+  this.parent = parent;
+
+  // Application specific data
+  // --------
+  //
+  // This needs to contain all information to be able to apply and revert
+  // a change.
+
+  this.data = data;
+
+  this.uuid = util.uuid;
+
+};
+
+Change.prototype = {
+
+  toJSON: function() {
+    return {
+      type: this.type,
+      id: this.id,
+      parent: this.parent,
+      data: this.data
+    };
+  }
+
+};
+
+Change.fromJSON = function(json) {
+  if (json.type === Merge.TYPE) return new Merge(json);
+  if (json.type === Transformed.TYPE) return new Transformed(json);
+
+  return new Change(json.parent, json.data, json);
+};
+
+// a dedicated global root node
+var ROOT = "ROOT";
+var ROOT_NODE = new Change(ROOT, true, null);
+ROOT_NODE.parent = ROOT;
+
+// A dedicated Change for merging multiple Chronicle histories.
+// ========
+//
+// A merge is described by a command containing a diff for each of the parents (see Index.diff()).
+//
+// Example: Consider two sequences of changes [c0, c11, c12] and [c0, c21, c22, c23].
+//
+//  A merge taking all commits of the second ('theirs') branch and
+//  rejecting those of the first ('mine') would be:
+//
+//    merge = {
+//      "c12": ["-", "c11", "c0" "+", "c21", "c22", "c23"],
+//      "c23": []
+//    }
+//
+// A manually selected merge with [c11, c21, c23] would look like:
+//
+//    merge = {
+//      "c12": ["-", "c11", "+", "c21", "c23"],
+//      "c23": ["-", "c22", "c21", "c0", "+", "c11", "c21", "c23"]
+//    }
+//
+
+var Merge = function(id, main, branches) {
+  Change.call(this, id, main);
+  this.type = Merge.TYPE;
+
+  if (!branches) {
+    throw new errors.ChangeError("Missing branches.");
+  }
+  this.branches = branches;
+};
+
+Merge.Prototype = function() {
+
+  var __super__ = util.prototype(this);
+
+  this.toJSON = function() {
+    var result = __super__.toJSON.call(this);
+    result.type = Merge.TYPE;
+    result.branches = this.branches;
+    return result;
+  };
+
+};
+Merge.Prototype.prototype = Change.prototype;
+Merge.prototype = new Merge.Prototype();
+
+Merge.TYPE =  "merge";
+
+Merge.fromJSON = function(data) {
+  if (data.type !== Merge.TYPE) throw new errors.ChangeError("Illegal data for deserializing a Merge node.");
+  return new Merge(data.parent, data.branches, data);
+};
+
+// Transformed changes are those which have been
+// created by transforming (rebasing) another existing change.
+// For the time being, the data is persisted redundantly.
+// To be able to track the original source of the change,
+// this type is introduced.
+var Transformed = function(id, parent, data, original) {
+  Change.call(this, id, parent, data);
+  this.type = Transformed.TYPE;
+  this.original = original;
+};
+
+Transformed.Prototype = function() {
+
+  var __super__ = util.prototype(this);
+
+  this.toJSON = function() {
+    var result = __super__.toJSON.call(this);
+    result.type = Transformed.TYPE;
+    result.original = this.original;
+    return result;
+  };
+
+};
+
+Transformed.TYPE = "transformed";
+
+Transformed.fromJSON = function(json) {
+  if (json.type !== Transformed.TYPE) throw new errors.ChangeError("Illegal data for deserializing a Transformed node.");
+  return new Transformed(json.parent, json.data, json.original, json);
+};
+
+
+Transformed.Prototype.prototype = Change.prototype;
+Transformed.prototype = new Transformed.Prototype();
+
+// A class that describes the difference of two states by
+// a sequence of changes (reverts and applies).
+// =======
+//
+// The difference is a sequence of commands that forms a transition from
+// one state to another.
+//
+// A diff is specified using the following syntax:
+//    [- sha [shas ...]] [+ sha [shas ...]]
+// where '-' preceeds a sequence reverts and '+' a sequence of applies.
+// Any diff can be described in that order (reverts followed by applies)
+//
+// Example: Consider an index containing the following changes
+//
+//        , - c11 - c12
+//      c0
+//        ` - c21 - c22 - c23
+//
+// Diffs for possible transitions look like:
+// "c21" -> "c23" : ["+", "c22", "c23"]
+// "c12" -> "c0" :  ["-", "c11", "c0" ]
+// "c21" -> "c11" : ["-", "c0", "+", "c11"]
+
+var Diff = function() {};
+
+Diff.prototype = {
+
+  hasReverts: function() {
+    throw new errors.SubstanceError("Not implemented.");
+  },
+
+  // Provides the changes that will be reverted
+  // --------
+
+  reverts: function() {
+    throw new errors.SubstanceError("Not implemented.");
+  },
+
+  hasApplies: function() {
+    throw new errors.SubstanceError("Not implemented.");
+  },
+
+  // Provides the changes that will applied
+  // --------
+
+  applies: function() {
+    throw new errors.SubstanceError("Not implemented.");
+  },
+
+  // Provides the sequence of states visited by this diff.
+  // --------
+
+  sequence: function() {
+    throw new errors.SubstanceError("Not implemented.");
+  },
+
+  // Provides the path from the root to the first change
+  // --------
+  //
+  // The naming refers to a typical diff situation where
+  // two branches are compared. The first branch containing the own
+  // changes, the second one the others.
+
+  mine: function() {
+    throw new errors.SubstanceError("Not implemented.");
+  },
+
+  // Provides the path from the root to the second change
+  // --------
+  //
+
+  theirs: function() {
+    throw new errors.SubstanceError("Not implemented.");
+  },
+
+  // Provides the common root of the compared branches.
+  // --------
+  //
+
+  root: function() {
+    throw new errors.SubstanceError("Not implemented.");
+  },
+
+  // Provides the version this diff has to be applied on.
+  // --------
+
+  start: function() {
+    throw new errors.SubstanceError("Not implemented.");
+  },
+
+  // Provides the version which is generated by applying this diff.
+  // --------
+
+  end: function() {
+    throw new errors.SubstanceError("Not implemented.");
+  },
+
+  // Provides a copy that represents the inversion of this diff.
+  // --------
+
+  inverted: function() {
+    throw new errors.SubstanceError("Not implemented.");
+  },
+
+};
+
+// Creates a new diff for the given reverts and applies
+// --------
+// Note this factory is provided when loading index_impl.js
+
+Diff.create = function(reverts, applies) {
+  /*jshint unused: false*/
+  throw new errors.SubstanceError("Not implemented.");
+};
+
+
+// A Chronicle contains the history of a versioned object.
+// ========
+//
+
+var Chronicle = function(index, options) {
+  options = options || {};
+
+  // an instance implementing the 'Index' interface
+  this.index = index;
+
+  // the versioned object which must implement the 'Versioned' interface.
+  this.versioned = null;
+
+  // flags to control the chronicle's behaviour
+  this.__mode__ = options.mode || Chronicle.DEFAULT_MODE;
+};
+
+Chronicle.Prototype = function() {
+
+  // Records a change
+  // --------
+  //
+  // Creates a commit and inserts it into the index at the current position.
+  //
+  // An application should call this after having applied the change to the model successfully.
+  // The provided 'change' should contain every information that is necessary to
+  // apply the change in both directions (apply and revert).
+  //
+  // Note: this corresponds to a 'git commit' in git.
+
+  this.record = function(change) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Opens a specific version.
+  // --------
+  //
+  // Brings the versioned object as well as the index to the state
+  // of the given state.
+  //
+
+  this.open = function(version) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Performs an incremental transformation.
+  // --------
+  //
+  // The given state must be a direct neighbor of the current state.
+  // For convenience a sequence of consecutive states can be given.
+  //
+  // Call this if you already know path between two states
+  // or if you want to apply or revert a single change.
+  //
+  // Returns the change applied by the step.
+  //
+
+  this.step = function(next) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  this.forward = function(toward) {
+    var state = this.versioned.getState();
+    if (state === toward) return;
+
+    var children = this.index.children[state];
+
+    if (children.length === 0) return;
+
+    var next;
+
+    if (children.length === 1) {
+      next = children[0];
+    }
+    else if (toward) {
+      var path = this.index.shortestPath(state, toward);
+      path.shift();
+      next = path.shift();
+    }
+    else {
+      next = children[children.length-1];
+    }
+
+    if (next) {
+      return this.step(next);
+    } else {
+      return;
+    }
+  };
+
+  this.rewind = function() {
+    var current = this.index.get(this.versioned.getState());
+    var previous;
+    if (current.id === ROOT) return null;
+
+    previous = current.parent;
+    return this.step(previous);
+  };
+
+  // Create a commit that merges a history specified by its last commit.
+  // --------
+  //
+  // The strategy specifies how the merge should be generated.
+  //
+  //  'mine':   reject the changes of the other branch
+  //  'theirs': reject the changes of this branch
+  //  'manual': compute a merge that leads to the given sequence.
+  //
+  // Returns the id of the new state.
+  //
+
+  this.merge = function(state, strategy, sequence) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Making this instance the chronicler of the given Versioned instance.
+  // --------
+  //
+
+  this.manage = function(versioned) {
+    this.versioned = versioned;
+  };
+
+  // Marks the current version.
+  // --------
+  //
+
+  this.mark = function(name) {
+    this.index.setRef(name, this.versioned.getState());
+  };
+
+  // Provides the id of a previously marked version.
+  // --------
+  //
+
+  this.find = function(name) {
+    return this.index.getRef(name);
+  };
+
+  // Get the current version.
+  // --------
+  //
+
+  this.getState = function() {
+    return this.versioned.getState();
+  };
+
+  // Retrieve changes.
+  // --------
+  //
+  // If no range is given a full path is returned.
+
+  this.getChanges = function(start, end) {
+    var changes = [];
+    var path = this.path(start, end);
+
+    _.each(path, function(id) {
+      changes.push(this.index.get(id));
+    }, this);
+
+    return changes;
+  };
+
+};
+
+Chronicle.prototype = new Chronicle.Prototype();
+
+// only allow changes that have been checked via instant apply+revert
+Chronicle.PEDANTIC_RECORD = 1 << 1;
+
+// performs a reset for all imported changes
+Chronicle.PEDANTIC_IMPORT = 1 << 2;
+
+Chronicle.HYSTERICAL = Chronicle.PEDANTIC_RECORD | Chronicle.PEDANTIC_IMPORT;
+Chronicle.DEFAULT_MODE = Chronicle.PEDANTIC_IMPORT;
+
+// The factory method to create a Chronicle instance
+// --------
+// options:
+//  store: a Substance Store used to persist the index
+Chronicle.create = function(options) {
+  throw new errors.SubstanceError("Not implemented.");
+};
+
+// A directed acyclic graph of Commit instances.
+// ========
+//
+var Index = function() {
+  this.__id__ = util.uuid();
+
+  this.changes = {};
+  this.refs = {};
+  this.children = {};
+  this.changes[ROOT] = ROOT_NODE;
+  this.children[ROOT] = [];
+};
+
+Index.Prototype = function() {
+
+  // Adds a change to the index.
+  // --------
+  // All parents must be registered first, otherwise throws an error.
+  //
+
+  this.add = function(change) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Removes a change from the index
+  // --------
+  // All children must be removed first, otherwise throws an error.
+  //
+
+  this.remove = function(id) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Checks if a given changeId has been added to the index.
+  // --------
+  //
+
+  this.contains = function(changeId) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Retrieves a (shortest) path between two versions
+  // --------
+  //
+  // If no end change is given it returns the path starting
+  // from ROOT to the start change.
+  // path() returns the path from ROOT to the current state.
+  //
+
+  this.path = function(start, end) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Retrieves a change by id
+  // --------
+  //
+
+  this.get = function(id) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Provides all changes that are direct successors of this change.
+  // --------
+  //
+
+  this.getChildren = function(id) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Lists the ids of all contained changes
+  // --------
+  //
+
+  this.list = function() {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Computes the difference betweend two changes
+  // --------
+  //
+  // In contrast to `path` is a diff a special path that consists
+  // of a sequence of reverts followed by a sequence of applies.
+  //
+
+  this.diff = function(start, end) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Sets a reference to look up a change via name.
+  // ---------
+  //
+
+  this.setRef = function(name, id) {
+    if (this.changes[id] === undefined) {
+      throw new errors.ChronicleError("Unknown change: " + id);
+    }
+    this.refs[name] = id;
+  };
+
+  // Looks-up a change via name.
+  // ---------
+  //
+
+  this.getRef = function(name) {
+    return this.refs[name];
+  };
+
+  this.listRefs = function() {
+    return Object.keys(this.refs);
+  };
+
+  // Imports all commits from another index
+  // --------
+  //
+  // Note: this corresponds to a 'git fetch', which only adds commits without
+  // applying any changes.
+  //
+
+  this.import = function(otherIndex) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+};
+
+Index.prototype = new Index.Prototype();
+
+Index.INVALID = "INVALID";
+Index.ROOT = ROOT_NODE;
+
+Index.create = function() {
+  throw new errors.SubstanceError("Not implemented.");
+};
+
+// Creates an adapter for Changes given as plain hash.
+// The adapter can be used together with Index.import
+Index.adapt = function(changes) {
+  return {
+    list: function() {
+      return _.keys(changes);
+    },
+    get: function(id) {
+      return changes[id];
+    }
+  };
+};
+
+// A interface that must be implemented by objects that should be versioned.
+var Versioned = function(chronicle) {
+  this.chronicle = chronicle;
+  this.state = ROOT;
+  chronicle.manage(this);
+};
+
+Versioned.Prototype = function() {
+
+  // Applies the given change.
+  // --------
+  //
+
+  this.apply = function(change) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Reverts the given change.
+  // --------
+  //
+
+  this.revert = function(change) {
+    change = this.invert(change);
+    this.apply(change);
+  };
+
+  // Inverts a given change
+  // --------
+  //
+
+  this.invert = function(change) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Transforms two sibling changes.
+  // --------
+  //
+  // This is the `transform` operator provided by Operational Transformation.
+  //
+  //       / - a            / - a - b' \
+  //      o          ~ >   o             p
+  //       \ - b            \ - b - a' /
+  //
+  // I.e., the result of applying `a - b'` must lead to the same result as
+  // applying `b - a'`.
+  //
+  // options:
+  //
+  //  - check:    enables conflict checking. A MergeConflict is thrown as an error
+  //              when a conflict is found during transformation.
+  //  - inplace:  transforms the given instances a and b directly, without copying.
+  //
+  // returns: [a', b']
+
+  this.transform = function(a, b, options) {
+    throw new errors.SubstanceError("Not implemented.");
+  };
+
+  // Provides the current state.
+  // --------
+  //
+
+  this.getState = function() {
+    return this.state;
+  };
+
+  // Sets the state.
+  // --------
+  //
+  // Note: this is necessary for implementing merges.
+  //
+
+  this.setState = function(state) {
+    this.state = state;
+  };
+
+  // Resets the versioned object to a clean state.
+  // --------
+  //
+
+  this.reset = function() {
+    this.state = ROOT;
+  };
+};
+
+Versioned.prototype = new Versioned.Prototype();
+
+Chronicle.Change = Change;
+Chronicle.Merge = Merge;
+Chronicle.Transformed = Transformed;
+Chronicle.Diff = Diff;
+Chronicle.Index = Index;
+Chronicle.Versioned = Versioned;
+Chronicle.ROOT = ROOT;
+
+Chronicle.mergeConflict = function(a, b) {
+  var conflict = new errors.MergeConflict("Merge conflict: " + JSON.stringify(a) +" vs " + JSON.stringify(b));
+  conflict.a = a;
+  conflict.b = b;
+  return conflict;
+};
+
+module.exports = Chronicle;
+
+},{"substance-util":140,"underscore":147}],19:[function(require,module,exports){
+"use strict";
+
+// Imports
+// ====
+
+var _ = require('underscore');
+var util = require('substance-util');
+var errors = util.errors;
+var Chronicle = require('./chronicle');
+
+// Module
+// ====
+
+var ChronicleImpl = function(index, options) {
+  Chronicle.call(this, index, options);
+};
+
+ChronicleImpl.Prototype = function() {
+
+  var __private__ = new ChronicleImpl.__private__();
+  var ROOT = Chronicle.Index.ROOT.id;
+
+  this.uuid = util.uuid;
+  this.internal_uuid = util.uuid;
+
+  this.record = function(changeData) {
+    // Sanity check: the change should have been applied already.
+    // Reverting and applying should not fail.
+    if ((this.__mode__ & Chronicle.PEDANTIC_RECORD) > 0) {
+      this.versioned.revert(changeData);
+      this.versioned.apply(changeData);
+    }
+
+    // 1. create a new change instance
+    var head = this.versioned.getState();
+    var id = this.uuid();
+    var change = new Chronicle.Change(id, head, changeData);
+
+    // 2. add change to index
+    this.index.add(change);
+
+    // 3. shift head
+    this.versioned.setState(id);
+
+    return id;
+  };
+
+  this.reset = function(id, index) {
+    index = index || this.index;
+
+    // the given id must be available
+    if (!index.contains(id)) {
+      throw new errors.ChronicleError("Invalid argument: unknown change "+id);
+    }
+
+    // 1. compute diff between current state and the given id
+    var head = this.versioned.getState();
+    var path = index.shortestPath(head, id);
+
+    // 2. apply path
+    __private__.applySequence.call(this, path, index);
+  };
+
+  this.open = this.reset;
+
+  this.path = function(id1, id2) {
+    if (!id2) {
+      var path = this.index.shortestPath(ROOT, id1 || this.versioned.getState());
+      path.shift();
+      return path;
+    } else {
+      if (!id1) throw new errors.ChronicleError("Illegal argument: "+id1);
+      return this.index.shortestPath(id1, id2);
+    }
+  };
+
+  this.apply = function(sha) {
+    if (_.isArray(sha)) {
+      return __private__.applySequence.call(this, sha);
+    } else {
+      return __private__.applySequence.call(this, arguments);
+    }
+  };
+
+  this.step = function(nextId) {
+    var index = this.index;
+    var originalState = this.versioned.getState();
+
+    try {
+      var current = index.get(originalState);
+
+      // tolerate nop-transitions
+      if (current.id === nextId) return null;
+
+      var next = index.get(nextId);
+
+      var op;
+      if (current.parent === nextId) {
+        op = this.versioned.invert(current.data);
+      } else if (next.parent === current.id) {
+        op = next.data;
+      }
+      else {
+        throw new errors.ChronicleError("Invalid apply sequence: "+nextId+" is not parent or child of "+current.id);
+      }
+
+      this.versioned.apply(op);
+      this.versioned.setState(nextId);
+      return op;
+
+    } catch(err) {
+      this.reset(originalState, index);
+      throw err;
+    }
+  };
+
+  this.merge = function(id, strategy, options) {
+    // the given id must exist
+    if (!this.index.contains(id))
+      throw new errors.ChronicleError("Invalid argument: unknown change "+id);
+
+    if(arguments.length == 1) {
+      strategy = "auto";
+      options = {};
+    }
+
+    options = options || {};
+
+    var head = this.versioned.getState();
+    var diff = this.index.diff(head, id);
+
+    // 1. check for simple cases
+
+    // 1.1. don't do anything if the other merge is already merged
+    if (!diff.hasApplies()) {
+      return head;
+    }
+
+    // 1.2. check if the merge can be solved by simple applies (so called fast-forward)
+    if (!diff.hasReverts() && !options.no_ff) {
+      __private__.applyDiff.call(this, diff);
+      return this.versioned.getState();
+    }
+
+    // 2. create a Merge node
+    var change;
+
+    // Strategies:
+
+    // Mine
+    if (strategy === "mine") {
+      change = new Chronicle.Merge(this.uuid(), head, [head, id]);
+    }
+
+    // Theirs
+    else if (strategy === "theirs") {
+      change = new Chronicle.Merge(this.uuid(), id, [head, id]);
+    }
+
+    // Manual
+    else if (strategy === "manual") {
+      if (!options.sequence) throw new errors.ChronicleError("Invalid argument: sequence is missing for manual merge");
+      var sequence = options.sequence;
+
+      change = __private__.manualMerge.call(this, head, id, diff, sequence, options);
+    }
+
+    // Unsupported
+    else {
+      throw new errors.ChronicleError("Unsupported merge strategy: "+strategy);
+    }
+
+    // 2. add the change to the index
+    this.index.add(change);
+
+    // 3. reset state
+    this.reset(change.id);
+
+    return change.id;
+  };
+
+
+  this.import = function(otherIndex) {
+    var newIds = this.index.import(otherIndex);
+    // sanity check: see if all imported changes can be applied
+    if ((this.__mode__ & Chronicle.PEDANTIC_IMPORT) > 0) __private__.importSanityCheck.call(this, newIds);
+  };
+
+};
+
+ChronicleImpl.__private__ = function() {
+
+  var __private__ = this;
+
+  // Traversal operations
+  // =======
+
+  // a diff is a special kind of path which consists of
+  // a sequence of reverts and a sequence of applies.
+  this.applyDiff = function(diff, index) {
+
+    index = index || this.index;
+
+    if(!diff) return;
+
+    var originalState = this.versioned.getState();
+
+    // sanity check: don't allow to apply the diff on another change
+    if (originalState !== diff.start())
+      throw new errors.ChronicleError("Diff can not applied on to this state. Expected: "+diff.start()+", Actual: "+originalState);
+
+    var err = null;
+    var successfulReverts = [];
+    var successfulApplies = [];
+    try {
+      var reverts = diff.reverts();
+      var applies = diff.applies();
+
+      var idx, id;
+      // start at idx 1 as the first is the starting id
+      for (idx = 0; idx < reverts.length; idx++) {
+        id = reverts[idx];
+        __private__.revertTo.call(this, id, index);
+        successfulReverts.push(id);
+      }
+      for (idx = 0; idx < applies.length; idx++) {
+        id = applies[idx];
+        __private__.apply.call(this, id, index);
+        successfulApplies.push(id);
+      }
+    } catch(_err) {
+      err = _err;
+    }
+
+    // if the diff could not be applied, revert all changes that have been applied so far
+    if (err && (successfulReverts.length > 0 || successfulApplies.length > 0)) {
+      // idx shows to the change that has failed;
+      var applied = Chronicle.Diff.create(diff.start(), successfulReverts, successfulApplies);
+      var inverted = applied.inverted();
+      try {
+        __private__.applyDiff.call(this, inverted, index);
+      } catch(_err) {
+        // TODO: maybe we should do that always, instead of minimal rollback?
+        console.log("Ohohhhh.... could not rollback partially applied diff.",
+          "Without bugs and in HYSTERICAL mode this should not happen.",
+          "Resetting to original state");
+        this.versioned.reset();
+        this.reset(originalState, index);
+      }
+    }
+
+    if (err) throw err;
+  };
+
+  this.applySequence = function(seq, index) {
+    index = index || this.index;
+
+    var originalState = this.versioned.getState();
+
+    try {
+      var current = index.get(originalState);
+      _.each(seq, function(id) {
+
+        // tolerate nop-transitions
+        if (current.id === id) return;
+
+        var next = index.get(id);
+
+        // revert
+        if (current.parent === id) {
+          __private__.revertTo.call(this, id, index);
+        }
+        // apply
+        else if (next.parent === current.id) {
+          __private__.apply.call(this, id, index);
+        }
+        else {
+          throw new errors.ChronicleError("Invalid apply sequence: "+id+" is not parent or child of "+current.id);
+        }
+        current = next;
+
+      }, this);
+    } catch(err) {
+      this.reset(originalState, index);
+      throw err;
+    }
+  };
+
+  // Performs a single revert step
+  // --------
+
+  this.revertTo = function(id, index) {
+    index = index || this.index;
+
+    var head = this.versioned.getState();
+    var current = index.get(head);
+
+    // sanity checks
+    if (!current) throw new errors.ChangeError("Illegal state. 'head' is unknown: "+ head);
+    if (current.parent !== id) throw new errors.ChangeError("Can not revert: change is not parent of current");
+
+    // Note: Merge nodes do not have data
+    if (current.data) this.versioned.revert(current.data);
+    this.versioned.setState(id);
+  };
+
+  // Performs a single forward step
+  // --------
+
+  this.apply = function(id, index) {
+    index = index || this.index;
+
+    var change = index.get(id);
+
+    // sanity check
+    if (!change) throw new errors.ChangeError("Illegal argument. change is unknown: "+ id);
+
+    if (change.data) this.versioned.apply(change.data);
+    this.versioned.setState(id);
+  };
+
+  // Restructuring operations
+  // =======
+
+  // Eliminates a sequence of changes before a given change.
+  // --------
+  //
+  // A new branch with transformed changes is created.
+  //
+  //      0 - a  - b  - c  - d
+  //
+  //    > c' = eliminate(c, [b,a])
+  //
+  //      0 - a  - b  - c  - d
+  //      |
+  //       \- c' - d'
+  //
+  // The sequence should be in descending order.
+  //
+  // Returns the id of the rebased change.
+  //
+
+  this.eliminate = function(start, del, mapping, index, selection) {
+    if (!(index instanceof Chronicle.TmpIndex)) {
+      throw new errors.ChronicleError("'eliminate' must be called on a TmpIndex instance");
+    }
+
+    var left = index.get(del);
+    var right = index.get(start);
+    var inverted, rebased;
+
+    // attach the inversion of the first to the first node
+    inverted = new Chronicle.Change(this.internal_uuid(), del, this.versioned.invert(left.data));
+    index.add(inverted);
+
+    // rebase onto the inverted change
+    // Note: basicially this can fail due to broken dependencies of changes
+    // However, we do not want to have any conflict management in this case
+    // and fail with error instead
+    rebased = __private__.rebase0.call(this, inverted.id, right.id, mapping, index, selection, true);
+
+    // as we know that we have eliminated the effect by directly applying
+    // a change and its inverse, it is ok to directly skip those two changes at all
+    index.reconnect(rebased, left.parent);
+
+    // continue with the transformed version
+    right = index.get(rebased);
+
+    return right.id;
+  };
+
+  // Performs a basic rebase operation.
+  // --------
+  //
+  // The target and source must be siblings
+  //
+  //        0 - a
+  //        |
+  //         \- b - c
+  //
+  //    > b' = rebase0(a, b)
+  //
+  //        0 - a  - b' - c'
+  //        |
+  //         \- b - c
+  //
+  // The original changes remain.
+  // A mapping is created to allow looking up rebased changes via their original ids.
+
+  this.rebase0 = function(targetId, sourceId, mapping, index, selection, check) {
+    index = index || this.index;
+
+    var target = index.get(targetId);
+    var source = index.get(sourceId);
+
+    if (target.parent !== source.parent) {
+      throw new errors.ChronicleError("Illegal arguments: principal rebase can only be applied on siblings.");
+    }
+
+    // recursively transform the sub-graph
+    var queue = [[target.data, target.id, source]];
+
+    var item;
+    var a, b, b_i;
+    var result = null;
+
+
+    // keep merge nodes to update the mapped branches afterwards
+    var merges = [];
+    var idx;
+
+    while(queue.length > 0) {
+      item = queue.pop();
+
+      a = item[0];
+      targetId = item[1];
+      source = item[2];
+      b = source.data;
+
+      var transformed;
+
+      if (source instanceof Chronicle.Merge) {
+        // no transformation necessary here
+        // propagating the current transformation
+        transformed = [a];
+        // inserting the original branch ids here, which will be resolved to the transformed ids
+        // afterwards, when we can be sure, that all other node have been transformed.
+        b_i = new Chronicle.Merge(this.uuid(), targetId, source.branches);
+        merges.push(b_i);
+      } else {
+        // perform the operational transformation
+        // TODO: make checking configurable?
+        transformed = this.versioned.transform(a, b, {check: check});
+
+        // add a change the with the rebased/transformed operation
+        var orig = (source instanceof Chronicle.Transformed) ? source.original : source.id;
+        b_i = new Chronicle.Transformed(this.internal_uuid(), targetId, transformed[1], orig);
+
+        // overwrite the mapping for the original
+        mapping[orig] = b_i.id;
+      }
+
+      // record a mapping between old and new nodes
+      mapping[source.id] = b_i.id;
+
+      if (!result) result = b_i;
+      index.add(b_i);
+
+      // add children to iteration
+      var children = index.getChildren(source.id);
+      for (idx = 0; idx < children.length; idx++) {
+        var child = index.get(children[idx]);
+
+        // only rebase selected children if a selection is given
+        if (selection) {
+          var c = (child instanceof Chronicle.Transformed) ? child.original : child.id;
+          if (!selection[c]) continue;
+        }
+
+        queue.unshift([transformed[0], b_i.id, child]);
+      }
+    }
+
+    // resolve the transformed branch ids in all occurred merge nodes.
+    for (idx = 0; idx < merges.length; idx++) {
+      var m = merges[idx];
+      var mapped_branches = [];
+      for (var idx2 = 0; idx2 < m.branches.length; idx2++) {
+        mapped_branches.push(mapping[m.branches[idx2]]);
+      }
+      m.branches = mapped_branches;
+    }
+
+    return result.id;
+  };
+
+  // Merge implementations
+  // =======
+
+  // Creates a branch containing only the selected changes
+  // --------
+  // this is part of the merge
+  this.eliminateToSelection = function(branch, sequence, mapping, index) {
+    var tmp_index = new Chronicle.TmpIndex(index);
+
+    var selection = _.intersection(branch, sequence);
+    if (selection.length === 0) return null;
+
+    var eliminations = _.difference(branch, sequence).reverse();
+    if (eliminations.length === 0) return mapping[selection[0]];
+
+    var idx1 = 0, idx2 = 0;
+    var idx, id, del;
+    var last = null;
+
+    while (idx1 < branch.length && idx2 < eliminations.length) {
+      id = branch[branch.length-1-idx1];
+      del = eliminations[idx2];
+
+      if (id === del) {
+        // update the selected change
+        if (last) {
+          // TODO: filter propagations to nodes that are within the selection (or resolve to)
+          last = __private__.eliminate.call(this, last, id, mapping, tmp_index, mapping);
+        }
+        idx1++; idx2++;
+      } else {
+        last = id;
+        idx1++;
+      }
+    }
+
+    // store the transformed selected changes to the parent index
+    for (idx = 0; idx < selection.length; idx++) {
+      id = selection[idx];
+      tmp_index.save(mapping[id]);
+    }
+
+    return mapping[selection[0]];
+  };
+
+  this.manualMerge = function(head, id, diff, sequence, options) {
+
+      if (sequence.length === 0) {
+        throw new errors.ChronicleError("Nothing selected for merge.");
+      }
+
+      // accept only those selected which are actually part of the two branches
+      var tmp = _.intersection(sequence, diff.sequence());
+      if (tmp.length !== sequence.length) {
+        throw new errors.ChronicleError("Illegal merge selection: contains changes that are not contained in the merged branches.");
+      }
+
+      // The given sequence is constructed introducing new (hidden) changes.
+      // This is done in the following way:
+      // 1. Creating clean versions of the two branches by eliminating all changes that are not selected
+      // 2. TODO Re-order the eliminated versions
+      // 3. Zip-merge the temporary branches into the selected one
+
+      var tmp_index = new Chronicle.TmpIndex(this.index);
+
+      // Preparation / Elimination
+      // ........
+
+      var mine = diff.mine();
+      var theirs = diff.theirs();
+
+      var mapping = _.object(sequence, sequence);
+      __private__.eliminateToSelection.call(this, mine, sequence, mapping, tmp_index);
+      __private__.eliminateToSelection.call(this, theirs, sequence, mapping, tmp_index);
+
+      // 2. Re-order?
+      // TODO: implement this if desired
+
+      // Merge
+      // ........
+
+      mine = _.intersection(mine, sequence);
+      theirs = _.intersection(theirs, sequence);
+
+      for (var idx = 0; idx < sequence.length; idx++) {
+        var nextId = sequence[idx];
+        var a, b;
+
+        if(mine.length === 0 || theirs.length === 0) {
+          break;
+        }
+
+        if (mine[0] === nextId) {
+          mine.shift();
+          a = mapping[nextId];
+          b = mapping[theirs[0]];
+        } else if (theirs[0] === nextId) {
+          theirs.shift();
+          a = mapping[nextId];
+          b = mapping[mine[0]];
+        } else {
+          throw new errors.ChronicleError("Reordering of commmits is not supported.");
+        }
+        __private__.rebase0.call(this, a, b, mapping, tmp_index, null, !options.force);
+      }
+      var lastId = mapping[_.last(sequence)];
+
+      // Sanity check
+      // ........
+
+      // let's do a sanity check before we save the index changes
+      try {
+        this.reset(lastId, tmp_index);
+      } catch (err) {
+        this.reset(head, tmp_index);
+        throw err;
+      }
+
+      // finally we can write the newly created changes into the parent index
+      for (idx=0; idx<sequence.length; idx++) {
+        tmp_index.save(mapping[sequence[idx]]);
+      }
+
+      return new Chronicle.Merge(this.uuid(), lastId, [head, id]);
+  };
+
+  this.importSanityCheck = function(newIds) {
+    var head = this.versioned.getState();
+
+    // This is definitely very hysterical: we try to reach
+    // every provided change by resetting to it.
+    // If this is possible we are sure that every change has been applied
+    // and reverted at least once.
+    // This is for sure not a minimalistic approach.
+    var err = null;
+    var idx;
+    try {
+      for (idx = 0; idx < newIds.length; idx++) {
+        this.reset(newIds[idx]);
+      }
+    } catch (_err) {
+      err = _err;
+      console.log(err.stack);
+    }
+    // rollback to original state
+    this.reset(head);
+
+    if (err) {
+      // remove the changes in reverse order to meet restrictions
+      newIds.reverse();
+      for (idx = 0; idx < newIds.length; idx++) {
+        this.index.remove(newIds[idx]);
+      }
+      if (err) throw new errors.ChronicleError("Import did not pass sanity check: "+err.toString());
+    }
+  };
+
+};
+ChronicleImpl.Prototype.prototype = Chronicle.prototype;
+ChronicleImpl.prototype = new ChronicleImpl.Prototype();
+
+ChronicleImpl.create = function(options) {
+  options = options || {};
+  var index = Chronicle.Index.create(options);
+  return new ChronicleImpl(index, options);
+};
+
+module.exports = ChronicleImpl;
+
+},{"./chronicle":18,"substance-util":140,"underscore":147}],20:[function(require,module,exports){
+var _ = require("underscore");
+var Chronicle = require("./chronicle");
+
+var DiffImpl = function(data) {
+  this.data = data;
+};
+
+DiffImpl.Prototype = function() {
+
+  this.reverts = function() {
+    return this.data[1].slice(1, this.data[0]+1);
+  };
+
+  this.applies = function() {
+    return this.data[1].slice(this.data[0]+1);
+  };
+
+  this.hasReverts = function() {
+    return this.data[0]>0;
+  };
+
+  this.hasApplies = function() {
+    return this.data[1].length-1-this.data[0] > 0;
+  };
+
+  this.start = function() {
+    return this.data[1][0];
+  };
+
+  this.end = function() {
+    return _.last(this.data[1]);
+  };
+
+  this.root = function() {
+    return this.data[1][this.data[0]];
+  };
+
+  this.sequence = function() {
+    return this.data[1].slice(0);
+  };
+
+  this.mine = function() {
+    return this.data[1].slice(0, this.data[0]).reverse();
+  };
+
+  this.theirs = function() {
+    return this.applies();
+  };
+
+  this.inverted = function() {
+    return new DiffImpl([this.data[1].length-1-this.data[0], this.data[1].slice(0).reverse()]);
+  };
+
+  this.toJSON = function() {
+    return {
+      data: this.data
+    };
+  };
+};
+
+DiffImpl.Prototype.prototype = Chronicle.Diff.prototype;
+DiffImpl.prototype = new DiffImpl.Prototype();
+
+DiffImpl.create = function(id, reverts, applies) {
+  return new DiffImpl([reverts.length, [id].concat(reverts).concat(applies)]);
+};
+
+module.exports = DiffImpl;
+
+},{"./chronicle":18,"underscore":147}],21:[function(require,module,exports){
+"use strict";
+
+// Imports
+// ====
+
+var _ = require('underscore');
+var util = require('substance-util');
+var errors = util.errors;
+var Chronicle = require('./chronicle');
+
+// Module
+// ====
+
+var IndexImpl = function() {
+  Chronicle.Index.call(this);
+};
+
+IndexImpl.Prototype = function() {
+
+  var __private__ = new IndexImpl.__private__();
+  var ROOT = Chronicle.ROOT;
+
+  this.add = function(change) {
+    // making the change data read-only
+    change.data = util.freeze(change.data);
+
+    var id = change.id;
+
+    // sanity check: parents must
+    if (!change.parent) throw new errors.ChronicleError("Change does not have a parent.");
+
+    if (!this.contains(change.parent))
+      throw new errors.ChronicleError("Illegal change: parent is unknown - change=" + id + ", parent=" + change.parent);
+
+    this.changes[id] = change;
+    this.children[id] = [];
+
+    if (!this.children[change.parent]) this.children[change.parent] = [];
+    this.children[change.parent].push(id);
+  };
+
+  this.remove = function(id) {
+    if (this.children[id].length > 0)
+      throw new errors.ChronicleError("Can not remove: other changes depend on it.");
+
+    var change = this.changes[id];
+
+    delete this.changes[id];
+    delete this.children[id];
+    this.children[change.parent] = _.without(this.children[change.parent], id);
+  };
+
+  this.contains = function(id) {
+    return !!this.changes[id];
+  };
+
+  this.get = function(id) {
+    return this.changes[id];
+  };
+
+  this.list = function() {
+    return _.keys(this.changes);
+  };
+
+  this.getChildren = function(id) {
+    return this.children[id];
+  };
+
+  this.diff = function(start, end) {
+
+    // takes the path from both ends to the root
+    // and finds the first common change
+
+    var path1 = __private__.getPathToRoot.call(this, start);
+    var path2 = __private__.getPathToRoot.call(this, end);
+
+    var reverts = [];
+    var applies = [];
+
+    // create a lookup table for changes contained in the second path
+    var tmp = {},
+        id, idx;
+    for (idx=0; idx < path2.length; idx++) {
+      tmp[path2[idx]] = true;
+    }
+
+    // Traverses all changes from the first path until a common change is found
+    // These changes constitute the reverting part
+    for (idx=0; idx < path1.length; idx++) {
+      id = path1[idx];
+      // The first change is not included in the revert list
+      // The common root
+      if(idx > 0) reverts.push(id);
+      if(tmp[id]) break;
+    }
+
+    var root = id;
+
+    // Traverses the second path to the common change
+    // These changes constitute the apply part
+    for (idx=0; idx < path2.length; idx++) {
+      id = path2[idx];
+      if (id === root || id === ROOT) break;
+      // Note: we are traversing from head to root
+      // the applies need to be in reverse order
+      applies.unshift(id);
+    }
+
+    return Chronicle.Diff.create(start, reverts, applies);
+  };
+
+  // Computes the shortest path from start to end (without start)
+  // --------
+  //
+
+  this.shortestPath = function(start, end) {
+
+    // trivial cases
+    if (start === end) return [];
+    if (end === ROOT) return __private__.getPathToRoot.call(this, start).slice(1);
+    if (start === ROOT) return __private__.getPathToRoot.call(this, end).reverse().slice(1);
+
+    // performs a BFS for end.
+    var visited = {};
+    var queue = [[start, start]];
+    var item, origin, pos, current,
+        idx, id, children;
+
+    // Note: it is important to
+
+    while(queue.length > 0) {
+      item = queue.shift();
+      origin = item[0];
+      pos = item[1];
+      current = this.get(pos);
+
+      if (!visited[pos]) {
+        // store the origin to be able to reconstruct the path later
+        visited[pos] = origin;
+
+        if (pos === end) {
+          // reconstruct the path
+          var path = [];
+          var tmp;
+          while (pos !== start) {
+            path.unshift(pos);
+            tmp = visited[pos];
+            visited[pos] = null;
+            pos = tmp;
+            if (!pos) throw new errors.SubstanceError("Illegal state: bug in implementation of Index.shortestPath.");
+          }
+          return path;
+        }
+
+        // TODO: we could optimize this a bit if we would check
+        // if a parent or a child are the searched node and stop
+        // instead of iterating .
+
+        // adding unvisited parent
+        if (!visited[current.parent]) queue.push([pos, current.parent]);
+
+        // and all unvisited children
+        children = this.getChildren(pos);
+
+        for (idx = 0; idx < children.length; idx++) {
+          id = children[idx];
+          if(!visited[id]) queue.push([pos, id]);
+        }
+      }
+    }
+
+    throw new errors.SubstanceError("Illegal state: no path found.");
+  };
+
+  this.import = function(otherIndex) {
+    // 1. index difference (only ids)
+    var newIds = _.difference(otherIndex.list(), this.list());
+    if (newIds.length === 0) return;
+
+    // 2. compute correct order
+    // Note: changes have to added according to their dependencies.
+    // I.e., a change can only be added after all parents have been added.
+    // OTOH, changes have to be removed in reverse order.
+    var order = __private__.computeDependencyOrder.call(this, otherIndex, newIds);
+
+    // now they are topologically sorted
+    newIds.sort(function(a,b){ return (order[a] - order[b]); });
+
+    // 2. add changes to the index
+    for (var idx = 0; idx < newIds.length; idx++) {
+      this.add(otherIndex.get(newIds[idx]));
+    }
+
+    return newIds;
+  };
+
+  this.foreach = function(iterator, start) {
+    start = start || "ROOT";
+    var queue = [start];
+    var nextId, next;
+    while (queue.length > 0) {
+      nextId = queue.shift();
+      next = this.get(nextId);
+      iterator(next);
+
+      var children = this.children[nextId];
+      for (var i = 0; i < children.length; i++) {
+        queue.push(children[i]);
+      }
+    }
+  };
+};
+
+IndexImpl.__private__ = function() {
+
+  var ROOT = Chronicle.ROOT;
+
+  this.getPathToRoot = function(id) {
+    var result = [];
+
+    if (id === ROOT) return result;
+
+    var current = this.get(id);
+    if(!current) throw new errors.ChronicleError("Unknown change: "+id);
+
+    var parent;
+    while(true) {
+      result.push(current.id);
+      if(current.id === ROOT) break;
+
+      parent = current.parent;
+      current = this.get(parent);
+    }
+
+    return result;
+  };
+
+  // Import helpers
+  // =======
+
+  // computes an order on a set of changes
+  // so that they can be added to the index,
+  // without violating the integrity of the index at any time.
+  this.computeDependencyOrder = function(other, newIds) {
+    var order = {};
+
+    function _order(id) {
+      if (order[id]) return order[id];
+      if (id === ROOT) return 0;
+
+      var change = other.get(id);
+      var o = _order(change.parent) + 1;
+      order[id] = o;
+
+      return o;
+    }
+
+    for (var idx = 0; idx < newIds.length; idx++) {
+      _order(newIds[idx]);
+    }
+
+    return order;
+  };
+
+};
+
+IndexImpl.Prototype.prototype = Chronicle.Index.prototype;
+IndexImpl.prototype = new IndexImpl.Prototype();
+
+
+
+// Extensions
+// --------
+
+var makePersistent = function(index, store) {
+
+  index.store = store;
+  index.__changes__ = store.hash("changes");
+  index.__refs__ = store.hash("refs");
+
+  // Initialize the index with the content loaded from the store
+
+  // Trick: let the changes hash mimic an Index (duck-type)
+  // and use Index.import
+  index.__changes__.list = index.__changes__.keys;
+
+  // Overrides
+  // --------
+
+  var __add__ = index.add;
+  index.add = function(change) {
+    __add__.call(this, change);
+    this.__changes__.set(change.id, change);
+  };
+
+  var __remove__ = index.remove;
+  index.remove = function(id) {
+    __remove__.call(this, id);
+    this.__changes__.delete(id);
+  };
+
+  var __setRef__ = index.setRef;
+  index.setRef = function(name, id) {
+    __setRef__.call(this, name, id);
+    this.__refs__.set(name, id);
+  };
+
+  // Extensions
+  // --------
+
+  index.load = function() {
+    this.import(this.__changes__);
+
+    _.each(this.__refs__.keys(), function(ref) {
+      this.setRef(ref, this.__refs__.get(ref));
+    }, this);
+  };
+
+  // load automatically?
+  index.load();
+};
+
+// Export
+// ========
+
+IndexImpl.create = function(options) {
+  options = options || {};
+  var index = new IndexImpl();
+
+  if (options.store) {
+    makePersistent(index, options.store);
+  }
+
+  return index;
+};
+
+module.exports = IndexImpl;
+
+},{"./chronicle":18,"substance-util":140,"underscore":147}],22:[function(require,module,exports){
+"use strict";
+
+var util = require('substance-util');
+var Chronicle = require('./chronicle');
+var TextOperation = require('substance-operator').TextOperation;
+
+var TextOperationAdapter = function(chronicle, doc) {
+  Chronicle.Versioned.call(this, chronicle);
+  this.doc = doc;
+};
+
+TextOperationAdapter.Prototype = function() {
+
+  var __super__ = util.prototype(this);
+
+  this.apply = function(change) {
+    this.doc.setText(change.apply(this.doc.getText()));
+  };
+
+  this.invert = function(change) {
+    return change.invert();
+  };
+
+  this.transform = function(a, b, options) {
+    return TextOperation.transform(a, b, options);
+  };
+
+  this.reset = function() {
+    __super__.reset.call(this);
+    this.doc.setText("");
+  };
+
+};
+
+TextOperationAdapter.Prototype.prototype = Chronicle.Versioned.prototype;
+TextOperationAdapter.prototype = new TextOperationAdapter.Prototype();
+
+module.exports = TextOperationAdapter;
+
+},{"./chronicle":18,"substance-operator":126,"substance-util":140}],23:[function(require,module,exports){
+var _ = require("underscore");
+var util = require("substance-util");
+var errors = util.errors;
+var IndexImpl = require("./index_impl");
+
+
+var TmpIndex = function(index) {
+  IndexImpl.call(this);
+  this.index = index;
+};
+
+TmpIndex.Prototype = function() {
+
+  var __super__ = util.prototype(this);
+
+  this.get = function(id) {
+    if (__super__.contains.call(this, id)) {
+      return __super__.get.call(this, id);
+    }
+    return this.index.get(id);
+  };
+
+  this.contains = function(id) {
+    return __super__.contains.call(this, id) || this.index.contains(id);
+  };
+
+  this.getChildren = function(id) {
+    var result = __super__.getChildren.call(this, id) || [];
+    if (this.index.contains(id)) {
+      result = result.concat(this.index.getChildren(id));
+    }
+    return result;
+  };
+
+  this.list = function() {
+    return __super__.list.call(this).concat(this.index.list());
+  };
+
+  this.save = function(id, recurse) {
+    if (recurse) {
+      var queue = [id];
+      var nextId, next;
+      while(queue.length > 0) {
+        nextId = queue.pop();
+        next = this.changes[nextId];
+
+        if (this.changes[nextId]) this.index.add(next);
+
+        for (var idx=0; idx < next.children; idx++) {
+          queue.unshift(next.children[idx]);
+        }
+      }
+    } else {
+      if (this.changes[id]) this.index.add(this.changes[id]);
+    }
+  };
+
+  this.reconnect = function(id, newParentId) {
+    if (!this.changes[id])
+      throw new errors.ChronicleError("Change does not exist to this index.");
+
+    var change = this.get(id);
+
+    if (!this.contains(newParentId)) {
+      throw new errors.ChronicleError("Illegal change: parent is unknown parent=" + newParentId);
+    }
+
+    if (!this.children[change.parent]) this.children[change.parent] = [];
+    this.children[change.parent] = _.without(this.children[change.parent], change.id);
+
+    change.parent = newParentId;
+
+    if (!this.children[change.parent]) this.children[change.parent] = [];
+    this.children[change.parent].push(id);
+  };
+};
+TmpIndex.Prototype.prototype = IndexImpl.prototype;
+TmpIndex.prototype = new TmpIndex.Prototype();
+
+module.exports = TmpIndex;
+
+},{"./index_impl":21,"substance-util":140,"underscore":147}],24:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Keyboard: require("./src/keyboard"),
+  Mousetrap: require("./src/mousetrap")
+};
+
+},{"./src/keyboard":26,"./src/mousetrap":27}],25:[function(require,module,exports){
+/*global define:false */
+/**
+ * Copyright 2013 Craig Campbell
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Mousetrap is a simple keyboard shortcut library for Javascript with
+ * no external dependencies
+ *
+ * @version 1.4.4
+ * @url craig.is/killing/mice
+ */
+(function() {
+
+    /**
+     * mapping of special keycodes to their corresponding keys
+     *
+     * everything in this dictionary cannot use keypress events
+     * so it has to be here to map to the correct keycodes for
+     * keyup/keydown events
+     *
+     * @type {Object}
+     */
+    var _MAP = {
+            8: 'backspace',
+            9: 'tab',
+            13: 'enter',
+            16: 'shift',
+            17: 'ctrl',
+            18: 'alt',
+            20: 'capslock',
+            27: 'esc',
+            32: 'space',
+            33: 'pageup',
+            34: 'pagedown',
+            35: 'end',
+            36: 'home',
+            37: 'left',
+            38: 'up',
+            39: 'right',
+            40: 'down',
+            45: 'ins',
+            46: 'del',
+            91: 'meta',
+            93: 'meta',
+            224: 'meta'
+        },
+
+        /**
+         * mapping for special characters so they can support
+         *
+         * this dictionary is only used incase you want to bind a
+         * keyup or keydown event to one of these keys
+         *
+         * @type {Object}
+         */
+        _KEYCODE_MAP = {
+            106: '*',
+            107: '+',
+            109: '-',
+            110: '.',
+            111 : '/',
+            186: ';',
+            187: '=',
+            188: ',',
+            189: '-',
+            190: '.',
+            191: '/',
+            192: '`',
+            219: '[',
+            220: '\\',
+            221: ']',
+            222: '\''
+        },
+
+        /**
+         * this is a mapping of keys that require shift on a US keypad
+         * back to the non shift equivelents
+         *
+         * this is so you can use keyup events with these keys
+         *
+         * note that this will only work reliably on US keyboards
+         *
+         * @type {Object}
+         */
+        _SHIFT_MAP = {
+            '~': '`',
+            '!': '1',
+            '@': '2',
+            '#': '3',
+            '$': '4',
+            '%': '5',
+            '^': '6',
+            '&': '7',
+            '*': '8',
+            '(': '9',
+            ')': '0',
+            '_': '-',
+            '+': '=',
+            ':': ';',
+            '\"': '\'',
+            '<': ',',
+            '>': '.',
+            '?': '/',
+            '|': '\\'
+        },
+
+        /**
+         * this is a list of special strings you can use to map
+         * to modifier keys when you specify your keyboard shortcuts
+         *
+         * @type {Object}
+         */
+        _SPECIAL_ALIASES = {
+            'option': 'alt',
+            'command': 'meta',
+            'return': 'enter',
+            'escape': 'esc',
+            'mod': /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'meta' : 'ctrl'
+        },
+
+        /**
+         * variable to store the flipped version of _MAP from above
+         * needed to check if we should use keypress or not when no action
+         * is specified
+         *
+         * @type {Object|undefined}
+         */
+        _REVERSE_MAP,
+
+        /**
+         * a list of all the callbacks setup via Mousetrap.bind()
+         *
+         * @type {Object}
+         */
+        _callbacks = {},
+
+        /**
+         * direct map of string combinations to callbacks used for trigger()
+         *
+         * @type {Object}
+         */
+        _directMap = {},
+
+        /**
+         * keeps track of what level each sequence is at since multiple
+         * sequences can start out with the same sequence
+         *
+         * @type {Object}
+         */
+        _sequenceLevels = {},
+
+        /**
+         * variable to store the setTimeout call
+         *
+         * @type {null|number}
+         */
+        _resetTimer,
+
+        /**
+         * temporary state where we will ignore the next keyup
+         *
+         * @type {boolean|string}
+         */
+        _ignoreNextKeyup = false,
+
+        /**
+         * temporary state where we will ignore the next keypress
+         *
+         * @type {boolean}
+         */
+        _ignoreNextKeypress = false,
+
+        /**
+         * are we currently inside of a sequence?
+         * type of action ("keyup" or "keydown" or "keypress") or false
+         *
+         * @type {boolean|string}
+         */
+        _nextExpectedAction = false;
+
+    /**
+     * loop through the f keys, f1 to f19 and add them to the map
+     * programatically
+     */
+    for (var i = 1; i < 20; ++i) {
+        _MAP[111 + i] = 'f' + i;
+    }
+
+    /**
+     * loop through to map numbers on the numeric keypad
+     */
+    for (i = 0; i <= 9; ++i) {
+        _MAP[i + 96] = i;
+    }
+
+    /**
+     * cross browser add event method
+     *
+     * @param {Element|HTMLDocument} object
+     * @param {string} type
+     * @param {Function} callback
+     * @returns void
+     */
+    function _addEvent(object, type, callback) {
+        if (object.addEventListener) {
+            object.addEventListener(type, callback, false);
+            return;
+        }
+
+        object.attachEvent('on' + type, callback);
+    }
+
+    /**
+     * takes the event and returns the key character
+     *
+     * @param {Event} e
+     * @return {string}
+     */
+    function _characterFromEvent(e) {
+
+        // for keypress events we should return the character as is
+        if (e.type == 'keypress') {
+            var character = String.fromCharCode(e.which);
+
+            // if the shift key is not pressed then it is safe to assume
+            // that we want the character to be lowercase.  this means if
+            // you accidentally have caps lock on then your key bindings
+            // will continue to work
+            //
+            // the only side effect that might not be desired is if you
+            // bind something like 'A' cause you want to trigger an
+            // event when capital A is pressed caps lock will no longer
+            // trigger the event.  shift+a will though.
+            if (!e.shiftKey) {
+                character = character.toLowerCase();
+            }
+
+            return character;
+        }
+
+        // for non keypress events the special maps are needed
+        if (_MAP[e.which]) {
+            return _MAP[e.which];
+        }
+
+        if (_KEYCODE_MAP[e.which]) {
+            return _KEYCODE_MAP[e.which];
+        }
+
+        // if it is not in the special map
+
+        // with keydown and keyup events the character seems to always
+        // come in as an uppercase character whether you are pressing shift
+        // or not.  we should make sure it is always lowercase for comparisons
+        return String.fromCharCode(e.which).toLowerCase();
+    }
+
+    /**
+     * checks if two arrays are equal
+     *
+     * @param {Array} modifiers1
+     * @param {Array} modifiers2
+     * @returns {boolean}
+     */
+    function _modifiersMatch(modifiers1, modifiers2) {
+        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
+    }
+
+    /**
+     * resets all sequence counters except for the ones passed in
+     *
+     * @param {Object} doNotReset
+     * @returns void
+     */
+    function _resetSequences(doNotReset) {
+        doNotReset = doNotReset || {};
+
+        var activeSequences = false,
+            key;
+
+        for (key in _sequenceLevels) {
+            if (doNotReset[key]) {
+                activeSequences = true;
+                continue;
+            }
+            _sequenceLevels[key] = 0;
+        }
+
+        if (!activeSequences) {
+            _nextExpectedAction = false;
+        }
+    }
+
+    /**
+     * finds all callbacks that match based on the keycode, modifiers,
+     * and action
+     *
+     * @param {string} character
+     * @param {Array} modifiers
+     * @param {Event|Object} e
+     * @param {string=} sequenceName - name of the sequence we are looking for
+     * @param {string=} combination
+     * @param {number=} level
+     * @returns {Array}
+     */
+    function _getMatches(character, modifiers, e, sequenceName, combination, level) {
+        var i,
+            callback,
+            matches = [],
+            action = e.type;
+
+        // if there are no events related to this keycode
+        if (!_callbacks[character]) {
+            return [];
+        }
+
+        // if a modifier key is coming up on its own we should allow it
+        if (action == 'keyup' && _isModifier(character)) {
+            modifiers = [character];
+        }
+
+        // loop through all callbacks for the key that was pressed
+        // and see if any of them match
+        for (i = 0; i < _callbacks[character].length; ++i) {
+            callback = _callbacks[character][i];
+
+            // if a sequence name is not specified, but this is a sequence at
+            // the wrong level then move onto the next match
+            if (!sequenceName && callback.seq && _sequenceLevels[callback.seq] != callback.level) {
+                continue;
+            }
+
+            // if the action we are looking for doesn't match the action we got
+            // then we should keep going
+            if (action != callback.action) {
+                continue;
+            }
+
+            // if this is a keypress event and the meta key and control key
+            // are not pressed that means that we need to only look at the
+            // character, otherwise check the modifiers as well
+            //
+            // chrome will not fire a keypress if meta or control is down
+            // safari will fire a keypress if meta or meta+shift is down
+            // firefox will fire a keypress if meta or control is down
+            if ((action == 'keypress' && !e.metaKey && !e.ctrlKey) || _modifiersMatch(modifiers, callback.modifiers)) {
+
+                // when you bind a combination or sequence a second time it
+                // should overwrite the first one.  if a sequenceName or
+                // combination is specified in this call it does just that
+                //
+                // @todo make deleting its own method?
+                var deleteCombo = !sequenceName && callback.combo == combination;
+                var deleteSequence = sequenceName && callback.seq == sequenceName && callback.level == level;
+                if (deleteCombo || deleteSequence) {
+                    _callbacks[character].splice(i, 1);
+                }
+
+                matches.push(callback);
+            }
+        }
+
+        return matches;
+    }
+
+    /**
+     * takes a key event and figures out what the modifiers are
+     *
+     * @param {Event} e
+     * @returns {Array}
+     */
+    function _eventModifiers(e) {
+        var modifiers = [];
+
+        if (e.shiftKey) {
+            modifiers.push('shift');
+        }
+
+        if (e.altKey) {
+            modifiers.push('alt');
+        }
+
+        if (e.ctrlKey) {
+            modifiers.push('ctrl');
+        }
+
+        if (e.metaKey) {
+            modifiers.push('meta');
+        }
+
+        return modifiers;
+    }
+
+    /**
+     * actually calls the callback function
+     *
+     * if your callback function returns false this will use the jquery
+     * convention - prevent default and stop propogation on the event
+     *
+     * @param {Function} callback
+     * @param {Event} e
+     * @returns void
+     */
+    function _fireCallback(callback, e, combo) {
+
+        // if this event should not happen stop here
+        if (Mousetrap.stopCallback(e, e.target || e.srcElement, combo)) {
+            return;
+        }
+
+        if (callback(e, combo) === false) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            e.returnValue = false;
+            e.cancelBubble = true;
+        }
+    }
+
+    /**
+     * handles a character key event
+     *
+     * @param {string} character
+     * @param {Array} modifiers
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleKey(character, modifiers, e) {
+        var callbacks = _getMatches(character, modifiers, e),
+            i,
+            doNotReset = {},
+            maxLevel = 0,
+            processedSequenceCallback = false;
+
+        // Calculate the maxLevel for sequences so we can only execute the longest callback sequence
+        for (i = 0; i < callbacks.length; ++i) {
+            if (callbacks[i].seq) {
+                maxLevel = Math.max(maxLevel, callbacks[i].level);
+            }
+        }
+
+        // loop through matching callbacks for this key event
+        for (i = 0; i < callbacks.length; ++i) {
+
+            // fire for all sequence callbacks
+            // this is because if for example you have multiple sequences
+            // bound such as "g i" and "g t" they both need to fire the
+            // callback for matching g cause otherwise you can only ever
+            // match the first one
+            if (callbacks[i].seq) {
+
+                // only fire callbacks for the maxLevel to prevent
+                // subsequences from also firing
+                //
+                // for example 'a option b' should not cause 'option b' to fire
+                // even though 'option b' is part of the other sequence
+                //
+                // any sequences that do not match here will be discarded
+                // below by the _resetSequences call
+                if (callbacks[i].level != maxLevel) {
+                    continue;
+                }
+
+                processedSequenceCallback = true;
+
+                // keep a list of which sequences were matches for later
+                doNotReset[callbacks[i].seq] = 1;
+                _fireCallback(callbacks[i].callback, e, callbacks[i].combo);
+                continue;
+
+            } else if (Mousetrap.TRIGGER_PREFIX_COMBOS) {
+                // HACK: Mousetrap does not trigger 'prefixes'
+                _fireCallback(callbacks[i].callback, e, callbacks[i].combo);
+            } else {
+                // if there were no sequence matches but we are still here
+                // that means this is a regular match so we should fire that
+                if (!processedSequenceCallback) {
+                    _fireCallback(callbacks[i].callback, e, callbacks[i].combo);
+                }
+            }
+        }
+
+        // if the key you pressed matches the type of sequence without
+        // being a modifier (ie "keyup" or "keypress") then we should
+        // reset all sequences that were not matched by this event
+        //
+        // this is so, for example, if you have the sequence "h a t" and you
+        // type "h e a r t" it does not match.  in this case the "e" will
+        // cause the sequence to reset
+        //
+        // modifier keys are ignored because you can have a sequence
+        // that contains modifiers such as "enter ctrl+space" and in most
+        // cases the modifier key will be pressed before the next key
+        //
+        // also if you have a sequence such as "ctrl+b a" then pressing the
+        // "b" key will trigger a "keypress" and a "keydown"
+        //
+        // the "keydown" is expected when there is a modifier, but the
+        // "keypress" ends up matching the _nextExpectedAction since it occurs
+        // after and that causes the sequence to reset
+        //
+        // we ignore keypresses in a sequence that directly follow a keydown
+        // for the same character
+        var ignoreThisKeypress = e.type == 'keypress' && _ignoreNextKeypress;
+        if (e.type == _nextExpectedAction && !_isModifier(character) && !ignoreThisKeypress) {
+            _resetSequences(doNotReset);
+        }
+
+        _ignoreNextKeypress = processedSequenceCallback && e.type == 'keydown';
+
+        // provide information about if there have callbacks detected
+        // E.g., this is used to trigger a default key handler in case of no others did match
+        return callbacks.length > 0;
+    }
+
+    /**
+     * handles a keydown event
+     *
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleKeyEvent(e) {
+
+        // normalize e.which for key events
+        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
+        if (typeof e.which !== 'number') {
+            e.which = e.keyCode;
+        }
+
+        var character = _characterFromEvent(e);
+
+        // no character found then stop
+        if (!character) {
+            return;
+        }
+
+        // need to use === for the character check because the character can be 0
+        if (e.type == 'keyup' && _ignoreNextKeyup === character) {
+            _ignoreNextKeyup = false;
+            return;
+        }
+
+        Mousetrap.handleKey(character, _eventModifiers(e), e);
+    }
+
+    /**
+     * determines if the keycode specified is a modifier key or not
+     *
+     * @param {string} key
+     * @returns {boolean}
+     */
+    function _isModifier(key) {
+        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
+    }
+
+    /**
+     * called to set a 1 second timeout on the specified sequence
+     *
+     * this is so after each key press in the sequence you have 1 second
+     * to press the next key before you have to start over
+     *
+     * @returns void
+     */
+    function _resetSequenceTimer() {
+        clearTimeout(_resetTimer);
+        _resetTimer = setTimeout(_resetSequences, 1000);
+    }
+
+    /**
+     * reverses the map lookup so that we can look for specific keys
+     * to see what can and can't use keypress
+     *
+     * @return {Object}
+     */
+    function _getReverseMap() {
+        if (!_REVERSE_MAP) {
+            _REVERSE_MAP = {};
+            for (var key in _MAP) {
+
+                // pull out the numeric keypad from here cause keypress should
+                // be able to detect the keys from the character
+                if (key > 95 && key < 112) {
+                    continue;
+                }
+
+                if (_MAP.hasOwnProperty(key)) {
+                    _REVERSE_MAP[_MAP[key]] = key;
+                }
+            }
+        }
+        return _REVERSE_MAP;
+    }
+
+    /**
+     * picks the best action based on the key combination
+     *
+     * @param {string} key - character for key
+     * @param {Array} modifiers
+     * @param {string=} action passed in
+     */
+    function _pickBestAction(key, modifiers, action) {
+
+        // if no action was picked in we should try to pick the one
+        // that we think would work best for this key
+        if (!action) {
+            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
+        }
+
+        // modifier keys don't work as expected with keypress,
+        // switch to keydown
+        if (action == 'keypress' && modifiers.length) {
+            action = 'keydown';
+        }
+
+        return action;
+    }
+
+    /**
+     * binds a key sequence to an event
+     *
+     * @param {string} combo - combo specified in bind call
+     * @param {Array} keys
+     * @param {Function} callback
+     * @param {string=} action
+     * @returns void
+     */
+    function _bindSequence(combo, keys, callback, action) {
+
+        // start off by adding a sequence level record for this combination
+        // and setting the level to 0
+        _sequenceLevels[combo] = 0;
+
+        /**
+         * callback to increase the sequence level for this sequence and reset
+         * all other sequences that were active
+         *
+         * @param {string} nextAction
+         * @returns {Function}
+         */
+        function _increaseSequence(nextAction) {
+            return function() {
+                _nextExpectedAction = nextAction;
+                ++_sequenceLevels[combo];
+                _resetSequenceTimer();
+            };
+        }
+
+        /**
+         * wraps the specified callback inside of another function in order
+         * to reset all sequence counters as soon as this sequence is done
+         *
+         * @param {Event} e
+         * @returns void
+         */
+        function _callbackAndReset(e) {
+            _fireCallback(callback, e, combo);
+
+            // we should ignore the next key up if the action is key down
+            // or keypress.  this is so if you finish a sequence and
+            // release the key the final key will not trigger a keyup
+            if (action !== 'keyup') {
+                _ignoreNextKeyup = _characterFromEvent(e);
+            }
+
+            // weird race condition if a sequence ends with the key
+            // another sequence begins with
+            setTimeout(_resetSequences, 10);
+        }
+
+        // loop through keys one at a time and bind the appropriate callback
+        // function.  for any key leading up to the final one it should
+        // increase the sequence. after the final, it should reset all sequences
+        //
+        // if an action is specified in the original bind call then that will
+        // be used throughout.  otherwise we will pass the action that the
+        // next key in the sequence should match.  this allows a sequence
+        // to mix and match keypress and keydown events depending on which
+        // ones are better suited to the key provided
+        for (var i = 0; i < keys.length; ++i) {
+            var isFinal = i + 1 === keys.length;
+            var wrappedCallback = isFinal ? _callbackAndReset : _increaseSequence(action || _getKeyInfo(keys[i + 1]).action);
+            _bindSingle(keys[i], wrappedCallback, action, combo, i);
+        }
+    }
+
+    /**
+     * Converts from a string key combination to an array
+     *
+     * @param  {string} combination like "command+shift+l"
+     * @return {Array}
+     */
+    function _keysFromString(combination) {
+        if (combination === '+') {
+            return ['+'];
+        }
+
+        return combination.split('+');
+    }
+
+    /**
+     * Gets info for a specific key combination
+     *
+     * @param  {string} combination key combination ("command+s" or "a" or "*")
+     * @param  {string=} action
+     * @returns {Object}
+     */
+    function _getKeyInfo(combination, action) {
+        var keys,
+            key,
+            i,
+            modifiers = [];
+
+        // take the keys from this pattern and figure out what the actual
+        // pattern is all about
+        keys = _keysFromString(combination);
+
+        for (i = 0; i < keys.length; ++i) {
+            key = keys[i];
+
+            // normalize key names
+            if (_SPECIAL_ALIASES[key]) {
+                key = _SPECIAL_ALIASES[key];
+            }
+
+            // if this is not a keypress event then we should
+            // be smart about using shift keys
+            // this will only work for US keyboards however
+            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
+                key = _SHIFT_MAP[key];
+                modifiers.push('shift');
+            }
+
+            // if this key is a modifier then add it to the list of modifiers
+            if (_isModifier(key)) {
+                modifiers.push(key);
+            }
+        }
+
+        // depending on what the key combination is
+        // we will try to pick the best event for it
+        action = _pickBestAction(key, modifiers, action);
+
+        return {
+            key: key,
+            modifiers: modifiers,
+            action: action
+        };
+    }
+
+    /**
+     * binds a single keyboard combination
+     *
+     * @param {string} combination
+     * @param {Function} callback
+     * @param {string=} action
+     * @param {string=} sequenceName - name of sequence if part of sequence
+     * @param {number=} level - what part of the sequence the command is
+     * @returns void
+     */
+    function _bindSingle(combination, callback, action, sequenceName, level) {
+
+        // store a direct mapped reference for use with Mousetrap.trigger
+        _directMap[combination + ':' + action] = callback;
+
+        // make sure multiple spaces in a row become a single space
+        combination = combination.replace(/\s+/g, ' ');
+
+        var sequence = combination.split(' '),
+            info;
+
+        // if this pattern is a sequence of keys then run through this method
+        // to reprocess each pattern one key at a time
+        if (sequence.length > 1) {
+            _bindSequence(combination, sequence, callback, action);
+            return;
+        }
+
+        info = _getKeyInfo(combination, action);
+
+        // make sure to initialize array if this is the first time
+        // a callback is added for this key
+        _callbacks[info.key] = _callbacks[info.key] || [];
+
+        // remove an existing match if there is one
+        _getMatches(info.key, info.modifiers, {type: info.action}, sequenceName, combination, level);
+
+        // add this call back to the array
+        // if it is a sequence put it at the beginning
+        // if not put it at the end
+        //
+        // this is important because the way these are processed expects
+        // the sequence ones to come first
+        _callbacks[info.key][sequenceName ? 'unshift' : 'push']({
+            callback: callback,
+            modifiers: info.modifiers,
+            action: info.action,
+            seq: sequenceName,
+            level: level,
+            combo: combination
+        });
+    }
+
+    /**
+     * binds multiple combinations to the same callback
+     *
+     * @param {Array} combinations
+     * @param {Function} callback
+     * @param {string|undefined} action
+     * @returns void
+     */
+    function _bindMultiple(combinations, callback, action) {
+        for (var i = 0; i < combinations.length; ++i) {
+            _bindSingle(combinations[i], callback, action);
+        }
+    }
+
+    // start!
+    _addEvent(document, 'keypress', _handleKeyEvent);
+    _addEvent(document, 'keydown', _handleKeyEvent);
+    _addEvent(document, 'keyup', _handleKeyEvent);
+
+    var Mousetrap = {
+
+        /**
+         * binds an event to mousetrap
+         *
+         * can be a single key, a combination of keys separated with +,
+         * an array of keys, or a sequence of keys separated by spaces
+         *
+         * be sure to list the modifier keys first to make sure that the
+         * correct key ends up getting bound (the last key in the pattern)
+         *
+         * @param {string|Array} keys
+         * @param {Function} callback
+         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
+         * @returns void
+         */
+        bind: function(keys, callback, action) {
+            keys = keys instanceof Array ? keys : [keys];
+            _bindMultiple(keys, callback, action);
+            return this;
+        },
+
+        /**
+         * unbinds an event to mousetrap
+         *
+         * the unbinding sets the callback function of the specified key combo
+         * to an empty function and deletes the corresponding key in the
+         * _directMap dict.
+         *
+         * TODO: actually remove this from the _callbacks dictionary instead
+         * of binding an empty function
+         *
+         * the keycombo+action has to be exactly the same as
+         * it was defined in the bind method
+         *
+         * @param {string|Array} keys
+         * @param {string} action
+         * @returns void
+         */
+        unbind: function(keys, action) {
+            return Mousetrap.bind(keys, function() {}, action);
+        },
+
+        /**
+         * triggers an event that has already been bound
+         *
+         * @param {string} keys
+         * @param {string=} action
+         * @returns void
+         */
+        trigger: function(keys, action) {
+            if (_directMap[keys + ':' + action]) {
+                _directMap[keys + ':' + action]({}, keys);
+            }
+            return this;
+        },
+
+        /**
+         * resets the library back to its initial state.  this is useful
+         * if you want to clear out the current keyboard shortcuts and bind
+         * new ones - for example if you switch to another page
+         *
+         * @returns void
+         */
+        reset: function() {
+            _callbacks = {};
+            _directMap = {};
+            return this;
+        },
+
+       /**
+        * should we stop this event before firing off callbacks
+        *
+        * @param {Event} e
+        * @param {Element} element
+        * @return {boolean}
+        */
+        stopCallback: function(e, element) {
+
+            // if the element has the class "mousetrap" then no need to stop
+            if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
+                return false;
+            }
+
+            // stop for input, select, and textarea
+            return element.tagName == 'INPUT' || element.tagName == 'SELECT' || element.tagName == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
+        },
+
+        /**
+         * exposes _handleKey publicly so it can be overwritten by extensions
+         */
+        handleKey: _handleKey,
+
+        /**
+         * Trigger callbacks for combos even when they are part of sequnence.
+         */
+         TRIGGER_PREFIX_COMBOS: false
+    };
+
+    // expose mousetrap to the global object
+    window.Mousetrap = Mousetrap;
+
+    // expose mousetrap as an AMD module
+    if (typeof define === 'function' && define.amd) {
+        define(Mousetrap);
+    }
+}) ();
+
+},{}],26:[function(require,module,exports){
+"use strict";
+
+require("../lib/mousetrap");
+var Mousetrap = window.Mousetrap;
+
+var Keyboard = function(mainControl) {
+  this.__bindings = {};
+  this.__mainControl = mainControl;
+  this.__controls = [];
+  this.__defaultHandler = null;
+};
+
+Keyboard.Prototype = function() {
+
+  // keep the original key handler for delegation
+  var __handleKey = Mousetrap.handleKey;
+
+  function __getContext(self, pathStr) {
+    var path = pathStr.split(".");
+    var context = self.__bindings;
+
+    // prepare the hierarchical data structure
+    for (var i = 0; i < path.length; i++) {
+      var c = path[i];
+      context.contexts = context.contexts || {};
+      context.contexts[c] = context.contexts[c] || {};
+      context = context.contexts[c];
+    }
+
+    return context;
+  }
+
+  function __registerBindings(self, definition) {
+    var context = __getContext(self, definition.context);
+    // add the commands into the given context
+    context.commands = context.commands || [];
+    context.commands = context.commands.concat(definition.commands);
+  }
+
+  function __createCallback(control, commandSpec) {
+    var obj = control;
+    if (commandSpec.scope) {
+      obj = control[commandSpec.scope];
+    }
+    // default is preventing the default
+    var preventDefault = (commandSpec.preventDefault !== "false");
+
+    return function(e) {
+      obj[commandSpec.command].apply(obj, commandSpec.args);
+      if (preventDefault) e.preventDefault();
+    };
+  }
+
+  function __bind(control, commands) {
+    if (commands === undefined) return;
+
+    for (var i = 0; i < commands.length; i++) {
+      var command = commands[i];
+      Mousetrap.bind(command.keys, __createCallback(control, command));
+    }
+  }
+
+  function __injectDefaultHandler(defaultHandlers) {
+    if (!defaultHandlers || defaultHandlers.length === 0) return;
+
+    var handleKey = function(character, modifiers, e) {
+      if (__handleKey(character, modifiers, e)) return;
+
+      for (var i = defaultHandlers.length - 1; i >= 0; i--) {
+        var item = defaultHandlers[i];
+
+        // the handler function must return a command specification that
+        // will be interpreted by the associated controller
+        var cmd = item.handler(character, modifiers, e);
+
+        // if the handler does not take care of the event
+        // cmd should be falsy
+        if (cmd) {
+          var control = item.control;
+          var command = cmd.command;
+          var args = cmd.args;
+          control[command].apply(control, args);
+
+          // we prevent the default behaviour and also bubbling through
+          // eventual parent default handlers.
+          //e.preventDefault();
+          return;
+        }
+      }
+    };
+
+    Mousetrap.handleKey = handleKey;
+  }
+
+  function __createBindings(self) {
+    // TODO: would be great to have Mousetrap more modular and create several immutable
+    // versions which would be switched here
+    Mousetrap.reset();
+    Mousetrap.handleKey = __handleKey;
+    var defaultHandlers = [];
+
+    function processBinding(context, control, bindings) {
+      __bind(control, bindings.commands);
+      if (bindings.default !== undefined) {
+        defaultHandlers.push({
+          context: context,
+          control: control,
+          handler: bindings.default
+        });
+      }
+    }
+
+    // TODO build active key mappings from registered bindings
+    var controls = self.__controls;
+    var bindings = self.__bindings;
+    var context = "";
+    var control = self.__mainControl;
+
+    processBinding(context, control, bindings);
+
+    for (var i = 0; i < controls.length; i++) {
+      context = controls[i][0];
+      control = controls[i][1];
+
+      if (bindings.contexts === undefined || bindings.contexts[context] === undefined) {
+        break;
+      }
+
+      bindings = bindings.contexts[context];
+      processBinding(context, control, bindings);
+    }
+
+    __injectDefaultHandler(defaultHandlers);
+  }
+
+  // Registers bindings declared in the definition.
+  // --------
+  //
+
+  this.registerBindings = function(definition) {
+    console.log("Keyboard.registerBindings: definition=", definition);
+    for (var i = 0; i < definition.length; i++) {
+      var def = definition[i];
+      __registerBindings(this, def);
+    }
+    this.stateChanged();
+  };
+
+  this.setDefaultHandler = function(contextStr, handler) {
+    var context = __getContext(this, contextStr);
+    context.default = handler;
+  };
+
+  // Updates the keyboard bindings after application state changes.
+  // --------
+  //
+
+  this.stateChanged = function() {
+    // controllers are structured in hierarchical contexts
+    // having one controller taking responsibility for each context.
+    this.__controls = this.__mainControl.getActiveControllers();
+    __createBindings(this);
+  };
+
+  // Enters a subcontext using a given controller.
+  // --------
+  //
+  // Use this to add finer grained sub-states. The sub-context will be kept
+  // until `exit(context)` is called or the application state is changed.
+
+  this.enter = function(context, control) {
+    this.__controls.push([context, control]);
+    __createBindings(this);
+  };
+
+  // Exits a previously entered subcontext.
+  // --------
+  //
+
+  this.exit = function(context) {
+    var pos = -1;
+    for (var i = this.__controls.length - 1; i >= 0; i--) {
+      if (this.__controls[i][0] === context) {
+        pos = i;
+        break;
+      }
+    }
+    if (pos < 0) {
+      throw new Error("Unknown context: " + context, ", expected one of: " + JSON.stringify(this.__contexts));
+    }
+    this.__controls = this.__controls.slice(0, pos);
+    __createBindings(this);
+  };
+
+  // Supported flags:
+  // TRIGGER_PREFIX_COMBOS: trigger combos that are already part of other sequences (default: false)
+  this.set = function(prop, value) {
+    Mousetrap[prop] = value;
+  };
+
+};
+Keyboard.prototype = new Keyboard.Prototype();
+
+module.exports = Keyboard;
+
+},{"../lib/mousetrap":25}],27:[function(require,module,exports){
+"use strict";
+
+/**
+ * mapping of special keycodes to their corresponding keys
+ *
+ * everything in this dictionary cannot use keypress events
+ * so it has to be here to map to the correct keycodes for
+ * keyup/keydown events
+ *
+ * @type {Object}
+ */
+var _MAP = {
+    8: 'backspace',
+    9: 'tab',
+    13: 'enter',
+    16: 'shift',
+    17: 'ctrl',
+    18: 'alt',
+    20: 'capslock',
+    27: 'esc',
+    32: 'space',
+    33: 'pageup',
+    34: 'pagedown',
+    35: 'end',
+    36: 'home',
+    37: 'left',
+    38: 'up',
+    39: 'right',
+    40: 'down',
+    45: 'ins',
+    46: 'del',
+    91: 'meta',
+    93: 'meta',
+    224: 'meta'
+};
+
+/**
+ * mapping for special characters so they can support
+ *
+ * this dictionary is only used incase you want to bind a
+ * keyup or keydown event to one of these keys
+ *
+ * @type {Object}
+ */
+var _KEYCODE_MAP = {
+    106: '*',
+    107: '+',
+    109: '-',
+    110: '.',
+    111 : '/',
+    186: ';',
+    187: '=',
+    188: ',',
+    189: '-',
+    190: '.',
+    191: '/',
+    192: '`',
+    219: '[',
+    220: '\\',
+    221: ']',
+    222: '\''
+};
+
+/**
+ * this is a mapping of keys that require shift on a US keypad
+ * back to the non shift equivelents
+ *
+ * this is so you can use keyup events with these keys
+ *
+ * note that this will only work reliably on US keyboards
+ *
+ * @type {Object}
+ */
+var _SHIFT_MAP = {
+    '~': '`',
+    '!': '1',
+    '@': '2',
+    '#': '3',
+    '$': '4',
+    '%': '5',
+    '^': '6',
+    '&': '7',
+    '*': '8',
+    '(': '9',
+    ')': '0',
+    '_': '-',
+    '+': '=',
+    ':': ';',
+    '\"': '\'',
+    '<': ',',
+    '>': '.',
+    '?': '/',
+    '|': '\\'
+};
+
+/**
+ * this is a list of special strings you can use to map
+ * to modifier keys when you specify your keyboard shortcuts
+ *
+ * @type {Object}
+ */
+var _SPECIAL_ALIASES = {
+    'option': 'alt',
+    'command': 'meta',
+    'return': 'enter',
+    'escape': 'esc',
+    'mod': /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'meta' : 'ctrl'
+};
+
+/**
+ * loop through the f keys, f1 to f19 and add them to the map
+ * programatically
+ */
+for (var i = 1; i < 20; ++i) {
+    _MAP[111 + i] = 'f' + i;
+}
+
+/**
+ * loop through to map numbers on the numeric keypad
+ */
+for (i = 0; i <= 9; ++i) {
+    _MAP[i + 96] = i;
+}
+
+/**
+ * cross browser add event method
+ *
+ * @param {Element|HTMLDocument} object
+ * @param {string} type
+ * @param {Function} callback
+ * @returns void
+ */
+function _attachListener(object, type, callback) {
+    if (object.addEventListener) {
+        object.addEventListener(type, callback, false);
+    } else {
+        object.attachEvent('on' + type, callback);
+    }
+}
+
+function _detachListener(object, type, callback) {
+    if (object.removeEventListener) {
+        object.removeEventListener(type, callback, false);
+    } else {
+        object.detachEvent('on' + type, callback);
+    }
+}
+
+/**
+ * takes the event and returns the key character
+ *
+ * @param {Event} e
+ * @return {string}
+ */
+function _characterFromEvent(e) {
+
+    // for keypress events we should return the character as is
+    if (e.type == 'keypress') {
+        var character = String.fromCharCode(e.which);
+
+        // if the shift key is not pressed then it is safe to assume
+        // that we want the character to be lowercase.  this means if
+        // you accidentally have caps lock on then your key bindings
+        // will continue to work
+        //
+        // the only side effect that might not be desired is if you
+        // bind something like 'A' cause you want to trigger an
+        // event when capital A is pressed caps lock will no longer
+        // trigger the event.  shift+a will though.
+        if (!e.shiftKey) {
+            character = character.toLowerCase();
+        }
+
+        return character;
+    }
+
+    // for non keypress events the special maps are needed
+    if (_MAP[e.which]) {
+        return _MAP[e.which];
+    }
+
+    if (_KEYCODE_MAP[e.which]) {
+        return _KEYCODE_MAP[e.which];
+    }
+
+    // if it is not in the special map
+
+    // with keydown and keyup events the character seems to always
+    // come in as an uppercase character whether you are pressing shift
+    // or not.  we should make sure it is always lowercase for comparisons
+    return String.fromCharCode(e.which).toLowerCase();
+}
+
+/**
+ * checks if two arrays are equal
+ *
+ * @param {Array} modifiers1
+ * @param {Array} modifiers2
+ * @returns {boolean}
+ */
+function _modifiersMatch(modifiers1, modifiers2) {
+    return modifiers1.sort().join(',') === modifiers2.sort().join(',');
+}
+
+/**
+ * takes a key event and figures out what the modifiers are
+ *
+ * @param {Event} e
+ * @returns {Array}
+ */
+function _eventModifiers(e) {
+    var modifiers = [];
+
+    if (e.shiftKey) {
+        modifiers.push('shift');
+    }
+
+    if (e.altKey) {
+        modifiers.push('alt');
+    }
+
+    if (e.ctrlKey) {
+        modifiers.push('ctrl');
+    }
+
+    if (e.metaKey) {
+        modifiers.push('meta');
+    }
+
+    return modifiers;
+}
+
+/**
+ * determines if the keycode specified is a modifier key or not
+ *
+ * @param {string} key
+ * @returns {boolean}
+ */
+function _isModifier(key) {
+    return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
+}
+
+/**
+ * Converts from a string key combination to an array
+ *
+ * @param  {string} combination like "command+shift+l"
+ * @return {Array}
+ */
+function _keysFromString(combination) {
+    if (combination === '+') {
+        return ['+'];
+    }
+
+    return combination.split('+');
+}
+
+var Mousetrap = function() {
+    /**
+     * variable to store the flipped version of _MAP from above
+     * needed to check if we should use keypress or not when no action
+     * is specified
+     *
+     * @type {Object|undefined}
+     */
+    this._REVERSE_MAP = {};
+
+    /**
+     * a list of all the callbacks setup via Mousetrap.bind()
+     *
+     * @type {Object}
+     */
+    this._callbacks = {};
+
+    /**
+     * direct map of string combinations to callbacks used for trigger()
+     *
+     * @type {Object}
+     */
+    this._directMap = {};
+
+    /**
+     * keeps track of what level each sequence is at since multiple
+     * sequences can start out with the same sequence
+     *
+     * @type {Object}
+     */
+    this._sequenceLevels = {};
+
+    /**
+     * variable to store the setTimeout call
+     *
+     * @type {null|number}
+     */
+    this._resetTimer = null;
+
+    /**
+     * temporary state where we will ignore the next keyup
+     *
+     * @type {boolean|string}
+     */
+    this._ignoreNextKeyup = false;
+
+    /**
+     * temporary state where we will ignore the next keypress
+     *
+     * @type {boolean}
+     */
+    this._ignoreNextKeypress = false;
+
+    /**
+     * are we currently inside of a sequence?
+     * type of action ("keyup" or "keydown" or "keypress") or false
+     *
+     * @type {boolean|string}
+     */
+    this._nextExpectedAction = false;
+
+    this._handler = this._handleKeyEvent.bind(this);
+};
+
+Mousetrap.Prototype = function() {
+
+    /**
+     * resets all sequence counters except for the ones passed in
+     *
+     * @param {Object} doNotReset
+     * @returns void
+     */
+    function _resetSequences(doNotReset) {
+        doNotReset = doNotReset || {};
+
+        var activeSequences = false,
+            key;
+
+        for (key in this._sequenceLevels) {
+            if (doNotReset[key]) {
+                activeSequences = true;
+                continue;
+            }
+            this._sequenceLevels[key] = 0;
+        }
+
+        if (!activeSequences) {
+            this._nextExpectedAction = false;
+        }
+    }
+
+    /**
+     * finds all callbacks that match based on the keycode, modifiers,
+     * and action
+     *
+     * @param {string} character
+     * @param {Array} modifiers
+     * @param {Event|Object} e
+     * @param {string=} sequenceName - name of the sequence we are looking for
+     * @param {string=} combination
+     * @param {number=} level
+     * @returns {Array}
+     */
+    function _getMatches(character, modifiers, e, sequenceName, combination, level) {
+        var i,
+            callback,
+            matches = [],
+            action = e.type;
+
+        // if there are no events related to this keycode
+        if (!this._callbacks[character]) {
+            return [];
+        }
+
+        // if a modifier key is coming up on its own we should allow it
+        if (action == 'keyup' && _isModifier(character)) {
+            modifiers = [character];
+        }
+
+        // loop through all callbacks for the key that was pressed
+        // and see if any of them match
+        for (i = 0; i < this._callbacks[character].length; ++i) {
+            callback = this._callbacks[character][i];
+
+            // if a sequence name is not specified, but this is a sequence at
+            // the wrong level then move onto the next match
+            if (!sequenceName && callback.seq && this._sequenceLevels[callback.seq] != callback.level) {
+                continue;
+            }
+
+            // if the action we are looking for doesn't match the action we got
+            // then we should keep going
+            if (action != callback.action) {
+                continue;
+            }
+
+            // if this is a keypress event and the meta key and control key
+            // are not pressed that means that we need to only look at the
+            // character, otherwise check the modifiers as well
+            //
+            // chrome will not fire a keypress if meta or control is down
+            // safari will fire a keypress if meta or meta+shift is down
+            // firefox will fire a keypress if meta or control is down
+            if ((action == 'keypress' && !e.metaKey && !e.ctrlKey) || _modifiersMatch(modifiers, callback.modifiers)) {
+
+                // when you bind a combination or sequence a second time it
+                // should overwrite the first one.  if a sequenceName or
+                // combination is specified in this call it does just that
+                //
+                // @todo make deleting its own method?
+                var deleteCombo = !sequenceName && callback.combo == combination;
+                var deleteSequence = sequenceName && callback.seq == sequenceName && callback.level == level;
+                if (deleteCombo || deleteSequence) {
+                    this._callbacks[character].splice(i, 1);
+                }
+
+                matches.push(callback);
+            }
+        }
+
+        return matches;
+    }
+
+    /**
+     * actually calls the callback function
+     *
+     * if your callback function returns false this will use the jquery
+     * convention - prevent default and stop propogation on the event
+     *
+     * @param {Function} callback
+     * @param {Event} e
+     * @returns void
+     */
+    function _fireCallback(callback, e, combo) {
+
+        // if this event should not happen stop here
+        if (this.NOT_IN_EDITABLES && this.stopCallback(e, e.target || e.srcElement, combo)) {
+             return;
+        }
+
+        if (callback.call(this, e, combo) === false) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            e.returnValue = false;
+            e.cancelBubble = true;
+        }
+    }
+
+    /**
+     * handles a character key event
+     *
+     * @param {string} character
+     * @param {Array} modifiers
+     * @param {Event} e
+     * @returns void
+     */
+    this.handleKey = function (character, modifiers, e) {
+        var callbacks = _getMatches.call(this, character, modifiers, e),
+            i,
+            doNotReset = {},
+            maxLevel = 0,
+            processedSequenceCallback = false;
+
+        // Calculate the maxLevel for sequences so we can only execute the longest callback sequence
+        for (i = 0; i < callbacks.length; ++i) {
+            if (callbacks[i].seq) {
+                maxLevel = Math.max(maxLevel, callbacks[i].level);
+            }
+        }
+
+        // loop through matching callbacks for this key event
+        for (i = 0; i < callbacks.length; ++i) {
+
+            // fire for all sequence callbacks
+            // this is because if for example you have multiple sequences
+            // bound such as "g i" and "g t" they both need to fire the
+            // callback for matching g cause otherwise you can only ever
+            // match the first one
+            if (callbacks[i].seq) {
+
+                // only fire callbacks for the maxLevel to prevent
+                // subsequences from also firing
+                //
+                // for example 'a option b' should not cause 'option b' to fire
+                // even though 'option b' is part of the other sequence
+                //
+                // any sequences that do not match here will be discarded
+                // below by the _resetSequences call
+                if (callbacks[i].level != maxLevel) {
+                    continue;
+                }
+
+                processedSequenceCallback = true;
+
+                // keep a list of which sequences were matches for later
+                doNotReset[callbacks[i].seq] = 1;
+                _fireCallback.call(this, callbacks[i].callback, e, callbacks[i].combo);
+                continue;
+
+            } else if (Mousetrap.TRIGGER_PREFIX_COMBOS) {
+                // HACK: Mousetrap does not trigger 'prefixes'
+                _fireCallback.call(this, callbacks[i].callback, e, callbacks[i].combo);
+            } else {
+                // if there were no sequence matches but we are still here
+                // that means this is a regular match so we should fire that
+                if (!processedSequenceCallback) {
+                    _fireCallback.call(this, callbacks[i].callback, e, callbacks[i].combo);
+                }
+            }
+        }
+
+        // if the key you pressed matches the type of sequence without
+        // being a modifier (ie "keyup" or "keypress") then we should
+        // reset all sequences that were not matched by this event
+        //
+        // this is so, for example, if you have the sequence "h a t" and you
+        // type "h e a r t" it does not match.  in this case the "e" will
+        // cause the sequence to reset
+        //
+        // modifier keys are ignored because you can have a sequence
+        // that contains modifiers such as "enter ctrl+space" and in most
+        // cases the modifier key will be pressed before the next key
+        //
+        // also if you have a sequence such as "ctrl+b a" then pressing the
+        // "b" key will trigger a "keypress" and a "keydown"
+        //
+        // the "keydown" is expected when there is a modifier, but the
+        // "keypress" ends up matching the _nextExpectedAction since it occurs
+        // after and that causes the sequence to reset
+        //
+        // we ignore keypresses in a sequence that directly follow a keydown
+        // for the same character
+        var ignoreThisKeypress = e.type == 'keypress' && this._ignoreNextKeypress;
+        if (e.type == this._nextExpectedAction && !_isModifier(character) && !ignoreThisKeypress) {
+            _resetSequences.call(this, doNotReset);
+        }
+
+        this._ignoreNextKeypress = processedSequenceCallback && e.type == 'keydown';
+
+        // provide information about if there have callbacks detected
+        // E.g., this is used to trigger a default key handler in case of no others did match
+        return callbacks.length > 0;
+    };
+
+    /**
+     * handles a keydown event
+     *
+     * @param {Event} e
+     * @returns void
+     */
+    this._handleKeyEvent = function(e) {
+
+        // normalize e.which for key events
+        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
+        if (typeof e.which !== 'number') {
+            e.which = e.keyCode;
+        }
+
+        var character = _characterFromEvent(e);
+
+        // no character found then stop
+        if (!character) {
+            return;
+        }
+
+        // need to use === for the character check because the character can be 0
+        if (e.type == 'keyup' && this._ignoreNextKeyup === character) {
+            this._ignoreNextKeyup = false;
+            return;
+        }
+
+        this.handleKey(character, _eventModifiers(e), e);
+    };
+
+    /**
+     * Gets info for a specific key combination
+     *
+     * @param  {string} combination key combination ("command+s" or "a" or "*")
+     * @param  {string=} action
+     * @returns {Object}
+     */
+    function _getKeyInfo(combination, action) {
+        var keys,
+            key,
+            i,
+            modifiers = [];
+
+        // take the keys from this pattern and figure out what the actual
+        // pattern is all about
+        keys = _keysFromString(combination);
+
+        for (i = 0; i < keys.length; ++i) {
+            key = keys[i];
+
+            // normalize key names
+            if (_SPECIAL_ALIASES[key]) {
+                key = _SPECIAL_ALIASES[key];
+            }
+
+            // if this is not a keypress event then we should
+            // be smart about using shift keys
+            // this will only work for US keyboards however
+            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
+                key = _SHIFT_MAP[key];
+                modifiers.push('shift');
+            }
+
+            // if this key is a modifier then add it to the list of modifiers
+            if (_isModifier(key)) {
+                modifiers.push(key);
+            }
+        }
+
+        // depending on what the key combination is
+        // we will try to pick the best event for it
+        action = _pickBestAction.call(this, key, modifiers, action);
+
+        return {
+            key: key,
+            modifiers: modifiers,
+            action: action
+        };
+    }
+
+    /**
+     * binds a single keyboard combination
+     *
+     * @param {string} combination
+     * @param {Function} callback
+     * @param {string=} action
+     * @param {string=} sequenceName - name of sequence if part of sequence
+     * @param {number=} level - what part of the sequence the command is
+     * @returns void
+     */
+    function _bindSingle(combination, callback, action, sequenceName, level) {
+
+        // store a direct mapped reference for use with Mousetrap.trigger
+        this._directMap[combination + ':' + action] = callback;
+
+        // make sure multiple spaces in a row become a single space
+        combination = combination.replace(/\s+/g, ' ');
+
+        var sequence = combination.split(' '),
+            info;
+
+        // if this pattern is a sequence of keys then run through this method
+        // to reprocess each pattern one key at a time
+        if (sequence.length > 1) {
+            _bindSequence.call(this, combination, sequence, callback, action);
+            return;
+        }
+
+        info = _getKeyInfo.call(this, combination, action);
+
+        // make sure to initialize array if this is the first time
+        // a callback is added for this key
+        this._callbacks[info.key] = this._callbacks[info.key] || [];
+
+        // remove an existing match if there is one
+        _getMatches.call(this, info.key, info.modifiers, {type: info.action}, sequenceName, combination, level);
+
+        // add this call back to the array
+        // if it is a sequence put it at the beginning
+        // if not put it at the end
+        //
+        // this is important because the way these are processed expects
+        // the sequence ones to come first
+        this._callbacks[info.key][sequenceName ? 'unshift' : 'push']({
+            callback: callback,
+            modifiers: info.modifiers,
+            action: info.action,
+            seq: sequenceName,
+            level: level,
+            combo: combination
+        });
+    }
+
+    /**
+     * binds multiple combinations to the same callback
+     *
+     * @param {Array} combinations
+     * @param {Function} callback
+     * @param {string|undefined} action
+     * @returns void
+     */
+    function _bindMultiple(combinations, callback, action) {
+        for (var i = 0; i < combinations.length; ++i) {
+            _bindSingle.call(this, combinations[i], callback, action);
+        }
+    }
+
+
+    /**
+     * called to set a 1 second timeout on the specified sequence
+     *
+     * this is so after each key press in the sequence you have 1 second
+     * to press the next key before you have to start over
+     *
+     * @returns void
+     */
+    function _resetSequenceTimer() {
+        clearTimeout(this._resetTimer);
+        this._resetTimer = setTimeout(_resetSequences.bind(this), 1000);
+    }
+
+    /**
+     * reverses the map lookup so that we can look for specific keys
+     * to see what can and can't use keypress
+     *
+     * @return {Object}
+     */
+    function _getReverseMap() {
+        if (!this._REVERSE_MAP) {
+            this._REVERSE_MAP = {};
+            for (var key in _MAP) {
+
+                // pull out the numeric keypad from here cause keypress should
+                // be able to detect the keys from the character
+                if (key > 95 && key < 112) {
+                    continue;
+                }
+
+                if (_MAP.hasOwnProperty(key)) {
+                    this._REVERSE_MAP[_MAP[key]] = key;
+                }
+            }
+        }
+        return this._REVERSE_MAP;
+    }
+
+    /**
+     * picks the best action based on the key combination
+     *
+     * @param {string} key - character for key
+     * @param {Array} modifiers
+     * @param {string=} action passed in
+     */
+    function _pickBestAction(key, modifiers, action) {
+
+        // if no action was picked in we should try to pick the one
+        // that we think would work best for this key
+        if (!action) {
+            action = _getReverseMap.call(this)[key] ? 'keydown' : 'keypress';
+        }
+
+        // modifier keys don't work as expected with keypress,
+        // switch to keydown
+        if (action == 'keypress' && modifiers.length) {
+            action = 'keydown';
+        }
+
+        return action;
+    }
+
+    /**
+     * binds a key sequence to an event
+     *
+     * @param {string} combo - combo specified in bind call
+     * @param {Array} keys
+     * @param {Function} callback
+     * @param {string=} action
+     * @returns void
+     */
+    function _bindSequence(combo, keys, callback, action) {
+
+        var that = this;
+
+        // start off by adding a sequence level record for this combination
+        // and setting the level to 0
+        this._sequenceLevels[combo] = 0;
+
+        /**
+         * callback to increase the sequence level for this sequence and reset
+         * all other sequences that were active
+         *
+         * @param {string} nextAction
+         * @returns {Function}
+         */
+        function _increaseSequence(nextAction) {
+            return function() {
+                that._nextExpectedAction = nextAction;
+                ++that._sequenceLevels[combo];
+                _resetSequenceTimer.call(that);
+            };
+        }
+
+        /**
+         * wraps the specified callback inside of another function in order
+         * to reset all sequence counters as soon as this sequence is done
+         *
+         * @param {Event} e
+         * @returns void
+         */
+        function _callbackAndReset(e) {
+            _fireCallback.call(this, callback, e, combo);
+
+            // we should ignore the next key up if the action is key down
+            // or keypress.  this is so if you finish a sequence and
+            // release the key the final key will not trigger a keyup
+            if (action !== 'keyup') {
+                this._ignoreNextKeyup = _characterFromEvent(e);
+            }
+
+            // weird race condition if a sequence ends with the key
+            // another sequence begins with
+            setTimeout(_resetSequences.bind(this), 10);
+        }
+
+        // loop through keys one at a time and bind the appropriate callback
+        // function.  for any key leading up to the final one it should
+        // increase the sequence. after the final, it should reset all sequences
+        //
+        // if an action is specified in the original bind call then that will
+        // be used throughout.  otherwise we will pass the action that the
+        // next key in the sequence should match.  this allows a sequence
+        // to mix and match keypress and keydown events depending on which
+        // ones are better suited to the key provided
+        for (var i = 0; i < keys.length; ++i) {
+            var isFinal = i + 1 === keys.length;
+            var wrappedCallback = isFinal ? _callbackAndReset : _increaseSequence.call(this, action || _getKeyInfo(keys[i + 1]).action);
+            _bindSingle.call(this, keys[i], wrappedCallback, action, combo, i);
+        }
+    }
+
+    /**
+     * binds an event to mousetrap
+     *
+     * can be a single key, a combination of keys separated with +,
+     * an array of keys, or a sequence of keys separated by spaces
+     *
+     * be sure to list the modifier keys first to make sure that the
+     * correct key ends up getting bound (the last key in the pattern)
+     *
+     * @param {string|Array} keys
+     * @param {Function} callback
+     * @param {string=} action - 'keypress', 'keydown', or 'keyup'
+     * @returns void
+     */
+    this.bind = function(keys, callback, action) {
+        keys = keys instanceof Array ? keys : [keys];
+        _bindMultiple.call(this, keys, callback, action);
+        return this;
+    };
+
+    /**
+     * unbinds an event to mousetrap
+     *
+     * the unbinding sets the callback function of the specified key combo
+     * to an empty function and deletes the corresponding key in the
+     * _directMap dict.
+     *
+     * TODO: actually remove this from the _callbacks dictionary instead
+     * of binding an empty function
+     *
+     * the keycombo+action has to be exactly the same as
+     * it was defined in the bind method
+     *
+     * @param {string|Array} keys
+     * @param {string} action
+     * @returns void
+     */
+    this.unbind = function(keys, action) {
+        return this.bind(keys, function() {}, action);
+    };
+
+    /**
+     * triggers an event that has already been bound
+     *
+     * @param {string} keys
+     * @param {string=} action
+     * @returns void
+     */
+    this.trigger = function(keys, action) {
+        if (this._directMap[keys + ':' + action]) {
+            this._directMap[keys + ':' + action].call(this, {}, keys);
+        }
+        return this;
+    };
+
+    /**
+     * resets the library back to its initial state.  this is useful
+     * if you want to clear out the current keyboard shortcuts and bind
+     * new ones - for example if you switch to another page
+     *
+     * @returns void
+     */
+    this.reset = function() {
+        this._callbacks = {};
+        this._directMap = {};
+        return this;
+    };
+
+   /**
+    * should we stop this event before firing off callbacks
+    *
+    * @param {Event} e
+    * @param {Element} element
+    * @return {boolean}
+    */
+    this.stopCallback = function(e, element) {
+
+        // if the element has the class "mousetrap" then no need to stop
+        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
+            return false;
+        }
+
+        // stop for input, select, and textarea
+        return element.tagName == 'INPUT' || element.tagName == 'SELECT' || element.tagName == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
+    };
+
+    this.connect = function(el) {
+        this._el = el;
+
+        _attachListener(this._el, 'keypress', this._handler);
+        _attachListener(this._el, 'keydown', this._handler);
+        _attachListener(this._el, 'keyup', this._handler);
+    };
+
+    this.disconnect = function() {
+
+        _detachListener(this._el, 'keypress', this._handler);
+        _detachListener(this._el, 'keydown', this._handler);
+        _detachListener(this._el, 'keyup', this._handler);
+    };
+
+    /**
+     * Trigger callbacks for combos even when they are part of sequnence.
+     */
+     this.TRIGGER_PREFIX_COMBOS = false;
+     this.NOT_IN_EDITABLES = false;
+};
+
+Mousetrap.prototype = new Mousetrap.Prototype();
+
+module.exports = Mousetrap;
+
+},{}],28:[function(require,module,exports){
+"use strict";
+
+var Data = {};
+
+// Current version of the library. Keep in sync with `package.json`.
+Data.VERSION = '0.8.0';
+
+Data.Graph = require('./src/graph');
+
+
+var _ = require("underscore");
+// A helper that is used by Graph node implementations
+Data.defineNodeProperties = function(prototype, properties, readonly) {
+  _.each(properties, function(name) {
+    var spec = {
+      get: function() {
+        return this.properties[name];
+      }
+    };
+    if (!readonly) {
+      spec["set"] = function(val) {
+        this.properties[name] = val;
+        return this;
+      };
+    }
+    Object.defineProperty(prototype, name, spec);
+  });
+};
+
+module.exports = Data;
+
+},{"./src/graph":30,"underscore":147}],29:[function(require,module,exports){
+"use strict";
+
+var Chronicle = require('substance-chronicle');
+var Operator = require('substance-operator');
+
+var ChronicleAdapter = function(graph) {
+  this.graph = graph;
+  this.graph.state = "ROOT";
+};
+
+ChronicleAdapter.Prototype = function() {
+
+  this.apply = function(op) {
+    // Note: we call the Graph.apply intentionally, as the chronicled change
+    // should be an ObjectOperation
+    //console.log("ChronicleAdapter.apply, op=", op);
+    this.graph.__apply__(op);
+    this.graph.updated_at = new Date(op.timestamp);
+  };
+
+  this.invert = function(change) {
+    return Operator.ObjectOperation.fromJSON(change).invert();
+  };
+
+  this.transform = function(a, b, options) {
+    return Operator.ObjectOperation.transform(a, b, options);
+  };
+
+  this.reset = function() {
+    this.graph.reset();
+  };
+
+  this.getState = function() {
+    return this.graph.state;
+  };
+
+  this.setState = function(state) {
+    this.graph.state = state;
+  };
+};
+
+ChronicleAdapter.Prototype.prototype = Chronicle.Versioned.prototype;
+ChronicleAdapter.prototype = new ChronicleAdapter.Prototype();
+
+module.exports = ChronicleAdapter;
+
+},{"substance-chronicle":15,"substance-operator":126}],30:[function(require,module,exports){
+"use strict";
+
+var _ = require('underscore');
+var util = require('substance-util');
+var errors = util.errors;
+
+var Schema = require('./schema');
+var Property = require('./property');
+
+var Chronicle = require('substance-chronicle');
+var Operator = require('substance-operator');
+
+var PersistenceAdapter = require('./persistence_adapter');
+var ChronicleAdapter = require('./chronicle_adapter');
+var Index = require('./graph_index');
+
+var GraphError = errors.define("GraphError");
+
+// Data types registry
+// -------------------
+// Available data types for graph properties.
+
+var VALUE_TYPES = [
+  'object',
+  'array',
+  'string',
+  'number',
+  'boolean',
+  'date'
+];
+
+
+// Check if composite type is in types registry.
+// The actual type of a composite type is the first entry
+// I.e., ["array", "string"] is an array in first place.
+var isValueType = function (type) {
+  if (_.isArray(type)) {
+    type = type[0];
+  }
+  return VALUE_TYPES.indexOf(type) >= 0;
+};
+
+// Graph
+// =====
+
+// A `Graph` can be used for representing arbitrary complex object
+// graphs. Relations between objects are expressed through links that
+// point to referred objects. Graphs can be traversed in various ways.
+// See the testsuite for usage.
+//
+// Need to be documented:
+// @options (mode,seed,chronicle,store,load,graph)
+var Graph = function(schema, options) {
+  options = options || {};
+
+  // Initialization
+  this.schema = new Schema(schema);
+
+  // Check if provided seed conforms to the given schema
+  // Only when schema has an id and seed is provided
+
+  if (this.schema.id && options.seed && options.seed.schema) {
+    if (!_.isEqual(options.seed.schema, [this.schema.id, this.schema.version])) {
+      throw new GraphError([
+        "Graph does not conform to schema. Expected: ",
+        this.schema.id+"@"+this.schema.version,
+        " Actual: ",
+        options.seed.schema[0]+"@"+options.seed.schema[1]
+      ].join(''));
+    }
+  }
+
+  this.objectAdapter = new Graph.ObjectAdapter(this);
+
+  this.nodes = {};
+  this.indexes = {};
+
+  this.__mode__ = options.mode || Graph.DEFAULT_MODE;
+  this.__seed__ = options.seed;
+
+  // Note: don't init automatically after making persistent
+  // as this would delete the persistet graph.
+  // Instead, the application has to call `graph.load()` if the store is supposed to
+  // contain a persisted graph
+  this.isVersioned = !!options.chronicle;
+  this.isPersistent = !!options.store;
+
+  // Make chronicle graph
+  if (this.isVersioned) {
+    this.chronicle = options.chronicle;
+    this.chronicle.manage(new Graph.ChronicleAdapter(this));
+  }
+
+  // Make persistent graph
+  if (this.isPersistent) {
+    var nodes = options.store.hash("nodes");
+    this.__store__ = options.store;
+    this.__nodes__ = nodes;
+
+    if (this.isVersioned) {
+      this.__version__ = options.store.hash("__version__");
+    }
+
+    this.objectAdapter = new PersistenceAdapter(this.objectAdapter, nodes);
+  }
+
+  if (options.load) {
+    this.load();
+  } else {
+    this.init();
+  }
+
+  // Populate graph
+  if (options.graph) this.merge(options.graph);
+};
+
+Graph.Prototype = function() {
+
+  _.extend(this, util.Events);
+
+  var _private = new Graph.Private();
+
+  // Graph manipulation API
+  // ======================
+
+  // Add a new node
+  // --------------
+  // Adds a new node to the graph
+  // Only properties that are specified in the schema are taken:
+  //     var node = {
+  //       id: "apple",
+  //       type: "fruit",
+  //       name: "My Apple",
+  //       color: "red",
+  //       val: { size: "big" }
+  //     };
+  // Create new node:
+  //     Data.Graph.create(node);
+  // Note: graph create operation should reject creation of duplicate nodes.
+  //
+  // Arguments:
+  //   - node: the new node
+  //
+  this.create = function(node) {
+    var op = Operator.ObjectOperation.Create([node.id], node);
+    return this.apply(op);
+  };
+
+  // Remove a node
+  // -------------
+  // Removes a node with given id and key (optional):
+  //     Data.Graph.delete(this.graph.get('apple'));
+  //
+  // Arguments:
+  //   - id: the node id
+  //
+  this.delete = function(id) {
+    var node = this.get(id);
+    if (node === undefined) {
+      throw new GraphError("Could not resolve a node with id "+ id);
+    }
+
+    // in case that the returned node is a rich object
+    // there should be a serialization method
+    if (node.toJSON) {
+      node = node.toJSON();
+    }
+
+    var op = Operator.ObjectOperation.Delete([id], node);
+    return this.apply(op);
+  };
+
+  // Update the property
+  // -------------------
+  //
+  // Updates the property with a given operation.
+  // Note: the diff has to be given as an appropriate operation.
+  // E.g., for string properties diff would be Operator.TextOperation,
+  // for arrays it would be Operator.ArrayOperation, etc.
+  // For example Substance.Operator:
+  //   Data.Graph.create({
+  //     id: "fruit_2",
+  //     type: "fruit",
+  //     name: "Blueberry",
+  //     val: { form: { kind: "bar", color: "blue" }, size: "small" },
+  //   })
+  //   var valueUpdate = Operator.TextOperation.fromOT("bar", [1, -1, "e", 1, "ry"]);
+  //   var propertyUpdate = Operator.ObjectOperation.Update(["form", "kind"], valueUpdate);
+  //   var nodeUpdate = Data.Graph.update(["fruit_2", "val"], propertyUpdate);
+  // Let's get it now:
+  //   var blueberry = this.graph.get("fruit_2");
+  //   console.log(blueberry.val.form.kind);
+  //   = > 'berry'
+  //
+  // Arguments:
+  //   - path: an array used to resolve the property to be updated
+  //   - diff: an (incremental) operation that should be applied to the property
+
+  this.update = function(path, diff) {
+    var prop = this.resolve(path);
+    if (!prop) {
+      throw new GraphError("Could not resolve property with path "+JSON.stringify(path));
+    }
+
+    if (_.isArray(diff)) {
+      if (prop.baseType === "string") {
+        diff = Operator.TextOperation.fromSequence(prop.get(), diff);
+      } else if (prop.baseType === "array") {
+        diff = Operator.ArrayOperation.create(prop.get(), diff);
+      } else {
+        throw new GraphError("There is no convenient notation supported for this type: " + prop.baseType);
+      }
+    }
+
+    if (!diff) {
+      // if the diff turns out to be empty there will be no operation.
+      return;
+    }
+
+    var op = Operator.ObjectOperation.Update(path, diff, prop.baseType);
+    return this.apply(op);
+  };
+
+  // Set the property
+  // ----------------
+  //
+  // Sets the property to a given value:
+  // Data.Graph.set(["fruit_2", "val", "size"], "too small");
+  // Let's see what happened with node:
+  //     var blueberry = this.graph.get("fruit_2");
+  //     console.log(blueberry.val.size);
+  //     = > 'too small'
+  //
+  // Arguments:
+  //   - path: an array used to resolve the property to be updated
+  //   - diff: an (incremental) operation that should be applied to the property
+  //
+  this.set = function(path, newValue) {
+    var prop = this.resolve(path);
+    if (!prop) {
+      throw new GraphError("Could not resolve property with path "+JSON.stringify(path));
+    }
+    var oldValue = prop.get();
+    var op = Operator.ObjectOperation.Set(path, oldValue, newValue);
+    return this.apply(op);
+  };
+
+  // Pure graph manipulation
+  // -----------------------
+  //
+  // Only applies the graph operation without triggering e.g., the chronicle.
+
+  this.__apply__ = function(_op) {
+    //console.log("Graph.__apply__", op);
+
+    // Note: we apply compounds eagerly... i.e., all listeners will be updated after
+    // each atomic change.
+
+    Operator.Helpers.each(_op, function(op) {
+      if (!(op instanceof Operator.ObjectOperation)) {
+        op = Operator.ObjectOperation.fromJSON(op);
+      }
+      op.apply(this.objectAdapter);
+
+      this.updated_at = new Date();
+      this._internalUpdates(op);
+
+      _.each(this.indexes, function(index) {
+        // Treating indexes as first class listeners for graph changes
+        index.onGraphChange(op);
+      }, this);
+
+      // And all regular listeners in second line
+      this.trigger('operation:applied', op, this);
+    }, this);
+
+  };
+
+  this._internalUpdates = function(op) {
+    // Treating indexes as first class listeners for graph changes
+    Operator.Helpers.each(op, function(_op) {
+      _.each(this.indexes, function(index) {
+        index.onGraphChange(_op);
+      }, this);
+    }, this);
+  };
+
+  // Apply a command
+  // ---------------
+  //
+  // Applies a graph command
+  // All commands call this function internally to apply an operation to the graph
+  //
+  // Arguments:
+  //   - op: the operation to be applied,
+
+  this.apply = function(op) {
+    this.__apply__(op);
+
+    // do not record changes during initialization
+    if (!this.__is_initializing__ && this.isVersioned) {
+      op.timestamp = new Date();
+      this.chronicle.record(util.clone(op));
+    }
+
+    return op;
+  };
+
+  // Get the node [property]
+  // -----------------------
+  //
+  // Gets specified graph node using id:
+  //  var apple = this.graph.get("apple");
+  //  console.log(apple);
+  //  =>
+  //  {
+  //    id: "apple",
+  //    type: "fruit",
+  //    name: "My Apple",
+  //    color: "red",
+  //    val: { size: "big" }
+  //  }
+  // or get node's property:
+  //  var apple = this.graph.get(["apple","color"]);
+  //  console.log(apple);
+  //  => 'red'
+
+  this.get = function(path) {
+    if (path === undefined || path === null) {
+      throw new GraphError("Invalid argument: provided undefined or null.");
+    }
+    if (!_.isArray(path) && !_.isString(path)) {
+      throw new GraphError("Invalid argument path. Must be String or Array");
+    }
+    if (_.isString(path)) return this.nodes[path];
+
+    var prop = this.resolve(path);
+    return prop.get();
+  };
+
+  // Query graph data
+  // ----------------
+  //
+  // Perform smart querying on graph
+  //     graph.create({
+  //       id: "apple-tree",
+  //       type: "tree",
+  //       name: "Apple tree"
+  //     });
+  //     var apple = this.graph.get("apple");
+  //     apple.set({["apple","tree"], "apple-tree"});
+  // let's perform query:
+  //     var result = graph.query(["apple", "tree"]);
+  //     console.log(result);
+  //     => [{id: "apple-tree", type: "tree", name: "Apple tree"}]
+
+  this.query = function(path) {
+    var prop = this.resolve(path);
+
+    var type = prop.type;
+    var baseType = prop.baseType;
+    var val = prop.get();
+
+    // resolve referenced nodes in array types
+    if (baseType === "array") {
+      return _private.queryArray.call(this, val, type);
+    } else if (!isValueType(baseType)) {
+      return this.get(val);
+    } else {
+      return val;
+    }
+  };
+
+  // Serialize current state
+  // -----------------------
+  //
+  // Convert current graph state to JSON object
+
+  this.toJSON = function() {
+    return {
+      id: this.id,
+      schema: [this.schema.id, this.schema.version],
+      nodes: util.deepclone(this.nodes)
+    };
+  };
+
+  // Check node existing
+  // -------------------
+  //
+  // Checks if a node with given id exists
+  //     this.graph.contains("apple");
+  //     => true
+  //     this.graph.contains("orange");
+  //     => false
+
+  this.contains = function(id) {
+    return (!!this.nodes[id]);
+  };
+
+  // Resolve a property
+  // ------------------
+  // Resolves a property with a given path
+
+  this.resolve = function(path) {
+    return new Property(this, path);
+  };
+
+  // Reset to initial state
+  // ----------------------
+  // Resets the graph to its initial state.
+  // Note: This clears all nodes and calls `init()` which may seed the graph.
+
+  this.reset = function() {
+    if (this.isPersistent) {
+      if (this.__nodes__) this.__nodes__.clear();
+    }
+
+    this.init();
+
+    if (this.isVersioned) {
+      this.state = Chronicle.ROOT;
+    }
+
+    this.trigger("graph:reset");
+  };
+
+  // Graph initialization.
+  this.init = function() {
+    this.__is_initializing__ = true;
+
+    if (this.__seed__) {
+      this.nodes = util.clone(this.__seed__.nodes);
+    } else {
+      this.nodes = {};
+    }
+
+    _.each(this.indexes, function(index) {
+      index.reset();
+    });
+
+    if (this.isPersistent) {
+      _.each(this.nodes, function(node, id) {
+        this.__nodes__.set(id, node);
+      }, this);
+    }
+
+    delete this.__is_initializing__;
+  };
+
+  // Merge graphs
+  // ------------
+  //
+  // Merges this graph with another graph:
+  //     var folks = new Data.Graph(folks_schema);
+  //     var persons = new Data.Graph(persons_schema);
+  //     folks.create({
+  //       name: 'Bart',
+  //       surname: 'Simpson',
+  //       type: 'cartoon-actor',
+  //       century: 'XXI',
+  //       citizen: 'U.S.'
+  //     });
+  //     persons.create({
+  //       name: 'Alexander',
+  //       surname: 'Pushkin',
+  //       type: 'poet',
+  //       century: '19',
+  //       citizen: 'Russia'
+  //     });
+  //     persons.create({
+  //       name: 'Pelem Grenwill',
+  //       surname: 'Woodhouse',
+  //       type: 'poet',
+  //       century: '19',
+  //       citizen: 'Russia'
+  //     });
+  //     var merged = persons.merge(folks);
+  //     merged.toJSON();
+  //     => {
+  //       nodes: [
+  //         {
+  //           name: 'Alexander',
+  //           surname: 'Pushkin',
+  //           type: 'poet',
+  //           century: '19',
+  //           citizen: 'Russia'
+  //         },
+  //         {
+  //           name: 'Pelem Grenwill',
+  //           surname: 'Woodhouse',
+  //           type: 'poet',
+  //           century: '19',
+  //           citizen: 'Russia'
+  //         },
+  //         {
+  //           name: 'Bart',
+  //           surname: 'Simpson',
+  //           type: 'cartoon-actor',
+  //           century: 'XXI',
+  //           citizen: 'U.S.'
+  //         }
+  //       ]
+  //     }
+
+  this.merge = function(graph) {
+    _.each(graph.nodes, function(n) {
+      this.create(n);
+    }, this);
+
+    return this;
+  };
+
+  // View Traversal
+  // --------------
+
+  this.traverse = function(view) {
+    return _.map(this.getView(view), function(node) {
+      return this.get(node);
+    }, this);
+  };
+
+  // Graph loading.
+  // ----------
+  //
+  // Note: currently this must be called explicitely by the app
+
+  this.load = function() {
+
+    if (!this.isPersistent) {
+      console.log("Graph is not persistent.");
+      return;
+    }
+
+    this.__is_initializing__ = true;
+
+    this.nodes = {};
+    this.indexes = {};
+
+    // import persistet nodes
+    var keys = this.__nodes__.keys();
+    for (var idx = 0; idx < keys.length; idx++) {
+      _private.create.call(this, this.__nodes__.get(keys[idx]));
+    }
+
+    if (this.isVersioned) {
+      this.state = this.__version__.get("state") || "ROOT";
+    }
+
+    delete this.__is_initializing__;
+
+    return this;
+  };
+
+  // A helper to apply co-transformations
+  // --------
+  //
+  // The provided adapter must conform to the interface:
+  //
+  //    {
+  //      create: function(node) {},
+  //      delete: function(node) {},
+  //      update: function(node, property, newValue, oldValue) {},
+  //    }
+  //
+
+  this.cotransform = function(adapter, op) {
+    if (op.type === "create") {
+      adapter.create(op.val);
+    }
+    else if (op.type === "delete") {
+      adapter.delete(op.val);
+    }
+    // type = 'update' or 'set'
+    else {
+
+      var prop = this.resolve(op.path);
+      if (prop === undefined) {
+        throw new Error("Key error: could not find element for path " + JSON.stringify(op.path));
+      }
+      var value = prop.get();
+
+      var oldValue;
+
+      // Attention: this happens when updates and deletions are within one compound
+      // The operation gets applied, finally the node is deleted.
+      // Listeners are triggered afterwards, so they can not rely on the node being there
+      // anymore.
+      // However, this is not a problem. We can ignore this update as there will come
+      // a deletion anyways.
+      if (value === undefined) {
+        return;
+      }
+
+      if (op.type === "set") {
+        oldValue = op.original;
+      } else {
+        var invertedDiff = Operator.Helpers.invert(op.diff, prop.baseType);
+        oldValue = invertedDiff.apply(_.clone(value));
+      }
+
+      adapter.update(prop.node, prop.key, value, oldValue);
+    }
+  };
+
+  this.addIndex = function(name, options) {
+    if (this.indexes[name]) {
+      return this.indexes[name];
+      // throw new GraphError("Index with name " + name + "already exists.");
+    }
+    var index = new Index(this, options);
+    this.indexes[name] = index;
+
+    return index;
+  };
+
+  this.getIndex = function(name) {
+    if (!this.indexes[name]) {
+      throw new GraphError("No index available with name:"+name);
+    }
+    return this.indexes[name];
+  };
+
+  this.removeIndex = function(name) {
+    delete this.indexes[name];
+  };
+
+  this.enableVersioning = function(chronicle) {
+    if (this.isVersioned) return;
+    if (!chronicle) {
+      chronicle = Chronicle.create();
+    }
+    this.chronicle = chronicle;
+    this.chronicle.manage(new Graph.ChronicleAdapter(this));
+    this.isVersioned = true;
+  };
+
+};
+
+// Index Modes
+// ----------
+
+Graph.STRICT_INDEXING = 1 << 1;
+Graph.DEFAULT_MODE = Graph.STRICT_INDEXING;
+
+
+// Private Graph implementation
+// ============================
+
+Graph.Private = function() {
+
+  var _private = this;
+
+  // Node construction
+  // -----------------
+  //
+  // Safely constructs a new node based on type information
+  // Node needs to have a valid type
+  // All properties that are not registered, are dropped
+  // All properties that don't have a value are replaced using default values for type
+
+  this.createNode = function (schema, node) {
+    if (!node.id || !node.type) {
+      throw new GraphError("Can not create Node: 'id' and 'type' are mandatory.");
+    }
+
+    var type = schema.type(node.type);
+    if (!type) {
+      throw new GraphError("Type '"+node.type+"' not found in the schema");
+    }
+
+    var properties = schema.properties(node.type);
+    var freshNode = { type: node.type, id: node.id };
+
+    // Start constructing the fresh node
+    _.each(properties, function(p, key) {
+      // Find property base type
+      var baseType = schema.propertyBaseType(node.type, key);
+
+      // Assign user defined property value or use default value for baseType
+      var val = (node[key] !== undefined) ? node[key] : schema.defaultValue(baseType);
+      freshNode[key] = util.deepclone(val);
+    });
+
+    return freshNode;
+  };
+
+  // Create a new node
+  // -----------------
+  // Safely constructs a new node
+  // Checks for node duplication
+  // Adds new node to indexes
+  this.create = function(node) {
+    var newNode = _private.createNode(this.schema, node);
+    if (this.contains(newNode.id)) {
+      throw new GraphError("Node already exists: " + newNode.id);
+    }
+    this.nodes[newNode.id] = newNode;
+    this.trigger("node:created", newNode);
+    return this;
+  };
+
+  // Remove a node
+  // -----------
+  // Deletes node by id, referenced nodes remain untouched
+  // Removes node from indexes
+  this.delete = function(node) {
+    delete this.nodes[node.id];
+    this.trigger("node:deleted", node.id);
+  };
+
+  this.set = function(path, value) {
+    var property = this.resolve(path);
+    if (property === undefined) {
+      throw new Error("Key error: could not find element for path " + JSON.stringify(path));
+    }
+    var oldValue = util.deepclone(property.get());
+    property.set(value);
+    this.trigger("property:updated", path, null, oldValue, value);
+  };
+
+  var _triggerPropertyUpdate = function(path, diff) {
+    Operator.Helpers.each(diff, function(op) {
+      this.trigger('property:updated', path, op, this);
+    }, this);
+  };
+
+  this.update = function(path, value, diff) {
+    var property = this.resolve(path);
+    if (property === undefined) {
+      throw new Error("Key error: could not find element for path " + JSON.stringify(path));
+    }
+    property.set(value);
+    _triggerPropertyUpdate.call(this, path, diff);
+  };
+
+  this.queryArray = function(arr, type) {
+    if (!_.isArray(type)) {
+      throw new GraphError("Illegal argument: array types must be specified as ['array'(, 'array')*, <type>]");
+    }
+    var result, idx;
+    if (type[1] === "array") {
+      result = [];
+      for (idx = 0; idx < arr.length; idx++) {
+        result.push(_private.queryArray.call(this, arr[idx], type.slice(1)));
+      }
+    } else if (!isValueType(type[1])) {
+      result = [];
+      for (idx = 0; idx < arr.length; idx++) {
+        result.push(this.get(arr[idx]));
+      }
+    } else {
+      result = arr;
+    }
+    return result;
+  };
+
+};
+
+Graph.prototype = new Graph.Prototype();
+
+// ObjectOperation Adapter
+// ========
+//
+// This adapter delegates object changes as supported by Operator.ObjectOperation
+// to graph methods
+
+Graph.ObjectAdapter = function(graph) {
+  this.graph = graph;
+};
+
+Graph.ObjectAdapter.Prototype = function() {
+  var impl = new Graph.Private();
+
+  // Note: this adapter is used with the OT API only.
+  // We do not accept paths to undefined properties
+  // and instead throw an error to fail as early as possible.
+  this.get = function(path) {
+    var prop = this.graph.resolve(path);
+    if (prop === undefined) {
+      throw new Error("Key error: could not find element for path " + JSON.stringify(path));
+    } else {
+      return prop.get();
+    }
+  };
+
+  this.create = function(__, value) {
+    // Note: only nodes (top-level) can be created
+    impl.create.call(this.graph, value);
+  };
+
+  this.set = function(path, value) {
+    impl.set.call(this.graph, path, value);
+  };
+
+  this.update = function(path, value, diff) {
+    impl.update.call(this.graph, path, value, diff);
+  };
+
+  this.delete = function(__, value) {
+    // Note: only nodes (top-level) can be deleted
+    impl.delete.call(this.graph, value);
+  };
+
+  this.inplace = function() { return false; };
+};
+
+Graph.ObjectAdapter.Prototype.prototype = Operator.ObjectOperation.Object.prototype;
+Graph.ObjectAdapter.prototype = new Graph.ObjectAdapter.Prototype();
+
+Graph.Schema = Schema;
+Graph.Property = Property;
+
+Graph.PersistenceAdapter = PersistenceAdapter;
+Graph.ChronicleAdapter = ChronicleAdapter;
+Graph.Index = Index;
+
+// Exports
+// ========
+
+module.exports = Graph;
+
+},{"./chronicle_adapter":29,"./graph_index":31,"./persistence_adapter":32,"./property":33,"./schema":34,"substance-chronicle":15,"substance-operator":126,"substance-util":140,"underscore":147}],31:[function(require,module,exports){
+var _ = require("underscore");
+var util = require("substance-util");
+
+// Creates an index for the document applying a given node filter function
+// and grouping using a given key function
+// --------
+//
+// - document: a document instance
+// - filter: a function that takes a node and returns true if the node should be indexed
+// - key: a function that provides a path for scoped indexing (default: returns empty path)
+//
+
+var Index = function(graph, options) {
+  options = options || {};
+
+  this.graph = graph;
+
+  this.nodes = {};
+  this.scopes = {};
+
+  if (options.filter) {
+    this.filter = options.filter;
+  } else if (options.types) {
+    this.filter = Index.typeFilter(graph.schema, options.types);
+  }
+
+  if (options.property) {
+    this.property = options.property;
+  }
+
+  this.createIndex();
+};
+
+Index.Prototype = function() {
+
+  // Resolves a sub-hierarchy of the index via a given path
+  // --------
+  //
+
+  var _resolve = function(path) {
+    var index = this;
+    if (path !== null) {
+      for (var i = 0; i < path.length; i++) {
+        var id = path[i];
+        index.scopes[id] = index.scopes[id] || { nodes: {}, scopes: {} };
+        index = index.scopes[id];
+      }
+    }
+    return index;
+  };
+
+  var _getKey = function(node) {
+    if (!this.property) return null;
+    var key = node[this.property] ? node[this.property] : null;
+    if (_.isString(key)) key = [key];
+    return key;
+  };
+
+  // Accumulates all indexed children of the given (sub-)index
+  var _collect = function(index) {
+    var result = _.extend({}, index.nodes);
+    _.each(index.scopes, function(child, name) {
+      if (name !== "nodes") {
+        _.extend(result, _collect(child));
+      }
+    });
+    return result;
+  };
+
+  var _add = function(key, node) {
+    var index = _resolve.call(this, key);
+    index.nodes[node.id] = node.id;
+  };
+
+  var _remove = function(key, node) {
+    var index = _resolve.call(this, key);
+    delete index.nodes[node.id];
+  };
+
+  // Keeps the index up-to-date when the graph changes.
+  // --------
+  //
+
+  this.onGraphChange = function(op) {
+
+    var self = this;
+
+    var adapter = {
+      create: function(node) {
+        if (!self.filter || self.filter(node)) {
+          var key = _getKey.call(self, node);
+          _add.call(self, key, node);
+        }
+      },
+      delete: function(node) {
+        if (!self.filter || self.filter(node)) {
+          var key = _getKey.call(self, node);
+          _remove.call(self, key, node);
+        }
+      },
+      update: function(node, property, newValue, oldValue) {
+        if ((self.property === property) && (!self.filter || self.filter(node))) {
+          var key = oldValue;
+          if (_.isString(key)) key = [key];
+          _remove.call(self, key, node);
+          key = newValue;
+          if (_.isString(key)) key = [key];
+          _add.call(self, key, node);
+        }
+      }
+    };
+
+    this.graph.cotransform(adapter, op);
+  };
+
+  // Initializes the index
+  // --------
+  //
+
+  this.createIndex = function() {
+    this.reset();
+
+    var nodes = this.graph.nodes;
+    _.each(nodes, function(node) {
+      if (!this.filter || this.filter(node)) {
+        var key = _getKey.call(this, node);
+        _add.call(this, key, node);
+      }
+    }, this);
+  };
+
+  // Collects all indexed nodes using a given path for scoping
+  // --------
+  //
+
+  this.get = function(path) {
+    if (arguments.length === 0) {
+      path = null;
+    } else if (_.isString(path)) {
+      path = [path];
+    }
+
+    var index = _resolve.call(this, path);
+    var result;
+
+    // EXPERIMENTAL: do we need the ability to retrieve indexed elements non-recursively
+    // for now...
+    // if so... we would need an paramater to prevent recursion
+    // E.g.:
+    //     if (shallow) {
+    //       result = index.nodes;
+    //     }
+    result = _collect(index);
+
+    _.each(result, function(id) {
+      result[id] = this.graph.get(id);
+    }, this);
+
+    return result;
+  };
+
+  this.reset = function() {
+    this.nodes = {};
+    this.scopes = {};
+  };
+
+  this.dispose = function() {
+    this.stopListening();
+  };
+};
+
+Index.prototype = _.extend(new Index.Prototype(), util.Events.Listener);
+
+Index.typeFilter = function(schema, types) {
+  return function(node) {
+    var typeChain = schema.typeChain(node.type);
+    for (var i = 0; i < types.length; i++) {
+      if (typeChain.indexOf(types[i]) >= 0) {
+        return true;
+      }
+    }
+    return false;
+  };
+};
+
+module.exports = Index;
+
+},{"substance-util":140,"underscore":147}],32:[function(require,module,exports){
+"use strict";
+
+var Operator = require('substance-operator');
+
+var PersistenceAdapter = function(delegate, nodes) {
+  this.delegate = delegate;
+  this.nodes = nodes;
+};
+
+PersistenceAdapter.Prototype = function() {
+
+  this.get = function(path) {
+    return this.delegate.get(path);
+  };
+
+  this.create = function(__, value) {
+    this.delegate.create(__, value);
+    this.nodes.set(value.id, value);
+  };
+
+  this.set = function(path, value) {
+    this.delegate.set(path, value);
+    // TODO: is it ok to store the value as node???
+    var nodeId = path[0];
+    var updated = this.delegate.get([nodeId]);
+    this.nodes.set(nodeId, updated);
+  };
+
+  this.delete = function(__, value) {
+    this.delegate.delete(__, value);
+    this.nodes.delete(value.id);
+  };
+
+  this.inplace = function() {
+    return false;
+  };
+};
+PersistenceAdapter.Prototype.prototype = Operator.ObjectOperation.Object.prototype;
+PersistenceAdapter.prototype = new PersistenceAdapter.Prototype();
+
+module.exports = PersistenceAdapter;
+
+},{"substance-operator":126}],33:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+var Property = function(graph, path) {
+  if (!path) {
+    throw new Error("Illegal argument: path is null/undefined.");
+  }
+
+  this.graph = graph;
+  this.schema = graph.schema;
+
+  // Note: if you specifiy an invalid path, e.g., to a non-existing property
+  // then this.resolve() will return `undefined`.
+  // In cases of write-access (e.g., update, set) we need to make sure to fail instantly with an error,
+  // to avoid entering other more complicated places with an invalid state.
+  var resolved = this.resolve(path);
+  if (resolved !== undefined) {
+    _.extend(this, resolved);
+  } else {
+    return undefined;
+  }
+};
+
+Property.Prototype = function() {
+
+  this.resolve = function(path) {
+    var node = this.graph;
+    var parent = node;
+    var type = "graph";
+
+    var key;
+    var value;
+
+    var idx = 0;
+    for (; idx < path.length; idx++) {
+
+      // TODO: check if the property references a node type
+      if (type === "graph" || this.schema.types[type] !== undefined) {
+        // remember the last node type
+        parent = this.graph.get(path[idx]);
+
+        if (parent === undefined) {
+          return undefined;
+        }
+
+        node = parent;
+        type = this.schema.properties(parent.type);
+        value = node;
+        key = undefined;
+      } else {
+        if (parent === undefined) {
+          return undefined;
+        }
+        key = path[idx];
+        var propName = path[idx];
+        type = type[propName];
+        value = parent[key];
+
+        if (idx < path.length-1) {
+          parent = parent[propName];
+        }
+      }
+    }
+
+    return {
+      node: node,
+      parent: parent,
+      type: type,
+      key: key,
+      value: value
+    };
+
+  };
+
+  this.get = function() {
+    if (this.key !== undefined) {
+      return this.parent[this.key];
+    } else {
+      return this.node;
+    }
+  };
+
+  this.set = function(value) {
+    if (this.key !== undefined) {
+      this.parent[this.key] = this.schema.parseValue(this.baseType, value);
+    } else {
+      throw new Error("'set' is only supported for node properties.");
+    }
+  };
+
+};
+Property.prototype = new Property.Prototype();
+Object.defineProperties(Property.prototype, {
+  baseType: {
+    get: function() {
+      if (_.isArray(this.type)) return this.type[0];
+      else return this.type;
+    }
+  },
+  path: {
+    get: function() {
+      return [this.node.id, this.key];
+    }
+  }
+});
+
+module.exports = Property;
+
+},{"underscore":147}],34:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+
+
+// Data.Schema
+// ========
+//
+// Provides a schema inspection API
+
+var Schema = function(schema) {
+  _.extend(this, schema);
+};
+
+Schema.Prototype = function() {
+
+  // Return Default value for a given type
+  // --------
+  //
+
+  this.defaultValue = function(valueType) {
+    if (valueType === "object") return {};
+    if (valueType === "array") return [];
+    if (valueType === "string") return "";
+    if (valueType === "number") return 0;
+    if (valueType === "boolean") return false;
+    if (valueType === "date") return new Date();
+
+    return null;
+    // throw new Error("Unknown value type: " + valueType);
+  };
+
+  // Return type object for a given type id
+  // --------
+  //
+
+  this.parseValue = function(valueType, value) {
+    if (value === null) {
+      return value;
+    }
+
+    if (_.isString(value)) {
+      if (valueType === "object") return JSON.parse(value);
+      if (valueType === "array") return JSON.parse(value);
+      if (valueType === "string") return value;
+      if (valueType === "number") return parseInt(value, 10);
+      if (valueType === "boolean") {
+        if (value === "true") return true;
+        else if (value === "false") return false;
+        else throw new Error("Can not parse boolean value from: " + value);
+      }
+      if (valueType === "date") return new Date(value);
+
+      // all other types must be string compatible ??
+      return value;
+
+    } else {
+      if (valueType === 'array') {
+        if (!_.isArray(value)) {
+          throw new Error("Illegal value type: expected array.");
+        }
+        value = util.deepclone(value);
+      }
+      else if (valueType === 'string') {
+        if (!_.isString(value)) {
+          throw new Error("Illegal value type: expected string.");
+        }
+      }
+      else if (valueType === 'object') {
+        if (!_.isObject(value)) {
+          throw new Error("Illegal value type: expected object.");
+        }
+        value = util.deepclone(value);
+      }
+      else if (valueType === 'number') {
+        if (!_.isNumber(value)) {
+          throw new Error("Illegal value type: expected number.");
+        }
+      }
+      else if (valueType === 'boolean') {
+        if (!_.isBoolean(value)) {
+          throw new Error("Illegal value type: expected boolean.");
+        }
+      }
+      else if (valueType === 'date') {
+        value = new Date(value);
+      }
+      else {
+        throw new Error("Unsupported value type: " + valueType);
+      }
+      return value;
+    }
+  };
+
+  // Return type object for a given type id
+  // --------
+  //
+
+  this.type = function(typeId) {
+    return this.types[typeId];
+  };
+
+  // For a given type id return the type hierarchy
+  // --------
+  //
+  // => ["base_type", "specific_type"]
+
+  this.typeChain = function(typeId) {
+    var type = this.types[typeId];
+    if (!type) {
+      throw new Error('Type ' + typeId + ' not found in schema');
+    }
+
+    var chain = (type.parent) ? this.typeChain(type.parent) : [];
+    chain.push(typeId);
+    return chain;
+  };
+
+  this.isInstanceOf = function(type, parentType) {
+    var typeChain = this.typeChain(type);
+    if (typeChain && typeChain.indexOf(parentType) >= 0) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  // Provides the top-most parent type of a given type.
+  // --------
+  //
+
+  this.baseType = function(typeId) {
+    return this.typeChain(typeId)[0];
+  };
+
+  // Return all properties for a given type
+  // --------
+  //
+
+  this.properties = function(type) {
+    type = _.isObject(type) ? type : this.type(type);
+    var result = (type.parent) ? this.properties(type.parent) : {};
+    _.extend(result, type.properties);
+    return result;
+  };
+
+  // Returns the full type for a given property
+  // --------
+  //
+  // => ["array", "string"]
+
+  this.propertyType = function(type, property) {
+    var properties = this.properties(type);
+    var propertyType = properties[property];
+    if (!propertyType) throw new Error("Property not found for" + type +'.'+property);
+    return _.isArray(propertyType) ? propertyType : [propertyType];
+  };
+
+  // Returns the base type for a given property
+  // --------
+  //
+  //  ["string"] => "string"
+  //  ["array", "string"] => "array"
+
+  this.propertyBaseType = function(type, property) {
+    return this.propertyType(type, property)[0];
+  };
+};
+
+Schema.prototype = new Schema.Prototype();
+
+module.exports = Schema;
+
+},{"substance-util":140,"underscore":147}],35:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+var Document = require('./src/document');
+Document.Annotator = require('./src/annotator');
+Document.Cursor = require('./src/cursor');
+Document.Selection = require('./src/selection');
+Document.Container = require('./src/container');
+Document.Session = require('./src/document_session');
+
+module.exports = Document;
+
+},{"./src/annotator":36,"./src/container":37,"./src/cursor":38,"./src/document":39,"./src/document_session":40,"./src/selection":42,"underscore":147}],36:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+var Document = require("./document");
+var Operator = require("substance-operator");
+
+var _getConfig;
+
+// A class that provides helpers to manage a document's annotations.
+// --------
+//
+// Note: the provided document is used to retrieve the annotation behavior and to initialize an annotation index.
+//
+var Annotator = function(doc) {
+  this.config = _getConfig(doc);
+  doc.addIndex("annotations", {types: ["annotation"], property: "path"});
+  this.document = doc;
+};
+
+Annotator.Prototype = function() {
+
+  // Updates all annotations according to a given operation.
+  // --------
+  //
+  // The provided operation is an ObjectOperation which has been applied already or should be applied afterwards.
+  //
+  // Depending on the operation's `path` and the impact on an annotations range
+  // there are the following cases:
+  // 1. op='update', path==a.path: update the range following the rules given in the configuration
+  // 2. op='delete', path[0]==a.path[0]: the annotation gets deleted
+  // 3. op='set', path==a.path: the annotation gets deleted as the referenced property has been reset
+  //
+  this.update = function(op, options) {
+    options = options || {};
+    var path = options.path || op.path;
+    var index = this.document.getIndex("annotations");
+    var annotations = index.get(path);
+    _.each(annotations, function(a) {
+      _update(this, a, op, options);
+    }, this);
+  };
+
+  // Copy annotations in the given selection.
+  // --------
+  // This is the pendant to the writer's copy method.
+  // Partially selected annotations may not get copied depending on the
+  // annotation type, for others, new annotation fragments would be created.
+
+  this.copy = function(/*selection*/) {
+    throw new Error("FIXME: this must be updated considering the other API changes.");
+
+    // var ranges = _getRanges(this, selection);
+
+    // // get all affected annotations
+    // var annotations = this.getAnnotations(session, selection);
+    // var result = [];
+
+    // _.each(annotations, function(annotation) {
+
+    //   // TODO: determine if an annotation would be split by the given selection.
+    //   var range = ranges[annotation.path[0]];
+    //   var isPartial = (range[0] > annotation.range[0] || range[1] < annotation.range[1]);
+
+    //   var newAnnotation;
+    //   if (isPartial) {
+    //     // for the others create a new fragment (depending on type) and truncate the original
+    //     if (this.isSplittable(annotation.type)) {
+    //       newAnnotation = util.clone(annotation);
+    //       // make the range relative to the selection
+    //       newAnnotation.id = util.uuid();
+    //       newAnnotation.range = [Math.max(0, annotation.range[0] - range[0]), annotation.range[1] - range[0]];
+    //       result.push(newAnnotation);
+    //     }
+    //   } else {
+    //     // add totally included ones
+    //     // TODO: need more control over uuid generation
+    //     newAnnotation = util.clone(annotation);
+    //     newAnnotation.id = util.uuid();
+    //     newAnnotation.range = [newAnnotation.range[0] - range[0], newAnnotation.range[1] - range[0]];
+    //     result.push(newAnnotation);
+    //   }
+
+    // }, this);
+
+    // return result;
+  };
+
+  this.paste = function(/*annotations, newNodeId, offset*/) {
+    throw new Error("FIXME: this must be updated considering the other API changes.");
+    // for (var i = 0; i < annotations.length; i++) {
+    //   var annotation = annotations[i];
+    //   if (newNodeId !== undefined) {
+    //     annotation.path = _.clone(annotation.path);
+    //     annotation.path[0] = newNodeId;
+    //   }
+    //   if (offset !== undefined) {
+    //     annotation.range[0] += offset;
+    //     annotation.range[1] += offset;
+    //   }
+    //   this.create(annotation);
+    // }
+  };
+
+  // A helper to implement an editor which can breaks or joins nodes.
+  // --------
+  // TODO: this seems to be very tailored to text nodes. Refactor this when needed.
+  //
+  this.transferAnnotations = function(node, charPos, newNode, offset) {
+    offset = offset || 0;
+
+    var annotations = _nodeAnnotationsByRange(this, node, {start: charPos});
+    _.each(annotations, function(annotation) {
+    //   var range = ranges[annotation.path[0]];
+      var isInside = (charPos > annotation.range[0] || charPos[1] < annotation.range[1]);
+      var newRange;
+
+      // 1. if the cursor is inside an annotation it gets either split or truncated
+      if (isInside) {
+        // create a new annotation fragment if the annotation is splittable
+        if (this.isSplittable(annotation.type)) {
+          var splitAnnotation = util.clone(annotation);
+          splitAnnotation.range = [offset, offset + annotation.range[1] - charPos];
+          splitAnnotation.id = util.uuid();
+          this.document.create(splitAnnotation);
+        }
+        // in either cases truncate the first part
+        newRange =_.clone(annotation.range);
+        newRange[1] = charPos;
+
+        // if the fragment has a zero range now, delete it
+        if (newRange[1] === newRange[0]) {
+          this.document.delete(annotation.id);
+        }
+        // ... otherwise update the range
+        else {
+          this.document.set([annotation.id, "range"], newRange);
+        }
+      }
+
+      // 2. if the cursor is before an annotation then simply transfer the annotation to the new node
+      else {
+        // Note: we are preserving the annotation so that anything which is connected to the annotation
+        // remains valid.
+        var newPath = _.clone(annotation.path);
+        newPath[0] = newNode.id;
+        this.document.set([annotation.id, "path"], newPath);
+        newRange = [offset + annotation.range[0] - charPos, offset + annotation.range[1] - charPos];
+        this.document.set([annotation.id, "range"], newRange);
+      }
+    }, this);
+  };
+
+  this.getAnnotationsForNode = function(nodeId) {
+    return this.index.get(nodeId);
+  };
+
+  // Provides all annotations that correspond to a given selection.
+  // --------
+  // TODO: we could do a minor optimization, as it happens that the same query is performed multiple times.
+  //
+  this.getAnnotations = function(sel) {
+    if (!(sel instanceof Document.Selection)) {
+      throw new Error("API has changed: now getAnnotations() takes only a selection.");
+    }
+
+    var annotations = [];
+    var ranges = sel.getRanges();
+    for (var i = 0; i < ranges.length; i++) {
+      var range = ranges[i];
+      var annos = _annotationsByRange(this, this.document, range);
+      annotations = annotations.concat(annos);
+    }
+    // console.log("Annotator.getAnnotations():", sel, annotations);
+    return annotations;
+  };
+
+  // Returns true if two annotation types are mutually exclusive
+  // ---------
+  // Currently there is a built-in mechanism which considers two annotations
+  // exclusive if they belong to the same group.
+  //
+  this.isExclusive = function(type1, type2) {
+    return this.config.groups[type1] === this.config.groups[type2];
+  };
+
+  // Tell if an annotation can be split or should be truncated only.
+  // --------
+  //
+  // E.g. when cutting a selection or inserting a new node existing annotations
+  // may be affected. In some cases (e.g., `emphasis` or `strong`) it is wanted
+  // that a new annotation of the same type is created for the cut fragment.
+  //
+  this.isSplittable = function(type) {
+    return this.config.split.indexOf(type) >= 0;
+  };
+
+
+  // Updates a single annotation according to a given operation.
+  // --------
+  //
+  var _update = function(self, annotation, op, options) {
+    var path = options.path || op.path;
+
+    // only apply the transformation on annotations with the same property
+    // Note: currently we only have annotations on the `content` property of nodes
+    if (!_.isEqual(annotation.path, path)) return;
+
+    if (op.type === "update") {
+      // Note: these are implicit transformations, i.e., not triggered via annotation controls
+      var expandLeft = false;
+      var expandRight = false;
+
+      var expandSpec = self.config.expansion[annotation.type];
+      if (expandSpec) {
+        if (expandSpec.left) expandLeft =  expandSpec.left(annotation);
+        if (expandSpec.right) expandRight = expandSpec.right(annotation);
+      }
+
+      var newRange = util.clone(annotation.range);
+      var changed = Operator.TextOperation.Range.transform(newRange, op.diff, expandLeft, expandRight);
+      if (changed) {
+        if (newRange[0] === newRange[1]) {
+          self.document.delete(annotation.id);
+        } else {
+          self.document.set([annotation.id, "range"], newRange);
+        }
+      }
+    }
+    // if somebody has reset the property we must delete the annotation
+    else if (op.type === "delete" || op.type === "set") {
+      self.document.delete(annotation.id);
+    }
+  };
+
+  // Checks if an annotation overlaps with a given range
+  // --------
+  //
+  var __isOverlap = function(self, anno, range) {
+    var sStart = range.start;
+    var sEnd = range.end;
+    var aStart = anno.range[0];
+    var aEnd = anno.range[1];
+
+    var expandLeft = false;
+    var expandRight = false;
+    var expandSpec = self.config.expansion[anno.type];
+    if (expandSpec) {
+      if (expandSpec.left) expandLeft =  expandSpec.left(anno);
+      if (expandSpec.right) expandRight = expandSpec.right(anno);
+    }
+
+    var overlap;
+    if (expandRight) {
+      overlap = (aEnd >= sStart);
+    } else {
+      overlap = (aEnd > sStart);
+    }
+
+    // Note: it is allowed to leave range.end undefined
+    if (_.isNumber(sEnd)) {
+      if (expandLeft) {
+        overlap &= (aStart <= sEnd);
+      } else {
+        overlap &= (aStart < sEnd);
+      }
+    }
+
+    return overlap;
+  };
+
+  var _annotationsByRange = function(self, doc, range) {
+    var result = [];
+    var component = range.component;
+    var annotations;
+    var index = doc.getIndex("annotations");
+
+    if (component.type === "node") {
+      var node = component.node;
+      annotations = index.get(node.id);
+    }
+    else if (component.type === "property") {
+      // Note: If a component displays a referenced property (e.g., Cover.title)
+      // IMO it makes more sense to attach annotations to the referencing path instead of the original path.
+      // E.g., ["cover", "title"] instead of ["document", "title"]
+      //annotations = index.get(component.propertyPath);
+      annotations = index.get(component.path);
+    }
+    else if (component.type === "custom") {
+      annotations = index.get(component.path);
+    }
+    else {
+      console.error("FIXME");
+    }
+    _.each(annotations, function(a) {
+      if (__isOverlap(self, a, range)) {
+        result.push(a);
+      }
+    });
+    return result;
+  };
+
+  var _nodeAnnotationsByRange = function(self, node, range) {
+    var result = [];
+    var index = self.document.getIndex("annotations");
+    var annotations = index.get(node.id);
+    _.each(annotations, function(a) {
+      if (__isOverlap(self, a, range)) {
+        result.push(a);
+      }
+    });
+    return result;
+  };
+};
+
+Annotator.Prototype.prototype = util.Events;
+Annotator.prototype = new Annotator.Prototype();
+
+Annotator.isOnNodeStart = function(a) {
+  return a.range[0] === 0;
+};
+
+Annotator.isTrue = function() {
+  return true;
+};
+
+// A helper to decide whether a graph operation affects annotations of a given node
+// --------
+// E.g., this is used by node views to detect annotation changes and to update the view accordingly.
+//
+
+var _isInstanceOf = function(doc, node, type) {
+  var schema = doc.getSchema();
+  return schema.isInstanceOf(node.type, type);
+};
+
+
+Annotator.changesAnnotations = function(doc, op, path) {
+  var anno;
+  if (op.type === "delete") {
+    anno = op.val;
+  } else {
+    anno = doc.get(op.path[0]);
+  }
+  var result = false;
+
+  if (_isInstanceOf(doc, anno, "annotation")) {
+    // any annotation operation with appropriate path
+    if (_.isEqual(path, anno.path)) {
+      result = true;
+    }
+    // ... or those who are changing the path to that
+    else if (op.type === "set" && op.path[1] === "path" && (_.isEqual(path, op.original)|| _.isEqual(path, op.val))) {
+      result = true;
+    }
+  }
+
+  return result;
+};
+
+// A static helper to create a document index for annotations
+Annotator.createIndex = function(doc) {
+  return doc.addIndex("annotations", {types: ["annotation"], property: "path"});
+};
+
+_getConfig = function(doc) {
+  // Note: this is rather experimental
+  // It is important to inverse the control over the annotation behavior,
+  // i.e., which annotations exist and how they should be handled
+  // This approach makes use of the static context of a Document implementation (e.g., Substance.Article)
+  // For this to work you need to have:
+  // - the `constructor` property set on the class
+  // - a static property `annotationBehavior` specifying the behavior
+  //   according to `Annotator.defaultBehavior`
+  if (doc.constructor && doc.constructor.annotationBehavior) {
+    return doc.constructor.annotationBehavior;
+  } else {
+    throw new Error("No Annotation behavior specified.");
+  }
+};
+
+module.exports = Annotator;
+
+},{"./document":39,"substance-operator":126,"substance-util":140,"underscore":147}],37:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+
+var util = require("substance-util");
+var errors = util.errors;
+var ContainerError = errors.define("ContainerError");
+
+// The container must be much more view oriented as the actual visualized components depend very much on the
+// used renderers.
+
+var Container = function(document, name, surfaces) {
+  this.document = document;
+  this.name = name;
+
+  var container = this.document.get(name);
+  if (!container || container.type !== "view") {
+    throw new ContainerError("Illegal argument: no view with name " + name);
+  }
+
+  // TODO: rename this.view to this.node, which is less confusing
+  this.view = container;
+  this.__components = null;
+  this.__roots = null;
+  this.__children = null;
+
+  this.surfaces = surfaces || new Container.DefaultNodeSurfaceProvider(document);
+  this.rebuild();
+
+  this.listenTo(this.document, "operation:applied", this.update);
+};
+
+Container.Prototype = function() {
+
+  _.extend(this, util.Events);
+
+  this.rebuild = function() {
+    var __components = [];
+    var __roots = [];
+    var __children = {};
+    var view = this.document.get(this.name);
+
+    var rootNodes = view.nodes;
+
+    // TODO: we have a problem with doc-simulation here.
+    // Nodes are duplicated for simulation. Not so the references in the components.
+    for (var i = 0; i < rootNodes.length; i++) {
+      var id = rootNodes[i];
+      var nodeSurface = this.surfaces.getNodeSurface(id);
+      if (!nodeSurface) {
+        throw new ContainerError("Aaaaah! no surface available for node " + id);
+      }
+      var components = nodeSurface.components;
+      if (!components) {
+        throw new ContainerError("Node Surface did not provide components: " + nodeSurface.node.type);
+      }
+      __children[id] = [];
+      for (var j = 0; j < components.length; j++) {
+        var component = _.clone(components[j]);
+        component.pos = __components.length;
+        component.nodePos = i;
+        __children[id].push(component);
+        __components.push(component);
+        __roots.push(rootNodes[i]);
+      }
+    }
+    this.__components = __components;
+    this.__roots = __roots;
+    this.__children = __children;
+    this.view = view;
+  };
+
+  this.getComponents = function() {
+    if (!this.__components) {
+      this.rebuild();
+    }
+    return this.__components;
+  };
+
+  this.lookup = function(path) {
+    var components = this.getComponents();
+    for (var i = 0; i < components.length; i++) {
+      var component = components[i];
+      if (_.isEqual(component.path, path)) {
+        return component;
+      }
+    }
+
+    if (path.length === 1) {
+      var id = path[0];
+      var roots = this.__roots;
+      for (var j = 0; j < roots.length; j++) {
+        if (roots[j] === id) {
+          return components[j];
+        }
+      }
+    }
+
+    console.error("Could not find a view component for path " + JSON.stringify(path));
+
+    return null;
+  };
+
+  this.getNodes = function(idsOnly) {
+    var nodeIds = this.view.nodes;
+    if (idsOnly) {
+      return _.clone(nodeIds);
+    }
+    else {
+      var result = [];
+      for (var i = 0; i < nodeIds.length; i++) {
+        result.push(this.document.get(nodeIds[i]));
+      }
+      return result;
+    }
+  };
+
+  this.update = function(op) {
+    var path = op.path;
+    var needRebuild = (!this.__components || path[0] === this.view.id);
+    if (needRebuild) this.rebuild();
+  };
+
+  this.getLength = function(pos) {
+    var components = this.getComponents();
+    if (pos === undefined) {
+      return components.length;
+    } else {
+      return components[pos].getLength();
+    }
+  };
+
+  this.getRootNodeFromPos = function(pos) {
+    if (!this.__roots) this.rebuild();
+    return this.document.get(this.__roots[pos]);
+  };
+
+  this.getNodePos = function(pos) {
+    if (!this.__roots) this.rebuild();
+    var id = this.__roots[pos];
+    return this.view.nodes.indexOf(id);
+  };
+
+  // TODO: what is this for? Describe the purpose and how it is used
+  this.lookupRootNode = function(nodeId) {
+    var components = this.getComponents();
+    for (var i = 0; i < components.length; i++) {
+      var component = components[i];
+      switch(component.type) {
+      case "node":
+        if (component.node.id === nodeId) return this.__roots[i];
+        break;
+      case "property":
+        if (component.path[0] === nodeId) return this.__roots[i];
+        break;
+      default:
+        // throw new Error("Not implemented.");
+      }
+    }
+    console.error("Could not find a root node for the given id:" + nodeId);
+    return null;
+  };
+
+  this.getComponent = function(pos) {
+    var components = this.getComponents();
+    return components[pos];
+  };
+
+  this.getNodeComponents = function(nodeId) {
+    var result = this.__children[nodeId];
+    if (!result) {
+      throw new ContainerError("Node is not in this container:"+nodeId);
+    }
+    return result;
+  };
+
+  this.dispose = function() {
+    this.stopListening();
+  };
+
+  // Creates a container for a given document
+  // --------
+  // This named constructor is used to create Container instance with the
+  // same setup (name, surface provider, etc.) for a another document instance.
+  // This is particularly used for creating manipulation sessions.
+  //
+  this.createContainer = function(doc) {
+    return new Container(doc, this.name, this.surfaces.createCopy(doc));
+  };
+
+};
+
+Container.prototype = _.extend(new Container.Prototype(), util.Events.Listener);
+
+Object.defineProperties(Container.prototype, {
+  "id": {
+    get: function() { return this.view.id; }
+  },
+  "type": {
+    get: function() { return this.view.type; }
+  },
+  "nodes": {
+    get: function() { return this.view.nodes; },
+    set: function(val) { this.view.nodes = val; }
+  }
+});
+
+Container.DefaultNodeSurfaceProvider = require("./node_surface_provider");
+Container.ContainerError = ContainerError;
+
+module.exports = Container;
+
+},{"./node_surface_provider":41,"substance-util":140,"underscore":147}],38:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+var errors = util.errors;
+
+var CursorError = errors.define("CursorError");
+
+// Document.Selection.Cursor
+// ================
+//
+
+var Cursor = function(container, pos, charPos, view) {
+  this.container = container;
+  this.view = view || 'content';
+
+  this.pos = pos;
+  this.charPos = charPos;
+
+  if (pos !== null && !_.isNumber(pos)) {
+    throw new CursorError("Illegal argument: expected pos as number");
+  }
+
+  if (charPos !== null && !_.isNumber(charPos)) {
+    throw new CursorError("Illegal argument: expected charPos as number");
+  }
+};
+
+
+Cursor.Prototype = function() {
+
+  this.copy = function() {
+    return new Cursor(this.container, this.pos, this.charPos, this.view);
+  };
+
+  this.isValid = function() {
+    if (this.pos === null || this.charPos === null) return false;
+    if (this.pos < 0 || this.charPos < 0) return false;
+
+    var l = this.container.getLength(this.pos);
+    if (this.charPos >= l) return false;
+
+    return true;
+  };
+
+  this.isRightBound = function() {
+    return this.charPos === this.container.getLength(this.pos);
+  };
+
+  this.isLeftBound = function() {
+    return this.charPos === 0;
+  };
+
+  this.isEndOfDocument = function() {
+    return this.isRightBound() && this.pos === this.container.getLength()-1;
+  };
+
+  this.isBeginOfDocument = function() {
+    return this.isLeftBound() && this.pos === 0;
+  };
+
+  // Return previous node boundary for a given node/character position
+  // --------
+  //
+
+  this.prevNode = function() {
+    if (!this.isLeftBound()) {
+      this.charPos = 0;
+    } else if (this.pos > 0) {
+      this.pos -= 1;
+      this.charPos = this.container.getLength(this.pos);
+    }
+  };
+
+  // Return next node boundary for a given node/character position
+  // --------
+  //
+
+  this.nextNode = function() {
+    if (!this.isRightBound()) {
+      this.charPos = this.container.getLength(this.pos);
+    } else if (this.pos < this.container.getLength()-1) {
+      this.pos += 1;
+      this.charPos = 0;
+    }
+  };
+
+  // Return previous occuring word for a given node/character position
+  // --------
+  //
+
+  this.prevWord = function() {
+    throw new Error("Not implemented");
+  };
+
+  // Return next occuring word for a given node/character position
+  // --------
+  //
+
+  this.nextWord = function() {
+    throw new Error("Not implemented");
+  };
+
+  // Return next char, for a given node/character position
+  // --------
+  //
+  // Useful when navigating over paragraph boundaries
+
+  this.nextChar = function() {
+    // Last char in paragraph
+    if (this.isRightBound()) {
+      if (this.pos < this.container.getLength()-1) {
+        this.pos += 1;
+        this.charPos = 0;
+      }
+    } else {
+      this.charPos += 1;
+    }
+  };
+
+
+  // Return next char, for a given node/character position
+  // --------
+  //
+  // Useful when navigating over paragraph boundaries
+
+  this.prevChar = function() {
+    if (this.charPos<0) throw new CursorError('Invalid char position');
+
+    if (this.isLeftBound()) {
+      if (this.pos > 0) {
+        this.pos -= 1;
+        this.charPos = this.container.getLength(this.pos);
+      }
+    } else {
+      this.charPos -= 1;
+    }
+  };
+
+  // Move
+  // --------
+  //
+  // Useful helper to find char,word and node boundaries
+  //
+  //     find('right', 'char');
+  //     find('left', 'word');
+  //     find('left', 'node');
+
+  this.move = function(direction, granularity) {
+    if (direction === "left") {
+      if (granularity === "word") {
+        this.prevWord();
+      } else if (granularity === "char") {
+        this.prevChar();
+      } else if (granularity === "node") {
+        this.prevNode();
+      }
+    } else {
+      if (granularity === "word") {
+        this.nextWord();
+      } else if (granularity === "char") {
+        this.nextChar();
+      } else if (granularity === "node") {
+        this.nextNode();
+      }
+    }
+  };
+
+  this.set = function(pos, charPos) {
+    if (pos !== null && !_.isNumber(pos)) {
+      throw new CursorError("Illegal argument: expected pos as number");
+    }
+
+    if (charPos !== null && !_.isNumber(charPos)) {
+      throw new CursorError("Illegal argument: expected charPos as number");
+    }
+
+    if (pos !== null) {
+      if(!_.isNumber(pos)) {
+        throw new CursorError("Illegal argument: expected pos as number");
+      }
+      var n = this.container.getLength();
+      if (pos < 0 || pos >= n) {
+        throw new CursorError("Invalid node position: " + pos);
+      }
+
+      var l = this.container.getLength(pos);
+      if (charPos < 0 || charPos > l) {
+        throw new CursorError("Invalid char position: " + charPos);
+      }
+    }
+
+    this.pos = pos;
+    this.charPos = charPos;
+  };
+
+  this.position = function() {
+    return [this.pos, this.charPos];
+  };
+};
+
+Cursor.prototype = new Cursor.Prototype();
+
+module.exports = Cursor;
+
+},{"substance-util":140,"underscore":147}],39:[function(require,module,exports){
+"use strict";
+
+// Substance.Document 0.5.0
+// (c) 2010-2013 Michael Aufreiter
+// Substance.Document may be freely distributed under the MIT license.
+// For all details and documentation:
+// http://interior.substance.io/modules/document.html
+
+
+// Import
+// ========
+
+var _ = require("underscore");
+var util = require("substance-util");
+var errors = util.errors;
+var Data = require("substance-data");
+var Operator = require("substance-operator");
+// var Chronicle = require("substance-chronicle");
+
+// Module
+// ========
+
+var DocumentError = errors.define("DocumentError");
+
+// Document
+// --------
+//
+// A generic model for representing and transforming digital documents
+
+var Document = function(options) {
+  Data.Graph.call(this, options.schema, options);
+};
+
+// Default Document Schema
+// --------
+
+Document.schema = {
+  // Static indexes
+  "indexes": {
+  },
+
+  "types": {
+    // Specific type for substance documents, holding all content elements
+    "content": {
+      "properties": {
+      }
+    },
+
+    "view": {
+      "properties": {
+        "nodes": ["array", "content"]
+      }
+    }
+  }
+};
+
+
+Document.Prototype = function() {
+  var __super__ = util.prototype(this);
+
+  this.getIndex = function(name) {
+    return this.indexes[name];
+  };
+
+  this.getSchema = function() {
+    return this.schema;
+  };
+
+
+  this.create = function(node) {
+    __super__.create.call(this, node);
+    return this.get(node.id);
+  };
+
+  // Delegates to Graph.get but wraps the result in the particular node constructor
+  // --------
+  //
+
+  this.get = function(path) {
+    var node = __super__.get.call(this, path);
+
+    if (!node) return node;
+
+    // Wrap all nodes in an appropriate Node instance
+    var nodeSpec = this.nodeTypes[node.type];
+    var NodeType = (nodeSpec !== undefined) ? nodeSpec.Model : null;
+    if (NodeType && !(node instanceof NodeType)) {
+      node = new NodeType(node, this);
+      this.nodes[node.id] = node;
+    }
+
+    return node;
+  };
+
+  // Serialize to JSON
+  // --------
+  //
+  // The command is converted into a sequence of graph commands
+
+  this.toJSON = function() {
+    var res = __super__.toJSON.call(this);
+    res.id = this.id;
+    return res;
+  };
+
+  // Hide elements from provided view
+  // --------
+  //
+
+  this.hide = function(viewId, nodes) {
+    var view = this.get(viewId);
+
+    if (!view) {
+      throw new DocumentError("Invalid view id: "+ viewId);
+    }
+
+    if (_.isString(nodes)) {
+      nodes = [nodes];
+    }
+
+    var indexes = [];
+    _.each(nodes, function(n) {
+      var i = view.nodes.indexOf(n);
+      if (i>=0) indexes.push(i);
+    }, this);
+
+    if (indexes.length === 0) return;
+
+    indexes = indexes.sort().reverse();
+    indexes = _.uniq(indexes);
+
+    var ops = _.map(indexes, function(index) {
+      return Operator.ArrayOperation.Delete(index, view.nodes[index]);
+    });
+
+    var op = Operator.ObjectOperation.Update([viewId, "nodes"], Operator.ArrayOperation.Compound(ops));
+
+    return this.apply(op);
+  };
+
+  // HACK: it is not desired to have the comments managed along with the editorially document updates
+  // We need an approach with multiple Chronicles instead.
+  this.comment = function(comment) {
+    var id = util.uuid();
+    comment.id = id;
+    comment.type = "comment";
+    var op = Operator.ObjectOperation.Create([comment.id], comment);
+    return this.__apply__(op);
+  };
+
+  this.annotate = function(anno, data) {
+    anno.id = anno.type + "_" + util.uuid();
+    _.extend(anno, data);
+    this.create(anno);
+  };
+
+  // Adds nodes to a view
+  // --------
+  //
+
+  this.show = function(viewId, nodes, target) {
+    if (target === undefined) target = -1;
+
+    var view = this.get(viewId);
+    if (!view) {
+      throw new DocumentError("Invalid view id: " + viewId);
+    }
+
+    if (_.isString(nodes)) {
+      nodes = [nodes];
+    }
+
+    var l = view.nodes.length;
+
+    // target index can be given as negative number (as known from python/ruby)
+    target = Math.min(target, l);
+    if (target<0) target = Math.max(0, l+target+1);
+
+    var ops = [];
+    for (var idx = 0; idx < nodes.length; idx++) {
+      var nodeId = nodes[idx];
+      if (this.nodes[nodeId] === undefined) {
+        throw new DocumentError("Invalid node id: " + nodeId);
+      }
+      ops.push(Operator.ArrayOperation.Insert(target + idx, nodeId));
+    }
+
+    if (ops.length > 0) {
+      var update = Operator.ObjectOperation.Update([viewId, "nodes"], Operator.ArrayOperation.Compound(ops));
+      return this.apply(update);
+    }
+  };
+
+  // Start simulation, which conforms to a transaction (think databases)
+  // --------
+  //
+
+  this.startSimulation = function() {
+    // TODO: this should be implemented in a more cleaner and efficient way.
+    // Though, for now and sake of simplicity done by creating a copy
+    var self = this;
+    var simulation = this.fromSnapshot(this.toJSON());
+    var ops = [];
+    simulation.ops = ops;
+
+    var __apply__ = simulation.apply;
+
+    simulation.apply = function(op) {
+      ops.push(op);
+      op = __apply__.call(simulation, op);
+      return op;
+    };
+
+    simulation.save = function() {
+      var _ops = [];
+      for (var i = 0; i < ops.length; i++) {
+        if (ops[i].type !== "compound") {
+          _ops.push(ops[i]);
+        } else {
+          _ops = _ops.concat(ops[i].ops);
+        }
+      }
+
+      if (_ops.length === 0) {
+        // nothing has been recorded
+        return;
+      }
+
+      var compound = Operator.ObjectOperation.Compound(_ops);
+      self.apply(compound);
+    };
+
+    return simulation;
+  };
+
+  this.fromSnapshot = function(data, options) {
+    return Document.fromSnapshot(data, options);
+  };
+
+  this.uuid = function(type) {
+    return type + "_" + util.uuid();
+  };
+};
+
+Document.Prototype.prototype = Data.Graph.prototype;
+Document.prototype = new Document.Prototype();
+
+Document.fromSnapshot = function(data, options) {
+  options = options || {};
+  options.seed = data;
+  return new Document(options);
+};
+
+
+Document.DocumentError = DocumentError;
+
+// Export
+// ========
+
+module.exports = Document;
+
+},{"substance-data":28,"substance-operator":126,"substance-util":140,"underscore":147}],40:[function(require,module,exports){
+"use strict";
+
+var Annotator = require("./annotator");
+var Selection = require("./selection");
+
+// DocumentSession
+// ========
+// A document session bundles
+// - `document`: a Document instance,
+// - `container`: a Container instance which manages a specific document view node
+// - `annotator`: an Annotator instance which provides an API to manage annotations
+// - `selection`: a Selection instance which represents a current selection state
+//
+// Note: as the Container is the most complex instance (e.g., it depends on a SurfaceProvider)
+// you have to create it and pass it as an argument to create a session.
+//
+var DocumentSession = function(container) {
+  this.document = container.document;
+  this.container = container;
+  this.annotator = new Annotator(this.document);
+  this.selection = new Selection(this.container);
+};
+
+DocumentSession.Prototype = function() {
+
+  // TODO: this is used *very* often and is implemented *very* naive.
+  // There's a great potential for optimization here
+  this.startSimulation = function() {
+    var doc = this.document.startSimulation();
+    var annotator = new Annotator(doc);
+    var container = this.container.createContainer(doc);
+    var sel = new Selection(container, this.selection);
+    return {
+      document: doc,
+      view: container.name,
+      selection: sel,
+      annotator: annotator,
+      container: container,
+      dispose: function() {
+        container.dispose();
+      },
+      save: function() {
+        doc.save();
+        this.dispose();
+      }
+    };
+  };
+
+  this.dispose = function(){
+    this.container.dispose();
+  };
+
+};
+DocumentSession.prototype = new DocumentSession.Prototype();
+
+Object.defineProperties(DocumentSession.prototype, {
+  "view": {
+    get: function() {
+      return this.container.name;
+    },
+    set: function() {
+      throw new Error("Immutable.");
+    }
+  }
+});
+
+module.exports = DocumentSession;
+
+},{"./annotator":36,"./selection":42}],41:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+var NodeSurfaceProvider = function(doc) {
+  this.document = doc;
+  this.nodeTypes = this.document.constructor.nodeTypes;
+  this.nodeSurfaces = {};
+};
+
+NodeSurfaceProvider.Prototype = function() {
+
+  this.getNodeSurface = function(node_or_nodeId) {
+    var nodeId, node;
+    if (_.isString(node_or_nodeId)) {
+      nodeId = node_or_nodeId;
+    } else {
+      node = node_or_nodeId;
+      nodeId = node.id;
+    }
+    if (!this.nodeSurfaces[nodeId]) {
+      var nodeSurface;
+
+      node = node || this.document.get(nodeId);
+      if (!node) {
+        throw new Error("Unknown node: " + nodeId);
+      }
+
+      var NodeSurface = this.nodeTypes[node.type].Surface;
+      if (NodeSurface) {
+        // Note: passing this provider ot allow nesting/delegation
+        nodeSurface = new NodeSurface(node, this);
+      } else {
+        console.log("No surface available for node type", node.type,". Using Stub.");
+        nodeSurface = new NodeSurfaceProvider.EmptySurface(node);
+      }
+
+      this.nodeSurfaces[nodeId] = nodeSurface;
+    }
+
+    return this.nodeSurfaces[nodeId];
+  };
+
+  // Creates a copy of this provider for a given document.
+  // --------
+  // This is as a named constructor for establishing a manipulation simulation session.
+  //
+  this.createCopy = function(document) {
+    // Note: As this method is mainly used to implement document simulations,
+    //   we must not copy the node surface instances as they contain a reference
+    //   to the actual node.
+    return new NodeSurfaceProvider(document);
+  };
+
+};
+NodeSurfaceProvider.prototype = new NodeSurfaceProvider.Prototype();
+
+NodeSurfaceProvider.EmptySurface = function(node) {
+  this.node = node;
+  this.view = null;
+  this.components = [];
+};
+
+module.exports = NodeSurfaceProvider;
+
+},{"underscore":147}],42:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+var errors = util.errors;
+var Cursor = require("./cursor");
+
+var SelectionError = errors.define("SelectionError");
+
+// Document.Selection
+// ================
+//
+// A selection refers to a sub-fragment of a Substance.Document. It holds
+// start/end positions for node and character offsets as well as a direction.
+//
+//     {
+//       start: [NODE_POS, CHAR_POS]
+//       end: [NODE_POS, CHAR_POS]
+//       direction: "left"|"right"
+//     }
+//
+// NODE_POS: Node offset in the document (0 = first node)
+// CHAR_POS: Character offset within a textnode (0 = first char)
+//
+// Example
+// --------
+//
+// Consider a document `doc` consisting of 3 paragraphs.
+//
+//           0 1 2 3 4 5 6
+//     -------------------
+//     P0  | a b c d e f g
+//     -------------------
+//     P1: | h i j k l m n
+//     -------------------
+//     P2: | o p q r s t u
+//
+//
+// Create a selection operating on that document.
+//     var sel = new Substance.Document.Selection(container);
+//
+//     sel.set({
+//       start: [0, 4],
+//       end: [1, 2],
+//       direction: "right"
+//     });
+//
+// This call results in the following selection:
+//
+//           0 1 2 3 4 5 6
+//     -------------------
+//     P0  | a b c d > > >
+//     -------------------
+//     P1: | > > > k l m n
+//     -------------------
+//     P2: | o p q r s t u
+//
+
+var Selection = function(container, selection) {
+  this.container = container;
+
+  this.start = null;
+  this.__cursor = new Cursor(container, null, null);
+
+  if (selection) this.set(selection);
+};
+
+Selection.Prototype = function() {
+
+  // Get node from position in contnet view
+  // --------
+  //
+
+  this.copy = function() {
+    var copy = new Selection(this.container);
+    if (!this.isNull()) copy.set(this);
+    return copy;
+  };
+
+
+  // Set selection
+  // --------
+  //
+  // sel: an instanceof Selection
+  //      or a document range `{start: [pos, charPos], end: [pos, charPos]}`
+  //      or a document position `[pos, charPos]`
+
+  this.set = function(sel) {
+    var cursor = this.__cursor;
+
+    if (sel instanceof Selection) {
+      this.start = _.clone(sel.start);
+      cursor.set(sel.__cursor.pos, sel.__cursor.charPos);
+    } else if (_.isArray(sel)) {
+      this.start = _.clone(sel);
+      cursor.set(sel[0], sel[1]);
+    } else {
+      this.start = _.clone(sel.start);
+      cursor.set(sel.end[0], sel.end[1]);
+    }
+    var start = this.start;
+
+    // being hysterical about the integrity of selections
+    var n = this.container.getLength();
+    if (start[0] < 0 || start[0] >= n) {
+      throw new SelectionError("Invalid node position: " + start[0]);
+    }
+    var l = this.container.getLength(start[0]);
+    if (start[1] < 0 || start[1] > l) {
+      throw new SelectionError("Invalid char position: " + start[1]);
+    }
+
+    this.trigger('selection:changed', this.range());
+    return this;
+  };
+
+  this.clear = function() {
+    this.start = null;
+    this.__cursor.set(null, null);
+    this.trigger('selection:changed', null);
+  };
+
+  this.range = function() {
+    if (this.isNull()) return null;
+
+    var pos1 = this.start;
+    var pos2 = this.__cursor.position();
+
+    if (this.isReverse()) {
+      return {
+        start: pos2,
+        end: pos1
+      };
+    } else {
+      return {
+        start: pos1,
+        end: pos2
+      };
+    }
+  };
+
+  this.isReverse = function() {
+    var cursor = this.__cursor;
+    return (cursor.pos < this.start[0]) || (cursor.pos === this.start[0] && cursor.charPos < this.start[1]);
+  };
+
+  // Set cursor to position
+  // --------
+  //
+  // Convenience for placing the single cusor where start=end
+
+  this.setCursor = function(pos) {
+    this.__cursor.set(pos[0], pos[1]);
+    this.start = pos;
+    return this;
+  };
+
+  // Get the selection's  cursor
+  // --------
+  //
+
+  this.getCursor = function() {
+    return this.__cursor.copy();
+  };
+
+  this.getCursorPosition = function() {
+    return [this.__cursor.pos, this.__cursor.charPos];
+  };
+
+  // Fully selects a the node with the given id
+  // --------
+  //
+
+  this.selectNode = function(nodeId) {
+    var components = this.container.getNodeComponents(nodeId);
+
+    var first = components[0];
+    var last = components[components.length-1];
+
+    var l = this.container.getLength(last.pos);
+    this.set({
+      start: [first.pos, 0],
+      end: [last.pos, l]
+    });
+  };
+
+  // Get predecessor node of a given node pos
+  // --------
+  //
+
+  this.getPredecessor = function() {
+    // NOTE: this can not be fixed as now the container can have components that are not nodes
+    throw new Error("Not supported anymore");
+  };
+
+  // Get successor node of a given node pos
+  // --------
+  //
+
+  this.getSuccessor = function() {
+    // Can not be fixed.
+    throw new Error("Not supported anymore");
+  };
+
+  // Check if the given position has a successor
+  // --------
+  //
+
+  // TODO: is this really necessary? ~> document.hasPredecessor
+  this.hasPredecessor = function(pos) {
+    return pos > 0;
+  };
+
+  // Check if the given node has a successor
+  // --------
+  //
+
+  // TODO: is this really necessary? ~> document.hasSuccessor
+  this.hasSuccessor = function(pos) {
+    var l = this.container.getLength();
+    return pos < l-1;
+  };
+
+
+  // Collapses the selection into a given direction
+  // --------
+  //
+
+  this.collapse = function(direction) {
+    if (direction !== "right" && direction !== "left" && direction !== "start" && direction !== "cursor") {
+      throw new SelectionError("Invalid direction: " + direction);
+    }
+
+    if (this.isCollapsed() || this.isNull()) return;
+
+    if (direction === "start") {
+      this.__cursor.set(this.start[0], this.start[1]);
+
+    } else if (direction === "cursor") {
+      this.start[0] = this.__cursor.pos;
+      this.start[1] = this.__cursor.charPos;
+
+    } else {
+      var range = this.range();
+
+      if (this.isReverse()) {
+        if (direction === 'left') {
+          this.start = range.start;
+        } else {
+          this.__cursor.set(range.end[0], range.end[1]);
+        }
+      } else {
+        if (direction === 'left') {
+          this.__cursor.set(range.start[0], range.start[1]);
+        } else {
+          this.start = range.end;
+        }
+      }
+    }
+
+    this.trigger('selection:changed', this.range());
+  };
+
+  // move selection to position
+  // --------
+  //
+  // Convenience for placing the single cusor where start=end
+
+  this.move = function(direction, granularity) {
+
+    // moving an expanded selection by char collapses the selection
+    // and sets the cursor to the boundary of the direction
+    if (!this.isCollapsed() && granularity === "char") {
+      this.collapse(direction);
+    }
+    // otherwise the cursor gets moved (together with start)
+    else {
+      this.__cursor.move(direction, granularity);
+      this.start = this.__cursor.position();
+    }
+
+    this.trigger('selection:changed', this.range());
+  };
+
+  // Expand current selection
+  // ---------
+  //
+  // Selections keep the direction as a state
+  // They can either be right-bound or left-bound
+  //
+
+  this.expand = function(direction, granularity) {
+    // expanding is done by moving the cursor
+    this.__cursor.move(direction, granularity);
+
+    this.trigger('selection:changed', this.range());
+  };
+
+  // JSON serialization
+  // --------
+  //
+
+  this.toJSON = function() {
+    return this.range();
+  };
+
+  // For a given document return the selected nodes
+  // --------
+  //
+
+  this.getNodes = function() {
+    throw new Error("This method has been removed, as it is not valid anymore after the Container refactor.");
+    // var allNodes = this.container.getNodes();
+    // if (this.isNull()) return [];
+    // var range = this.range();
+
+    // return allNodes.slice(range.start[0], range.end[0]+1);
+  };
+
+  // Derives Range objects for the selection
+  // --------
+  //
+
+  this.getRanges = function() {
+    var ranges = [];
+
+    var sel = this.range();
+
+    for (var i = sel.start[0]; i <= sel.end[0]; i++) {
+      var startChar = 0;
+      var endChar = null;
+
+      // in the first node search only in the trailing part
+      if (i === sel.start[0]) {
+        startChar = sel.start[1];
+      }
+
+      // in the last node search only in the leading part
+      if (i === sel.end[0]) {
+        endChar = sel.end[1];
+      }
+
+      if (!_.isNumber(endChar)) {
+        endChar = this.container.getLength(i);
+      }
+      ranges.push(new Selection.Range(this, i, startChar, endChar));
+    }
+    return ranges;
+  };
+
+  // Returns start node offset
+  // --------
+  //
+
+  this.startNode = function() {
+    return this.isReverse() ? this.__cursor.pos : this.start[0];
+  };
+
+  // Returns end node offset
+  // --------
+  //
+
+  this.endNode = function() {
+    return this.isReverse() ? this.start[0] : this.__cursor.pos;
+  };
+
+
+  // Returns start node offset
+  // --------
+  //
+
+  this.startChar = function() {
+    return this.isReverse() ? this.__cursor.charPos : this.start[1];
+  };
+
+  // Returns end node offset
+  // --------
+  //
+
+  this.endChar = function() {
+    return this.isReverse() ? this.start[1] : this.__cursor.charPos;
+  };
+
+  // No selection
+  // --------
+  //
+  // Returns true if there's just a single cursor not a selection spanning
+  // over 1+ characters
+
+  this.isNull = function() {
+    return this.start === null;
+  };
+
+
+  // Collapsed
+  // --------
+  //
+  // Returns true if there's just a single cursor not a selection spanning
+  // over 1+ characters
+
+  this.isCollapsed = function() {
+    return this.start[0] === this.__cursor.pos && this.start[1] === this.__cursor.charPos;
+  };
+
+
+  // Multinode
+  // --------
+  //
+  // Returns true if the selection refers to multiple nodes
+
+  this.hasMultipleNodes = function() {
+    return !this.isNull() && (this.startNode() !== this.endNode());
+  };
+
+};
+
+Selection.Prototype.prototype = util.Events;
+Selection.prototype = new Selection.Prototype();
+
+Object.defineProperties(Selection.prototype, {
+  cursor: {
+    get: function() {
+      return this.__cursor.copy();
+    },
+    set: function() { throw "immutable property"; }
+  }
+});
+
+// Document.Selection.Range
+// ================
+//
+// A Document.Selection consists of 1..n Ranges
+// Each range belongs to a node in the document
+// This allows us to ask the range about the selected text
+// or ask if it's partially selected or not
+// For example if an image is fully selected we can just delete it
+
+var Range = function(selection, pos, start, end) {
+  this.selection = selection;
+  // The node pos within the document which can range
+  // between selection.startNode() and selection.endNode()
+  this.pos = pos;
+  this.start = start;
+  this.end = end;
+
+  this.component = selection.container.getComponent(pos);
+};
+
+Range.Prototype = function() {
+
+  // Returns true if the range denotes the first range in a selection
+  // --------
+  //
+
+  this.isFirst = function() {
+    return this.pos === this.selection.startNode();
+  };
+
+  // Returns true if the range denotes the last range in a selection
+  // --------
+  //
+
+  this.isLast = function() {
+    return this.pos === this.selection.endNode();
+  };
+
+  // Returns true if the range denotes the last range in a selection
+  // --------
+  //
+
+  this.hasPredecessor = function() {
+    return !this.isFirst();
+  };
+
+  // Returns true if the range denotes the last range in a selection
+  // --------
+  //
+
+  this.hasSuccessor = function() {
+    return !this.isLast();
+  };
+
+  // Returns true if the range is fully enclosed by both a preceding and successing range
+  // --------
+  //
+
+  this.isEnclosed = function() {
+    return this.hasPredecessor() && this.hasSuccessor();
+  };
+
+  // Returns true if the range includes the last character of a node
+  // --------
+  //
+
+  this.isRightBound = function() {
+    return this.end === this.component.getLength();
+  };
+
+  // Returns true if the range includes the first character of a node
+  // --------
+  //
+
+  this.isLeftBound = function() {
+    return this.start === 0;
+  };
+
+  // Returns the length of the range which corresponds to the number of chars contained
+  // --------
+  //
+
+  this.length = function() {
+    return this.end - this.start;
+  };
+
+  // Returns the range's content
+  // --------
+  //
+
+  this.content = function() {
+    throw new Error("Not supported anymore");
+  };
+
+  // Returns true if all chars are selected
+  // --------
+  //
+
+  this.isFull = function() {
+    return this.isLeftBound() && this.isRightBound();
+  };
+
+  // Returns true if the range includes the first character of a node
+  // --------
+  //
+
+  this.isPartial = function() {
+    return !this.isFull();
+  };
+
+};
+
+Range.prototype = new Range.Prototype();
+
+Object.defineProperties(Range.prototype, {
+  node: {
+    get: function() {
+      throw new Error("Not supported anymore");
+    },
+    set: function() {
+      throw new Error("Not supported anymore");
+    }
+  }
+});
+
+Selection.Range = Range;
+Selection.SelectionError = SelectionError;
+
+// Export
+// ========
+
+module.exports = Selection;
+
+},{"./cursor":38,"substance-util":140,"underscore":147}],43:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  "node": require("./src/node"),
+  "text": require("./src/text"),
+  "heading": require("./src/heading"),
+  "codeblock": require("./src/codeblock"),
+  "image": require("./src/image"),
+  "figure": require("./src/figure"),
+  "contributor": require("./src/contributor"),
+  "cover": require("./src/cover"),
+  "citation": require("./src/citation"),
+  "annotation": require("./src/annotation"),
+  "emphasis": require("./src/emphasis"),
+  "strong": require("./src/strong"),
+  "subscript": require("./src/subscript"),
+  "superscript": require("./src/superscript"),
+  "code": require("./src/code"),
+  "link": require("./src/link"),
+  "math": require("./src/math"),
+  "issue": require("./src/issue"),
+  "remark": require("./src/remark"),
+  "error": require("./src/error"),
+  "figure_reference": require("./src/figure_reference"),
+  "citation_reference": require("./src/citation_reference"),
+  "cross_reference": require("./src/cross_reference"),
+  "remark_reference": require("./src/remark_reference"),
+  "error_reference": require("./src/error_reference"),
+
+  // deprecated: these node types will be re-implemented
+  "paragraph": require("./src/paragraph"),
+  "list": require("./src/list"),
+  "table": require("./src/table"),
+  "formula": require("./src/formula"),
+};
+
+},{"./src/annotation":45,"./src/citation":49,"./src/citation_reference":51,"./src/code":53,"./src/codeblock":56,"./src/contributor":60,"./src/cover":64,"./src/cross_reference":66,"./src/emphasis":68,"./src/error":71,"./src/error_reference":73,"./src/figure":77,"./src/figure_reference":79,"./src/formula":82,"./src/heading":85,"./src/image":88,"./src/issue":89,"./src/link":93,"./src/list":95,"./src/math":98,"./src/node":100,"./src/paragraph":105,"./src/remark":108,"./src/remark_reference":111,"./src/strong":113,"./src/subscript":115,"./src/superscript":117,"./src/table":119,"./src/text":122}],44:[function(require,module,exports){
+"use strict";
+
+var DocumentNode = require('../node/node');
+var _ = require('underscore');
+
+var Annotation = function(node, document) {
+  DocumentNode.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+Annotation.type = {
+  "id": "annotation",
+  "properties": {
+    "path": ["array", "string"], // -> e.g. ["text_1", "content"]
+    "range": "object"
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Annotation.description = {
+  "name": "Annotation",
+  "remarks": [
+    "Abstract type for all available annotations"
+  ],
+  "properties": {
+    "path": "References node and property in the graph.",
+    "range": "Tuple describing start and end character offset."
+  }
+};
+
+
+// Example Annotation
+// -----------------
+//
+
+Annotation.example = {
+  "type": "emphasis",
+  "id": "emphasis_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ]
+};
+
+Annotation.Prototype = function() {
+  this.getContent = function() {
+    var content = this.document.get(this.path);
+    var range = this.range;
+    return content.substring(range[0], range[1]);
+  };
+};
+
+Annotation.Prototype.prototype = DocumentNode.prototype;
+Annotation.prototype = new Annotation.Prototype();
+Annotation.prototype.constructor = Annotation;
+
+Annotation.prototype.defineProperties();
+
+module.exports = Annotation;
+
+},{"../node/node":101,"underscore":147}],45:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./annotation")
+};
+
+},{"./annotation":44}],46:[function(require,module,exports){
+var DocumentNode = require('../node/node');
+
+// Citation
+// -----------------
+//
+
+var Citation = function(node, document) {
+  DocumentNode.call(this, node, document);
+};
+
+// Type definition
+// -----------------
+//
+
+Citation.type = {
+  "id": "article_citation", // type name
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "title": "string",
+    "label": "string",
+    "authors": ["array", "string"],
+    "doi": "string",
+    "source": "string",
+    "volume": "string",
+    "publisher_name": "string",
+    "publisher_location": "string",
+    "fpage": "string",
+    "lpage": "string",
+    "year": "string",
+    "citation_urls": ["array", "string"]
+  }
+};
+
+Citation.description = {
+  "name": "Citation",
+  "remarks": [
+    "A journal citation.",
+    "This element can be used to describe all kinds of citations."
+  ],
+  "properties": {
+    "title": "The article's title",
+    "label": "Optional label (could be a number for instance)",
+    "doi": "DOI reference",
+    "source": "Usually the journal name",
+    "volume": "Issue number",
+    "publisher_name": "Publisher Name",
+    "publisher_location": "Publisher Location",
+    "fpage": "First page",
+    "lpage": "Last page",
+    "year": "The year of publication",
+    "citation_urls": "A list of links for accessing the article on the web"
+  }
+};
+
+// Example Citation
+// -----------------
+//
+
+Citation.example = {
+  "id": "article_nature08160",
+  "type": "article_citation",
+  "label": "5",
+  "title": "The genome of the blood fluke Schistosoma mansoni",
+  "authors": [
+    "M Berriman",
+    "BJ Haas",
+    "PT LoVerde"
+  ],
+  "doi": "http://dx.doi.org/10.1038/nature08160",
+  "source": "Nature",
+  "volume": "460",
+  "fpage": "352",
+  "lpage": "8",
+  "year": "1984",
+  "citation_urls": [
+    "http://www.ncbi.nlm.nih.gov/pubmed/19606141"
+  ]
+};
+
+
+Citation.Prototype = function() {
+  // Returns the citation URLs if available
+  // Falls back to the DOI url
+  // Always returns an array;
+  this.urls = function() {
+    return this.properties.citation_urls.length > 0 ? this.properties.citation_urls
+                                                    : [this.properties.doi];
+  };
+};
+
+Citation.Prototype.prototype = DocumentNode.prototype;
+Citation.prototype = new Citation.Prototype();
+Citation.prototype.constructor = Citation;
+
+// Generate getters
+// --------
+
+Citation.prototype.defineProperties();
+
+// Property aliases
+// ----
+
+Object.defineProperties(Citation.prototype, {
+  "header": {
+    get: function() { return this.properties.title; },
+    set: function() { throw new Error("This is a read-only alias property."); }
+  }
+});
+
+module.exports = Citation;
+
+},{"../node/node":101}],47:[function(require,module,exports){
+
+"use strict";
+
+var NodeSurface = require("../node/node_surface");
+var TextSurface = require("../text/text_surface");
+
+// NOTE: this is just *experimental* and will change for sure.
+
+var CitationSurface = function(node, surfaceProvider) {
+  NodeSurface.call(this, node, surfaceProvider);
+
+  this.components.push(this.titleComponent());
+  for (var i = 0; i < node.authors.length; i++) {
+    this.components.push(this.authorComponent(i));
+  }
+  this.components.push(this.sourceComponent());
+};
+CitationSurface.Prototype = function() {
+
+  this.titleComponent = function() {
+    var self = this;
+
+    // TODO: it is not very convenient to create a Text sub-surface for a textish property:
+    var titleSurface = new TextSurface(this.node, this.surfaceProvider, { property: "title" });
+    var titleComponent = titleSurface.components[0];
+    titleComponent.element(function() {
+        return self.view.childViews["title"].el;
+      })
+      .length(function() {
+        // HACK: somehow we need a plus one here... dunno
+        return self.node.title.length + 1;
+      });
+    titleComponent.name = "title";
+    return titleComponent;
+  };
+
+  this.authorComponent = function(i) {
+    var self = this;
+
+    // TODO: it is not very convenient to create a Text sub-surface for a textish property:
+    var authorComponent = this.customComponent([this.node.id, "author"+i], {name: "author"})
+      .element(function() {
+        return self.view.authorEls[i];
+      })
+      .length(function() {
+        // HACK: somehow we need a plus one here... dunno
+        return self.node.authors[i].length;
+      })
+      .mapping(function(charPos) {
+        var range = document.createRange();
+        range.setStart(this.el.childNodes[0], charPos);
+        return range;
+      });
+    return authorComponent;
+  };
+
+  this.sourceComponent = function() {
+    var self = this;
+
+    var sourceComponent = this.customComponent([this.node.id, "source"], {name: "source"});
+    sourceComponent.element(function() {
+        return self.view.sourceEl;
+      })
+      .length(function() {
+        // HACK: somehow we need a plus one here... dunno
+        return self.node.source.length + 1;
+      })
+      .mapping(function(charPos) {
+        var range = document.createRange();
+        range.setStart(this.el.childNodes[0], charPos);
+        return range;
+      });
+    return sourceComponent;
+  };
+};
+CitationSurface.Prototype.prototype = NodeSurface.prototype;
+CitationSurface.prototype = new CitationSurface.Prototype();
+
+module.exports = CitationSurface;
+
+},{"../node/node_surface":102,"../text/text_surface":124}],48:[function(require,module,exports){
+"use strict";
+
+var NodeView = require("../node").View;
+var TextView = require("../text").View;
+
+var $$ = require("substance-application").$$;
+
+// Citation.View
+// ==========================================================================
+
+
+var CitationView = function(node) {
+  NodeView.call(this, node);
+
+  this.$el.attr({id: node.id});
+  this.$el.addClass('citation');
+
+  this.childViews = {
+    "title": null
+  };
+};
+
+
+CitationView.Prototype = function() {
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    var frag = document.createDocumentFragment(),
+        node = this.node;
+
+    // TODO: rename this to title*
+    var titleView = this.childViews["title"] = new TextView(this.node, this.viewFactory, {property: "title"});
+    frag.appendChild(titleView.render().el);
+
+
+    // Delete Button
+    // --------
+
+    var deleteButton = $$('a.delete-resource', {
+      href: '#',
+      text: "Delete",
+      contenteditable: false // Make sure this is not editable!
+    });
+
+    titleView.el.appendChild(deleteButton);
+
+
+    // Resource body
+    // --------
+    // 
+    // Wraps all resource details
+
+    var bodyEl = $$('.resource-body');
+
+    // Add Authors
+    // -------
+
+    this.authorEls = [];
+    var authorsEl = $$('.authors');
+    for (var i = 0; i < node.authors.length; i++) {
+      var author = node.authors[i];
+      this.authorEls.push($$('span.author', {
+        text: author,
+        "data-path": "author"+i
+      }));
+      authorsEl.appendChild(this.authorEls[i]);
+      authorsEl.appendChild(document.createTextNode(" "));
+    }
+    bodyEl.appendChild(authorsEl);
+
+    // Add Source
+    // -------
+    var source = [];
+
+    if (node.source && node.volume) {
+      source.push([node.source, node.volume].join(', ')+": ");
+    }
+
+    if (node.fpage && node.lpage) {
+      source.push([node.fpage, node.lpage].join('-')+", ");
+    }
+
+    if (node.publisher_name && node.publisher_location) {
+      source.push([node.publisher_name, node.publisher_location].join(', ')+", ");
+    }
+
+    if (node.year) {
+      source.push(node.year);
+    }
+
+    this.sourceEl = $$('.source', {
+      html: source.join(''),
+      // "data-path": "source"
+    });
+    bodyEl.appendChild(this.sourceEl);
+
+    // Add DOI (if available)
+    // -------
+
+    if (node.doi) {
+      this.doiEl = $$('.doi', {
+        children: [
+          $$('b', {text: "DOI: "}),
+          $$('a', {
+            href: node.doi,
+            target: "_new",
+            text: node.doi
+          })
+        ]
+      });
+      bodyEl.appendChild(this.doiEl);
+    }
+
+    frag.appendChild(bodyEl);
+
+    this.content.appendChild(frag);
+
+    return this;
+  };
+};
+
+CitationView.Prototype.prototype = NodeView.prototype;
+CitationView.prototype = new CitationView.Prototype();
+CitationView.prototype.constructor = CitationView;
+
+module.exports = CitationView;
+
+},{"../node":100,"../text":122,"substance-application":4}],49:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./citation'),
+  View: require('./citation_view'),
+  Surface: require("./citation_surface")
+};
+
+},{"./citation":46,"./citation_surface":47,"./citation_view":48}],50:[function(require,module,exports){
+"use strict";
+
+var Annotation = require('../annotation/annotation');
+
+var CitationReference = function(node, document) {
+  Annotation.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+CitationReference.type = {
+  "id": "citation_reference",
+  "parent": "annotation",
+  "properties": {
+    "target": "citation"
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+CitationReference.description = {
+  "name": "CitationReference",
+  "remarks": [
+    "References a range in a text-ish node and references a citation."
+  ],
+  "properties": {
+  }
+};
+
+
+// Example CitationReference annotation
+// -----------------
+//
+
+CitationReference.example = {
+  "type": "citation_reference_1",
+  "id": "citation_reference_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ]
+};
+
+CitationReference.Prototype = function() {};
+
+CitationReference.Prototype.prototype = Annotation.prototype;
+CitationReference.prototype = new CitationReference.Prototype();
+CitationReference.prototype.constructor = CitationReference;
+
+CitationReference.prototype.defineProperties();
+
+module.exports = CitationReference;
+
+},{"../annotation/annotation":44}],51:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./citation_reference")
+};
+
+},{"./citation_reference":50}],52:[function(require,module,exports){
+"use strict";
+
+var Annotation = require('../annotation/annotation');
+
+var Code = function(node, document) {
+  Annotation.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+Code.type = {
+  "id": "code",
+  "parent": "annotation",
+  "properties": {
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Code.description = {
+  "name": "Code",
+  "remarks": [
+    "References a range in a text-ish node and tags it as subscript"
+  ],
+  "properties": {
+  }
+};
+
+
+// Example Code annotation
+// -----------------
+//
+
+Code.example = {
+  "type": "code_1",
+  "id": "code_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ]
+};
+
+Code.Prototype = function() {};
+
+Code.Prototype.prototype = Annotation.prototype;
+Code.prototype = new Code.Prototype();
+Code.prototype.constructor = Code;
+
+module.exports = Code;
+
+},{"../annotation/annotation":44}],53:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./code")
+};
+
+},{"./code":52}],54:[function(require,module,exports){
+"use strict";
+
+var Text = require("../text/text_node");
+
+var Codeblock = function(node, document) {
+  Text.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+Codeblock.type = {
+  "id": "codeblock",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "content": "string"
+  }
+};
+
+Codeblock.config = {
+  "zoomable": true
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Codeblock.description = {
+  "name": "Codeblock",
+  "remarks": [
+    "Text in a codeblock is displayed in a fixed-width font, and it preserves both spaces and line breaks"
+  ],
+  "properties": {
+    "content": "Content",
+  }
+};
+
+
+// Example Formula
+// -----------------
+//
+
+Codeblock.example = {
+  "type": "codeblock",
+  "id": "codeblock_1",
+  "content": "var text = \"Sun\";\nvar op1 = Operator.TextOperation.Delete(2, \"n\");\ntext = op2.apply(op1.apply(text));\nconsole.log(text);",
+};
+
+Codeblock.Prototype = function() {};
+
+Codeblock.Prototype.prototype = Text.prototype;
+Codeblock.prototype = new Codeblock.Prototype();
+Codeblock.prototype.constructor = Codeblock;
+
+Codeblock.prototype.defineProperties();
+
+module.exports = Codeblock;
+
+
+},{"../text/text_node":123}],55:[function(require,module,exports){
+"use strict";
+
+var TextView = require('../text/text_view');
+
+// Substance.Codeblock.View
+// ==========================================================================
+
+var CodeblockView = function(node) {
+  TextView.call(this, node);
+
+  this.$el.addClass('content-node codeblock');
+};
+
+CodeblockView.Prototype = function() {};
+
+CodeblockView.Prototype.prototype = TextView.prototype;
+CodeblockView.prototype = new CodeblockView.Prototype();
+
+module.exports = CodeblockView;
+
+},{"../text/text_view":125}],56:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./codeblock"),
+  View: require("./codeblock_view"),
+  Surface: require("../text/text_surface")
+};
+
+},{"../text/text_surface":124,"./codeblock":54,"./codeblock_view":55}],57:[function(require,module,exports){
+var _ = require('underscore');
+var DocumentNode = require('../node/node');
+
+// Substance.Contributor
+// -----------------
+//
+
+var Contributor = function(node, doc) {
+  DocumentNode.call(this, node, doc);
+};
+
+
+// Type definition
+// -----------------
+//
+
+Contributor.type = {
+  "id": "contributor",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "name": "string", // full author name
+    "role": "string",
+    "organization": "string",
+    "image": "string", // optional
+    "email": "string",
+    "contribution": "string"
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Contributor.description = {
+  "name": "Contributor",
+  "remarks": [
+    "Describes an article contributor such as an author or editor.",
+  ],
+  "properties": {
+    "name": "Full name.",
+  }
+};
+
+// Example Video
+// -----------------
+//
+
+Contributor.example = {
+  "id": "contributor_1",
+  "type": "contributor",
+  "role": "author",
+  "name": "John Doe",
+  "image": "http://john.com/doe.png",
+  "email": "a@b.com",
+  "contribution": "Revising the article, data cleanup"
+};
+
+
+Contributor.Prototype = function() {
+  this.getAffiliations = function() {
+    return _.map(this.properties.affiliations, function(affId) {
+      return this.document.get(affId);
+    }, this);
+  };
+};
+
+Contributor.Prototype.prototype = DocumentNode.prototype;
+Contributor.prototype = new Contributor.Prototype();
+Contributor.prototype.constructor = Contributor;
+
+Contributor.prototype.defineProperties();
+
+// Property aliases
+// ----
+
+Object.defineProperties(Contributor.prototype, {
+  "header": {
+    get: function() { return this.properties.name; },
+    set: function() { throw new Error("This is a read-only alias property."); }
+  }
+});
+
+module.exports = Contributor;
+
+},{"../node/node":101,"underscore":147}],58:[function(require,module,exports){
+"use strict";
+
+var NodeSurface = require("../node/node_surface");
+var TextSurface = require("../text/text_surface");
+var SurfaceComponents = require("../node/surface_components");
+
+var ContributorSurface = function(node, surfaceProvider) {
+  NodeSurface.call(this, node, surfaceProvider);
+
+  this.nameComponent = TextSurface.textProperty(this, "name");
+  this.components.push(this.nameComponent);
+
+  // TODO: Add components for organization, etc.
+};
+
+ContributorSurface.Prototype = function() {
+  var __super__ = NodeSurface.prototype;
+  this.attachView = function(view) {
+    __super__.attachView.call(this, view);
+
+
+    this.nameComponent.surface.attachView(this.view.childViews["name"]);
+    // this.captionComponent.surface.attachView(this.view.childViews["caption"]);
+  };
+};
+ContributorSurface.Prototype.prototype = NodeSurface.prototype;
+ContributorSurface.prototype = new ContributorSurface.Prototype();
+
+module.exports = ContributorSurface;
+
+},{"../node/node_surface":102,"../node/surface_components":104,"../text/text_surface":124}],59:[function(require,module,exports){
+"use strict";
+
+var NodeView = require("../node").View;
+var $$ = require("substance-application").$$;
+var TextView = require("../text/text_view");
+
+// Substance.Contributor.View
+// ==========================================================================
+
+var ContributorView = function(node) {
+  NodeView.call(this, node);
+
+  this.$el.attr({id: node.id});
+  this.$el.addClass("content-node contributor");
+
+  this.childViews = {
+    "name": null
+  };
+};
+
+ContributorView.Prototype = function() {
+
+  // Render it
+  // --------
+  //
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    // Name element (used as a header for the resource card)
+    // -------
+
+    var nameView = this.childViews["name"] = new TextView(this.node, this.viewFactory, {property: "name"});
+    $(nameView.el).addClass('toggle-resource');
+    this.content.appendChild(nameView.render().el);
+
+    // Delete Button
+    // --------
+    // 
+    // TODO: This should be attached by the writer, since we don't want to have a
+    // delete button in a reading scenario
+
+    var deleteButton = $$('a.delete-resource', {
+      href: '#',
+      text: "Delete",
+      contenteditable: false
+    });
+
+    nameView.el.appendChild(deleteButton);
+
+    // Resource Body
+    // -------
+    // 
+    // Wraps all the contents of the resource card
+
+    var body = $$('.resource-body');
+
+    // Image
+    // -------
+
+    if (this.node.image) {
+      this.imageEl = $$('.image', {
+        contenteditable: false,
+        children: [$$('img', {src: this.node.image})]
+      });
+      body.appendChild(this.imageEl);
+    }
+
+    // Organization
+    // -------
+
+    // this.content.appendChild($$('.label', {text: 'Organization'}));
+    if (this.node.organization) {
+      this.orgEl = $$('.organization.node-property',{text: this.node.organization, "data-path": "organization"});
+      body.appendChild(this.orgEl);
+    }
+
+
+    // Contribution
+    // -------
+
+    if (this.node.contribution) {
+      body.appendChild($$('.label', {text: 'Contribution'}));
+      this.contribEl = $$('.contribution.node-property', {text: this.node.contribution, "data-path": "contribution"});
+      body.appendChild(this.contribEl);
+    }
+
+
+    // Email
+    // -------
+
+    if (this.node.email) {
+      body.appendChild($$('.label', {text: 'Email'}));
+      this.emailEl = $$('.email.node-property', {
+        children: [$$('a', {href: "mailto:"+ this.node.email, text: this.node.email})],
+        "data-path": "email"
+      });
+      body.appendChild(this.emailEl);
+    }
+
+    this.content.appendChild(body);
+
+    return this;
+  };
+
+  this.describeStructure = function() {
+    var structure = [];
+    structure.push(this.propertyComponent("organization", this.orgEl));
+    structure.push(this.propertyComponent("contribution", this.contribEl));
+    structure.push(this.propertyComponent("email", this.emailEl));
+    return structure;
+  };
+};
+
+ContributorView.Prototype.prototype = NodeView.prototype;
+ContributorView.prototype = new ContributorView.Prototype();
+
+module.exports = ContributorView;
+
+},{"../node":100,"../text/text_view":125,"substance-application":4}],60:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./contributor"),
+  View: require("./contributor_view"),
+  Surface: require("./contributor_surface")
+};
+
+},{"./contributor":57,"./contributor_surface":58,"./contributor_view":59}],61:[function(require,module,exports){
+var _ = require('underscore');
+var DocumentNode = require('../node/node');
+
+// Cover
+// -----------------
+//
+
+var Cover = function(node, doc) {
+  DocumentNode.call(this, node, doc);
+};
+
+// Type definition
+// -----------------
+//
+
+Cover.type = {
+  "id": "cover",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "image": "string"
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Cover.description = {
+  "name": "Cover",
+  "remarks": [
+    "Virtual view on the title and authors of the paper."
+  ],
+  "properties": {
+
+  }
+};
+
+// Example Cover
+// -----------------
+//
+
+Cover.example = {
+  "id": "cover",
+  "type": "cover",
+  "image": "http://example.com/image.png"
+};
+
+Cover.Prototype = function() {
+};
+
+Cover.Prototype.prototype = DocumentNode.prototype;
+Cover.prototype = new Cover.Prototype();
+Cover.prototype.constructor = Cover;
+
+Cover.prototype.defineProperties();
+
+// Property aliases
+// --------
+
+Object.defineProperties(Cover.prototype, {
+  title: {
+    get: function() {
+      return this.document.title;
+    },
+    set: function() {
+      throw new Error("This is a read-only property alias.");
+    }
+  }
+});
+
+module.exports = Cover;
+
+},{"../node/node":101,"underscore":147}],62:[function(require,module,exports){
+"use strict";
+
+var NodeSurface = require("../node/node_surface");
+var TextSurface = require("../text/text_surface");
+
+var __titleComponent;
+var __authorRefComponent;
+
+var CoverSurface = function(node, surfaceProvider) {
+  NodeSurface.call(this, node, surfaceProvider);
+
+  this.titleComponent = TextSurface.textProperty(this, "title", ["document", "title"]);
+  this.components.push(this.titleComponent);
+};
+
+CoverSurface.Prototype = function() {
+  var __super__ = NodeSurface.prototype;
+  this.attachView = function(view) {
+    __super__.attachView.call(this, view);
+    this.titleComponent.surface.attachView(this.view.childViews["title"]);
+  };
+};
+CoverSurface.Prototype.prototype = NodeSurface.prototype;
+CoverSurface.prototype = new CoverSurface.Prototype();
+
+module.exports = CoverSurface;
+
+},{"../node/node_surface":102,"../text/text_surface":124}],63:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var $$ = require("substance-application").$$;
+var NodeView = require("../node/node_view");
+var TextView = require("../text/text_view");
+var Annotator = require("substance-document").Annotator;
+
+// Lens.Cover.View
+// ==========================================================================
+
+var CoverView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+
+  this.$el.attr({id: node.id});
+  this.$el.addClass("content-node cover");
+
+  this.childViews = {
+    "title": null
+  };
+};
+
+CoverView.Prototype = function() {
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    if (this.node.document.published_on) {
+      this.content.appendChild($$('.published-on', {
+        contenteditable: false,
+        html: new Date(this.node.document.published_on).toDateString()
+      }));
+    }
+
+    var titleView = this.childViews["title"] = new TextView(this.node, this.viewFactory, {property: "title"});
+    this.content.appendChild(titleView.render().el);
+    titleView.el.classList.add("title");
+
+    this.authorsEl = $$('.authors', {
+      contenteditable: false
+    });
+
+    this.renderAuthors();
+    this.content.appendChild(this.authorsEl);
+    
+
+    return this;
+  };
+
+  this.renderAuthors = function() {
+    this.authorsEl.innerHTML = "";
+
+    var authors = this.node.document.getAuthors();
+    _.each(authors, function(a) {
+      var authorEl = $$('a.toggle-author', {
+        id: "toggle_"+a.id,
+        href: "#",
+        text: a.name,
+        'data-id': a.id,
+      });
+
+      this.authorsEl.appendChild(authorEl);
+    }, this);
+  };
+
+  this.onGraphUpdate = function(op) {
+    // Call super handler and return if that has processed the operation already
+    if (NodeView.prototype.onGraphUpdate.call(this, op)) {
+      return true;
+    }
+
+    if (_.isEqual(op.path, ["document","title"])) {
+      this.childViews["title"].renderContent();
+      return true;
+    } else if (_.isEqual(op.path, ["document", "authors"])) {
+      this.renderAuthors();
+    }
+
+    // Otherwise deal with annotation changes
+    // Note: the annotations do not get attached to ["document", "title"],
+    // as it seems strange to annotate a property which is used in such an indirect way
+    if (Annotator.changesAnnotations(this.node.document, op, ["cover", "title"])) {
+      //console.log("Rerendering TextView due to annotation update", op);
+      this.childViews["title"].renderContent();
+      return true;
+    }
+  };
+};
+
+CoverView.Prototype.prototype = NodeView.prototype;
+CoverView.prototype = new CoverView.Prototype();
+
+module.exports = CoverView;
+
+},{"../node/node_view":103,"../text/text_view":125,"substance-application":4,"substance-document":35,"underscore":147}],64:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./cover'),
+  View: require('./cover_view'),
+  Surface: require("./cover_surface")
+};
+
+},{"./cover":61,"./cover_surface":62,"./cover_view":63}],65:[function(require,module,exports){
+"use strict";
+
+var Annotation = require('../annotation/annotation');
+
+var CrossReference = function(node, document) {
+  Annotation.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+CrossReference.type = {
+  "id": "cross_reference",
+  "parent": "annotation",
+  "properties": {
+    "target": "content"
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+CrossReference.description = {
+  "name": "CrossReference",
+  "remarks": [
+    "References a range in a text-ish node and references a content node."
+  ],
+  "properties": {
+
+  }
+};
+
+
+// Example CrossReference annotation
+// -----------------
+//
+
+CrossReference.example = {
+  "type": "cross_reference_1",
+  "id": "cross_reference_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ]
+};
+
+CrossReference.Prototype = function() {};
+
+CrossReference.Prototype.prototype = Annotation.prototype;
+CrossReference.prototype = new CrossReference.Prototype();
+CrossReference.prototype.constructor = CrossReference;
+
+CrossReference.prototype.defineProperties();
+
+module.exports = CrossReference;
+
+},{"../annotation/annotation":44}],66:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./cross_reference")
+};
+
+},{"./cross_reference":65}],67:[function(require,module,exports){
+"use strict";
+
+var Annotation = require('../annotation/annotation');
+
+var Emphasis = function(node, document) {
+  Annotation.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+Emphasis.type = {
+  "id": "emphasis",
+  "parent": "annotation",
+  "properties": {
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Emphasis.description = {
+  "name": "Emphasis",
+  "remarks": [
+    "References a range in a text-ish node and tags it as emphasized"
+  ],
+  "properties": {
+  }
+};
+
+
+// Example Emphasis annotation
+// -----------------
+//
+
+Emphasis.example = {
+  "type": "emphasis",
+  "id": "emphasis_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ]
+};
+
+Emphasis.Prototype = function() {};
+
+Emphasis.Prototype.prototype = Annotation.prototype;
+Emphasis.prototype = new Emphasis.Prototype();
+Emphasis.prototype.constructor = Emphasis;
+
+module.exports = Emphasis;
+
+
+},{"../annotation/annotation":44}],68:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./emphasis")
+};
+
+},{"./emphasis":67}],69:[function(require,module,exports){
+"use strict";
+
+var Issue = require('../issue/issue');
+
+var ErrorNode = function(node, document) {
+  Issue.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+ErrorNode.type = {
+  "id": "error",
+  "parent": "issue",
+  "properties": {
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+ErrorNode.description = {
+  "name": "Error",
+  "remarks": [
+    "References a range in a text-ish node and tags it as emphasized"
+  ],
+  "properties": {
+  }
+};
+
+
+// Example Error annotation
+// -----------------
+//
+
+ErrorNode.example = {
+  "type": "error",
+  "id": "error_1",
+  "title": "Hi I am an a error",
+  "description": "An error, yes."
+};
+
+ErrorNode.Prototype = function() {};
+
+ErrorNode.Prototype.prototype = Issue.prototype;
+ErrorNode.prototype = new ErrorNode.Prototype();
+ErrorNode.prototype.constructor = ErrorNode;
+
+module.exports = ErrorNode;
+
+},{"../issue/issue":90}],70:[function(require,module,exports){
+"use strict";
+
+var IssueView = require("../issue/issue_view");
+
+var ErrorView = function(node, viewFactory) {
+  IssueView.call(this, node, viewFactory);
+};
+
+ErrorView.Prototype = function() {
+
+};
+
+ErrorView.Prototype.prototype = IssueView.prototype;
+ErrorView.prototype = new ErrorView.Prototype();
+
+module.exports = ErrorView;
+
+},{"../issue/issue_view":92}],71:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./error"),
+  View: require("./error_view"),
+  Surface: require("../issue/issue_surface")
+};
+
+},{"../issue/issue_surface":91,"./error":69,"./error_view":70}],72:[function(require,module,exports){
+"use strict";
+
+var Annotation = require('../annotation/annotation');
+
+var ErrorReference = function(node, document) {
+  Annotation.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+ErrorReference.type = {
+  "id": "error_reference",
+  "parent": "annotation",
+  "properties": {
+    "target": "error"
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+ErrorReference.description = {
+  "name": "ErrorReference",
+  "remarks": [
+    "References a range in a text-ish node and references an error"
+  ],
+  "properties": {
+    "target": "Referenced error id"
+  }
+};
+
+
+// Example ErrorReference annotation
+// -----------------
+//
+
+ErrorReference.example = {
+  "type": "error_reference_1",
+  "id": "error_reference_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ],
+  "target": "error_1"
+};
+
+ErrorReference.Prototype = function() {};
+
+ErrorReference.Prototype.prototype = Annotation.prototype;
+ErrorReference.prototype = new ErrorReference.Prototype();
+ErrorReference.prototype.constructor = ErrorReference;
+
+ErrorReference.prototype.defineProperties();
+
+module.exports = ErrorReference;
+
+},{"../annotation/annotation":44}],73:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./error_reference")
+};
+
+},{"./error_reference":72}],74:[function(require,module,exports){
+"use strict";
+
+var DocumentNode = require("../node/node");
+
+var Figure = function(node, document) {
+  DocumentNode.call(this, node, document);
+};
+
+Figure.type = {
+  "id": "figure",
+  "parent": "content",
+  "properties": {
+    "url": "string",
+    "image_data": "string",
+    "label": "string",
+    "caption": "paragraph"
+  }
+};
+
+Figure.description = {
+  "name": "Figure",
+  "remarks": [
+    "A figure is a figure is figure."
+  ],
+  "properties": {
+    "label": "Figure label (e.g. Figure 1)",
+    "url": "Image url",
+    "image_data": "Base64 encoded image data",
+    "caption": "A reference to a paragraph that describes the figure",
+  }
+};
+
+// Example Figure
+// -----------------
+//
+
+Figure.example = {
+  "id": "figure_1",
+  "label": "Figure 1",
+  "url": "http://example.com/fig1.png",
+  "image_data": "",
+  "caption": "paragraph_1"
+};
+
+Figure.config = {
+  "zoomable": true
+};
+
+Figure.Prototype = function() {
+
+  this.hasCaption = function() {
+    return (!!this.properties.caption);
+  };
+
+  this.getCaption = function() {
+    if (this.properties.caption) return this.document.get(this.properties.caption);
+  };
+};
+
+Figure.Prototype.prototype = DocumentNode.prototype;
+Figure.prototype = new Figure.Prototype();
+Figure.prototype.constructor = Figure;
+
+Figure.prototype.defineProperties();
+
+// Property aliases:
+// ----
+
+Object.defineProperties(Figure.prototype, {
+  // Used as a resource header
+  header: {
+    get: function() { return this.properties.label; },
+    set: function() { throw new Error("This is a read-only alias property."); }
+  }
+});
+
+// a factory method to create nodes more conveniently
+// Supported
+//  - id: unique id
+//  - url: a relative path or a web URL
+//  - caption: a string used as caption
+Figure.create = function(data) {
+
+  var result = {};
+
+  var figId = data.id;
+  var figure = {
+    id: figId,
+    type: "figure",
+    label: data.label,
+    url: data.url
+  };
+
+  if (data.caption) {
+    var captionId = "caption_" + data.id;
+    var caption = {
+      id: captionId,
+      type: "text",
+      content: data.caption
+    };
+    result[captionId] = caption;
+    figure.caption = captionId;
+  }
+
+  result[figId] = figure;
+  return result;
+};
+
+module.exports = Figure;
+
+},{"../node/node":101}],75:[function(require,module,exports){
+"use strict";
+
+var NodeSurface = require("../node/node_surface");
+var TextSurface = require("../text/text_surface");
+var SurfaceComponents = require("../node/surface_components");
+
+var __labelComponent;
+
+var FigureSurface = function(node, surfaceProvider) {
+  NodeSurface.call(this, node, surfaceProvider);
+
+  this.labelComponent = TextSurface.textProperty(this, "label");
+  this.components.push(this.labelComponent);
+
+  // TODO: it is not clear right now how to create a full-fledged node surface
+  // which is registered with appropriate path (e.g., ["figure_1", "caption"])
+  // we want to create a full node component, but need to adjust the path property
+  if (this.node.caption) {
+    var caption = this.node.getCaption();
+    this.captionComponent = this.surfaceProvider.getNodeSurface(caption);
+    this.addSubSurface("caption", this.captionComponent);
+  }
+};
+FigureSurface.Prototype = function() {
+  var __super__ = NodeSurface.prototype;
+  this.attachView = function(view) {
+    __super__.attachView.call(this, view);
+    this.labelComponent.surface.attachView(this.view.childViews["label"]);
+    this.captionComponent.surface.attachView(this.view.childViews["caption"]);
+  };
+};
+FigureSurface.Prototype.prototype = NodeSurface.prototype;
+FigureSurface.prototype = new FigureSurface.Prototype();
+
+module.exports = FigureSurface;
+
+},{"../node/node_surface":102,"../node/surface_components":104,"../text/text_surface":124}],76:[function(require,module,exports){
+"use strict";
+
+var $$ = require ("substance-application").$$;
+var NodeView = require("../node/node_view");
+var TextView = require("../text/text_view");
+
+// Substance.Figure.View
+// ==========================================================================
+
+var FigureView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+
+  this.childViews = {
+    "label": null,
+    "caption": null
+  };
+};
+
+
+function b64toBlob(b64Data, contentType, sliceSize) {
+    contentType = contentType || '';
+    sliceSize = sliceSize || 512;
+
+    var byteCharacters = atob(b64Data);
+    var byteArrays = [];
+
+    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+        var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+        var byteNumbers = new Array(slice.length);
+        for (var i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
+
+        var byteArray = new Uint8Array(byteNumbers);
+
+        byteArrays.push(byteArray);
+    }
+
+    var blob = new Blob(byteArrays, {type: contentType});
+    return blob;
+}
+
+FigureView.Prototype = function() {
+
+  // Rendering
+  // =============================
+  //
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    var labelView = this.childViews["label"] = new TextView(this.node, this.viewFactory, {property: "label"});
+    $(labelView.el).addClass('toggle-resource');
+    this.content.appendChild(labelView.render().el);
+
+    // Delete Button
+    // --------
+
+    var deleteButton = $$('a.delete-resource', {
+      href: '#',
+      text: "Delete",
+      contenteditable: false // Make sure this is not editable!
+    });
+
+    labelView.el.appendChild(deleteButton);
+
+    // Resource body
+    // --------
+    //
+    // Wraps all resource details
+
+    var bodyEl = $$('.resource-body');
+    var url;
+
+
+    
+
+    if (this.node.image_data) {
+      // url = "data:image/png;base64,"+this.node.image_data;
+      // var dat = new Uint8Array(JSZip.base64.decode(this.node.image_data));
+      // var bb = new Blob([dat], {type: "image/png"});
+      var blob = b64toBlob(this.node.image_data);
+      url = window.URL.createObjectURL(blob);
+    } else {
+      url = this.node.url;
+    }
+
+
+
+    // Add graphic (img element)
+    var imgEl = $$('.image-wrapper', {
+      children: [$$("a", {
+        href: url,
+        title: "View image in full size",
+        target: "_blank",
+        children: [$$("img", { src: url})]
+      })]
+    });
+
+    bodyEl.appendChild(imgEl);
+
+    var caption = this.node.getCaption();
+    if (caption) {
+      var captionView = this.childViews["caption"] = this.viewFactory.createView(caption);
+      var captionEl = captionView.render().el;
+      captionEl.classList.add('caption');
+      bodyEl.appendChild(captionEl);
+    }
+
+    this.content.appendChild(bodyEl);
+    return this;
+  };
+
+  // Updates image src when figure is updated by ImageUrlEditor
+  // --------
+  //
+
+  this.onNodeUpdate = function(op) {
+    this.$('img').attr({
+      src: this.node.url
+    });
+    this.childViews["label"].onNodeUpdate(op);
+  };
+
+};
+
+FigureView.Prototype.prototype = NodeView.prototype;
+FigureView.prototype = new FigureView.Prototype();
+
+module.exports = FigureView;
+
+},{"../node/node_view":103,"../text/text_view":125,"substance-application":4}],77:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./figure'),
+  View: require('./figure_view'),
+  Surface: require('./figure_surface')
+};
+
+},{"./figure":74,"./figure_surface":75,"./figure_view":76}],78:[function(require,module,exports){
+"use strict";
+
+var Annotation = require('../annotation/annotation');
+
+var FigureReference = function(node, document) {
+  Annotation.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+FigureReference.type = {
+  "id": "figure_reference",
+  "parent": "annotation",
+  "properties": {
+    "target": "figure"
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+FigureReference.description = {
+  "name": "FigureReference",
+  "remarks": [
+    "References a range in a text-ish node and references a figure"
+  ],
+  "properties": {
+    "target": "Referenced figure id"
+  }
+};
+
+
+// Example FigureReference annotation
+// -----------------
+//
+
+FigureReference.example = {
+  "type": "figure_reference_1",
+  "id": "figure_reference_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ]
+};
+
+FigureReference.Prototype = function() {};
+
+FigureReference.Prototype.prototype = Annotation.prototype;
+FigureReference.prototype = new FigureReference.Prototype();
+FigureReference.prototype.constructor = FigureReference;
+
+FigureReference.prototype.defineProperties();
+
+module.exports = FigureReference;
+
+},{"../annotation/annotation":44}],79:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./figure_reference")
+};
+
+},{"./figure_reference":78}],80:[function(require,module,exports){
+"use strict";
+
+var DocumentNode = require('../node/node');
+
+// Formula
+// -----------------
+//
+
+var Formula = function(node) {
+  DocumentNode.call(this, node);
+};
+
+// Type definition
+// -----------------
+//
+
+Formula.type = {
+  "id": "formula",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "label": "string",
+    "data": "string",
+    "format": "string", // MathML, LaTeX, image
+    "inline": "boolean"
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Formula.description = {
+  "name": "Formula",
+  "remarks": [
+    "Can either be expressed in MathML format or using an image url"
+  ],
+  "properties": {
+    "label": "Formula label (4)",
+    "data": "Formula data, either MathML or image url",
+    "format": "Can either be `mathml` or `image`"
+  }
+};
+
+
+// Example Formula
+// -----------------
+//
+
+Formula.example = {
+  "type": "formula",
+  "id": "formula_eqn1",
+  "label": "(1)",
+  "content": "<mml:mrow>...</mml:mrow>",
+  "format": "mathml"
+};
+
+Formula.Prototype = function() {
+  this.inline = false;
+};
+
+Formula.Prototype.prototype = DocumentNode.prototype;
+Formula.prototype = new Formula.Prototype();
+Formula.prototype.constructor = Formula;
+
+Formula.prototype.defineProperties();
+
+module.exports = Formula;
+
+},{"../node/node":101}],81:[function(require,module,exports){
+"use strict";
+
+var NodeView = require('../node/node_view');
+
+// FormulaView
+// ===========
+
+var FormulaView = function(node) {
+  NodeView.call(this, node);
+
+  this.$el.attr({id: node.id});
+  this.$el.addClass('content-node formula');
+  if (this.node.inline) {
+    this.$el.addClass('inline');
+  }
+};
+
+FormulaView.Prototype = function() {
+
+  // Render the formula
+  // --------
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    var format = this.node.format;
+    switch (format) {
+    case "mathml":
+      this.$el.html(this.node.data);
+
+      // This makes the UI freeze when many formulas are in the document.
+      // MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.el]);
+      break;
+    case "image":
+      this.$el.append('<img src="'+this.node.url+'"/>');
+      break;
+    case "latex":
+      if (this.node.inline) {
+        this.$el.html("\\("+this.node.data+"\\)");
+      } else {
+        this.$el.html("\\["+this.node.data+"\\]");
+      }
+
+      // This makes the UI freeze when many formulas are in the document.
+      // MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.el]);
+      break;
+    default:
+      console.error("Unknown formula format:", format);
+    }
+
+    // Add label to block formula
+    // --------
+    if (this.node.label) {
+      this.$el.append($('<div class="label">').html(this.node.label));
+    }
+
+    return this;
+  };
+};
+
+FormulaView.Prototype.prototype = NodeView.prototype;
+FormulaView.prototype = new FormulaView.Prototype();
+
+module.exports = FormulaView;
+
+},{"../node/node_view":103}],82:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require('./formula'),
+  View: require('./formula_view')
+};
+
+},{"./formula":80,"./formula_view":81}],83:[function(require,module,exports){
+"use strict";
+
+var Text = require("../text/text_node");
+
+var Heading = function(node, document) {
+  Text.call(this, node, document);
+};
+
+// Type definition
+// -----------------
+//
+
+Heading.type = {
+  "id": "heading",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "content": "string",
+    "level": "number"
+  }
+};
+
+// Example Heading
+// -----------------
+//
+
+Heading.example = {
+  "type": "heading",
+  "id": "heading_1",
+  "content": "Introduction",
+  "level": 1
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+
+Heading.description = {
+  "name": "Heading",
+  "remarks": [
+    "Denotes a section or sub section in your article."
+  ],
+  "properties": {
+    "content": "Heading content",
+    "level": "Heading level. Ranges from 1..4"
+  }
+};
+
+Heading.Prototype = function() {
+  this.splitInto = 'paragraph';
+};
+
+Heading.Prototype.prototype = Text.prototype;
+Heading.prototype = new Heading.Prototype();
+Heading.prototype.constructor = Heading;
+
+Heading.prototype.defineProperties();
+
+module.exports = Heading;
+
+},{"../text/text_node":123}],84:[function(require,module,exports){
+"use strict";
+
+var TextView = require('../text/text_view');
+
+// Substance.Heading.View
+// ==========================================================================
+
+var HeadingView = function(node) {
+  TextView.call(this, node);
+  this.$el.addClass('heading');
+
+  this._level = this.node.level;
+  this.$el.addClass('level-'+this._level);
+};
+
+HeadingView.Prototype = function() {
+  var __super__ = TextView.prototype;
+
+  this.onNodeUpdate = function(op) {
+    __super__.onNodeUpdate.call(this, op);
+    if (op.path[1] === "level") {
+      this.$el.removeClass('level-'+this._level);
+
+      this._level = this.node.level;
+      this.$el.addClass('level-'+this._level);
+    }
+  };
+
+};
+
+HeadingView.Prototype.prototype = TextView.prototype;
+HeadingView.prototype = new HeadingView.Prototype();
+
+module.exports = HeadingView;
+
+},{"../text/text_view":125}],85:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./heading"),
+  View: require("./heading_view"),
+  Surface: require("../text/text_surface")
+};
+
+},{"../text/text_surface":124,"./heading":83,"./heading_view":84}],86:[function(require,module,exports){
+"use strict";
+
+var DocumentNode = require('../node/node');
+
+// var WebResource = require("../web_resource/web_resource");
+
+var ImageNode = function(node, document) {
+  DocumentNode.call(this, node, document);
+};
+
+// Type definition
+// -----------------
+//
+
+ImageNode.type = {
+  "id": "image",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "url": "string"
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+
+ImageNode.description = {
+  "name": "Image",
+  "remarks": [
+    "Represents an image web resource."
+  ],
+  "properties": {
+    "url": "URL to a resource",
+  }
+};
+
+
+// Example Image
+// -----------------
+//
+
+ImageNode.example = {
+  "type": "image",
+  "id": "image_1",
+  "url": "http://substance.io/image_1.png"
+};
+
+ImageNode.Prototype = function() {};
+
+ImageNode.Prototype.prototype = DocumentNode.prototype;
+ImageNode.prototype = new ImageNode.Prototype();
+ImageNode.prototype.constructor = ImageNode;
+
+ImageNode.prototype.defineProperties();
+
+module.exports = ImageNode;
+
+},{"../node/node":101}],87:[function(require,module,exports){
+"use strict";
+
+var NodeView = require("../node/node");
+var $$ = require ("substance-application").$$;
+
+// Substance.Image.View
+// ==========================================================================
+
+var ImageView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+
+  this.$el.addClass('image');
+  this.$el.attr('id', this.node.id);
+};
+
+ImageView.Prototype = function() {
+
+  // Render Markup
+  // --------
+  //
+  // div.content
+  //   div.img-char
+  //     .img
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    var imgCharEl = this.imgCharEl = $$(".image-char");
+    var img = $$('img',
+      {
+        src: this.node.url,
+        alt: "alt text",
+        title: "alt text",
+      }
+    );
+    imgCharEl.appendChild(img);
+    this.content.appendChild(imgCharEl);
+
+    return this;
+  };
+
+  this.delete = function(pos, length) {
+    var content = this.$('.content')[0];
+    var spans = content.childNodes;
+    for (var i = length - 1; i >= 0; i--) {
+      content.removeChild(spans[pos+i]);
+    }
+  };
+};
+
+ImageView.Prototype.prototype = NodeView.prototype;
+ImageView.prototype = new ImageView.Prototype();
+
+module.exports = ImageView;
+
+},{"../node/node":101,"substance-application":4}],88:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./image"),
+  View: require("./image_view")
+};
+
+},{"./image":86,"./image_view":87}],89:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./issue"),
+  View: require("./issue_view"),
+  Surface: require("./issue_surface")
+};
+
+},{"./issue":90,"./issue_surface":91,"./issue_view":92}],90:[function(require,module,exports){
+"use strict";
+
+var DocumentNode = require('../node/node');
+
+var Issue = function(node, document) {
+  DocumentNode.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+Issue.type = {
+  "id": "issue",
+  "properties": {
+    "title": "string",
+    "description": "string", // should be a reference to a text node?
+    "creator": "string",
+    "created_at": "date" // should be date
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Issue.description = {
+  "name": "Issue",
+  "remarks": [
+    "References a range in a text-ish node and tags it as subscript"
+  ],
+  "properties": {
+    "title": "Issue Title",
+    "description": "More verbose issue description",
+    "creator": "Issue creator",
+    "created_at": "Date and time of issue creation."
+  }
+};
+
+
+// Example Issue annotation
+// -----------------
+//
+
+Issue.example = {
+  "abstract": "type"
+};
+
+Issue.Prototype = function() {
+
+  this.hasDescription = function() {
+    return (!!this.properties.caption);
+  };
+
+  this.getDescription = function() {
+    if (this.properties.description) return this.document.get(this.properties.description);
+  };
+
+};
+
+Issue.Prototype.prototype = DocumentNode.prototype;
+Issue.prototype = new Issue.Prototype();
+Issue.prototype.constructor = Issue;
+
+Issue.prototype.defineProperties();
+
+module.exports = Issue;
+
+},{"../node/node":101}],91:[function(require,module,exports){
+"use strict";
+
+var NodeSurface = require("../node/node_surface");
+var TextSurface = require("../text/text_surface");
+
+var IssueSurface = function(node, surfaceProvider) {
+  NodeSurface.call(this, node, surfaceProvider);
+
+  this.components.push(TextSurface.textProperty(this, "title"));
+  this.components.push(TextSurface.textProperty(this, "description"));
+};
+
+IssueSurface.Prototype = function() {
+  var __super__ = NodeSurface.prototype;
+  this.attachView = function(view) {
+    __super__.attachView.call(this, view);
+    this.labelComponent.surface.attachView(this.view.childViews["title"]);
+    this.captionComponent.surface.attachView(this.view.childViews["description"]);
+  };
+};
+
+IssueSurface.Prototype.prototype = NodeSurface.prototype;
+IssueSurface.prototype = new IssueSurface.Prototype();
+
+module.exports = IssueSurface;
+
+},{"../node/node_surface":102,"../text/text_surface":124}],92:[function(require,module,exports){
+"use strict";
+
+var $$ = require ("substance-application").$$;
+var NodeView = require("../node/node_view");
+var TextView = require("../text/text_view");
+
+
+// Substance.Issue.View
+// ==========================================================================
+
+var IssueView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+
+  // This class is shared among all issue subtypes (errors, remarks)
+  this.$el.addClass('issue');
+
+  this.childViews = {
+    "title": null,
+    "description": null
+  };
+};
+
+IssueView.Prototype = function() {
+
+  // Rendering
+  // =============================
+  //
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    var labelView = this.childViews["title"] = new TextView(this.node, this.viewFactory, {property: "title"});
+
+    this.content.appendChild(labelView.render().el);
+
+    // Delete Button
+    // --------
+
+    var deleteButton = $$('a.delete-resource', {
+      href: '#',
+      text: "Delete",
+      contenteditable: false // Make sure this is not editable!
+    });
+
+    labelView.el.appendChild(deleteButton);
+
+    // Creator and date
+    // --------
+
+    var creator = $$('div.creator', {
+      text: (this.node.creator || "Anonymous") + ", " + jQuery.timeago(new Date(this.node.created_at)),
+      contenteditable: false // Make sure this is not editable!
+    });
+
+    labelView.el.appendChild(creator);
+
+    var descriptionView = this.childViews["description"] = new TextView(this.node, this.viewFactory, {property: "description"});
+    this.content.appendChild(descriptionView.render().el);
+
+    return this;
+  };
+
+  this.onNodeUpdate = function(op) {
+    if (op.path[1] === "title") {
+      this.childViews["title"].onNodeUpdate(op);
+    } else if (op.path[1] === "description") {
+      this.childViews["description"].onNodeUpdate(op);
+    }
+  };
+
+};
+
+
+IssueView.Prototype.prototype = NodeView.prototype;
+IssueView.prototype = new IssueView.Prototype();
+
+module.exports = IssueView;
+
+},{"../node/node_view":103,"../text/text_view":125,"substance-application":4}],93:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./link")
+};
+
+},{"./link":94}],94:[function(require,module,exports){
+"use strict";
+
+var Annotation = require('../annotation/annotation');
+
+var Link = function(node, document) {
+  Annotation.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+Link.type = {
+  "id": "link",
+  "parent": "annotation",
+  "properties": {
+    "url": "string"
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Link.description = {
+  "name": "Link",
+  "remarks": [
+    "References a range in a text-ish node and tags it as subscript"
+  ],
+  "properties": {
+  }
+};
+
+
+// Example Link annotation
+// -----------------
+//
+
+Link.example = {
+  "type": "link_1",
+  "id": "link_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ]
+};
+
+Link.Prototype = function() {};
+
+Link.Prototype.prototype = Annotation.prototype;
+Link.prototype = new Link.Prototype();
+Link.prototype.constructor = Link;
+
+Link.prototype.defineProperties();
+
+module.exports = Link;
+
+},{"../annotation/annotation":44}],95:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./list"),
+  View: require("./list_view")
+};
+
+},{"./list":96,"./list_view":97}],96:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var DocumentNode = require('../node/node');
+
+var List = function(node, document) {
+  DocumentNode.call(this, node, document);
+};
+
+List.type = {
+  "id": "list",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "items": ["array", "paragraph"],
+    "ordered": "boolean"
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+List.description = {
+  "name": "List",
+  "remarks": [
+    "Lists can either be numbered or bullet lists"
+  ],
+  "properties": {
+    "ordered": "Specifies wheter the list is ordered or not",
+    "items": "An array of paragraph references",
+  }
+};
+
+
+// Example Formula
+// -----------------
+//
+
+List.example = {
+  "type": "list",
+  "id": "list_1",
+  "items ": [
+    "paragraph_listitem_1",
+    "paragraph_listitem_2",
+  ]
+};
+
+List.Prototype = function() {
+
+  this.getItems = function() {
+    return _.map(this.properties.items, function(id) {
+      return this.document.get(id);
+    }, this);
+  };
+
+};
+
+List.Prototype.prototype = DocumentNode.prototype;
+List.prototype = new List.Prototype();
+List.prototype.constructor = List;
+
+List.prototype.defineProperties();
+
+module.exports = List;
+
+},{"../node/node":101,"underscore":147}],97:[function(require,module,exports){
+"use strict";
+
+var NodeView = require("../node/node_view");
+var _ = require("underscore");
+var $$ = require("substance-application").$$;
+// var List = require("./list");
+
+// Substance.Image.View
+// ==========================================================================
+
+var ListView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+
+  this.childViews = {};
+};
+
+ListView.Prototype = function() {
+
+  // Rendering
+  // =============================
+  //
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    _.each(this.node.getItems(), function(item) {
+      var itemView = this.childViews[item.id] = this.viewFactory.createView(item);
+      $(itemView.el).addClass('list-item level-1');
+      itemView.render();
+
+      // Append bullet
+      // TODO: Can we do better here?
+      itemView.el.appendChild($$('.bullet'));
+      this.content.appendChild(itemView.el);
+    }, this);
+
+    // TODO
+    return this;
+  };
+
+  this.onNodeUpdate = function(op) {
+    if (op.path[0] === this.node.id && op.path[1] === "items") {
+      this.render();
+    }
+  };
+};
+
+ListView.Prototype.prototype = NodeView.prototype;
+ListView.prototype = new ListView.Prototype();
+
+module.exports = ListView;
+
+},{"../node/node_view":103,"substance-application":4,"underscore":147}],98:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./math")
+};
+
+},{"./math":99}],99:[function(require,module,exports){
+"use strict";
+
+var Annotation = require('../annotation/annotation');
+
+var Math = function(node, document) {
+  Annotation.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+Math.type = {
+  "id": "math",
+  "parent": "annotation",
+  "properties": {
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Math.description = {
+  "name": "Math",
+  "remarks": [
+    "References a range in a text-ish node and tags it as subscript"
+  ],
+  "properties": {
+  }
+};
+
+
+// Example Math annotation
+// -----------------
+//
+
+Math.example = {
+  "type": "math_1",
+  "id": "math_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ]
+};
+
+Math.Prototype = function() {};
+
+Math.Prototype.prototype = Annotation.prototype;
+Math.prototype = new Math.Prototype();
+Math.prototype.constructor = Math;
+
+module.exports = Math;
+
+},{"../annotation/annotation":44}],100:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./node"),
+  View: require("./node_view"),
+  Node: require("./node_surface")
+};
+
+},{"./node":101,"./node_surface":102,"./node_view":103}],101:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+// Substance.DocumentNode
+// -----------------
+
+var DocumentNode = function(node, document) {
+  this.document = document;
+  this.properties = node;
+};
+
+// Type definition
+// --------
+//
+
+DocumentNode.type = {
+  "parent": "content",
+  "properties": {
+  }
+};
+
+DocumentNode.Prototype = function() {
+
+  this.toJSON = function() {
+    return _.clone(this.properties);
+  };
+
+  this.getAnnotations = function() {
+    return this.document.getIndex("annotations").get(this.properties.id);
+  };
+
+  this.isInstanceOf = function(type) {
+    var schema = this.document.getSchema();
+    return schema.isInstanceOf(this.type, type);
+  };
+
+  this.defineProperties = function(readonly) {
+    if (!this.hasOwnProperty("constructor")) {
+      throw new Error("Constructor property is not set. E.g.: MyNode.prototype.constructor = MyNode;");
+    }
+    var NodeClass = this.constructor;
+    DocumentNode.defineAllProperties(NodeClass, readonly);
+  };
+};
+
+DocumentNode.prototype = new DocumentNode.Prototype();
+DocumentNode.prototype.constructor = DocumentNode;
+
+DocumentNode.defineProperties = function(NodePrototype, properties, readonly) {
+  _.each(properties, function(name) {
+    var spec = {
+      get: function() {
+        return this.properties[name];
+      }
+    };
+    if (!readonly) {
+      spec["set"] = function(val) {
+        this.properties[name] = val;
+        return this;
+      };
+    }
+    Object.defineProperty(NodePrototype, name, spec);
+  });
+};
+
+DocumentNode.defineAllProperties = function(NodeClass, readonly) {
+  DocumentNode.defineProperties(NodeClass.prototype, Object.keys(NodeClass.type.properties), readonly);
+};
+
+DocumentNode.defineProperties(DocumentNode.prototype, ["id", "type"]);
+
+module.exports = DocumentNode;
+
+},{"underscore":147}],102:[function(require,module,exports){
+"use strict";
+
+var SurfaceComponents = require("./surface_components");
+
+// Node.Surface
+// ========
+//
+// A NodeSurface describes the structure of a node view and takes care of
+// selection mapping.
+// It is an adapter to Substance.Surface. Particularly, Substance.Surface.Container needs
+// this to establish the Model coordinate system.
+//
+// A Model coordinate is a tuple `(nodePos, charPos)` which describes a position in
+// a document's view.
+// As nodes can be rendered very arbitrarily and also hierarchically, the Container creates
+// a flattened sequence of components.
+//
+// For instance, consider a Figure node which basicallly consists of three components: label, image, and caption.
+// In the `content` view the Figure node is registered e.g., as `figure_1`.
+// The container would expand this (roughly) to [ [`figure1`, `label`], [`figure1`, `image`], [`caption1`] ].
+// I.e., it expands the single node into a flat representation of its sub-components.
+// We call this representation the surface of a node.
+//
+// There are several kinds of components: nodes, properties, and others.
+// If a node does not have any sub-components it has a node-component as its surface.
+// If a component that represents a node's property is provided by the property-component.
+// For all other cases we introduced a custom component type.
+//
+// The Container uses the Node surfaces for building a Document coordinate domain.
+// The main Surface uses Node surfaces to compute mappings between DOM coordinates to Document coordinates, and vice versa.
+
+var NodeSurface = function(node, surfaceProvider) {
+  this.node = node;
+  this.surfaceProvider = surfaceProvider;
+
+  // To be able to use the surface for selection mapping a view instance
+  // must be attached
+  this.view = null;
+
+  this.components = [];
+};
+
+NodeSurface.Prototype = function() {
+
+  this.hasView = function() {
+    return (this.view !== null);
+  };
+
+  this.attachView = function(view) {
+    this.view = view;
+  };
+
+  // Retrieves the corresponding character position for the given DOM position.
+  // --------
+  //
+
+  this.getCharPosition = function(el, offset) {
+    if (!this.view) {
+      throw new Error("No view attached.");
+    }
+
+    var charPos = this.__getCharPosition__(el, offset);
+    // console.log("Cover.View: getCharPosition()", charPos);
+    return charPos;
+  };
+
+  // Retrieves the corresponding DOM position for a given character.
+  // --------
+  //
+
+  this.getDOMPosition = function(charPos) {
+    if (!this.view) {
+      throw new Error("No view attached.");
+    }
+
+    var range = this.__getDOMPosition__(charPos);
+    // console.log("Cover.View: getDOMPosition()", range);
+    return range;
+  };
+
+  this.propertyComponent = function(name, propertyPath) {
+    return new SurfaceComponents.PropertyComponent(this, name, propertyPath);
+  };
+
+  this.customComponent = function(path, data) {
+    return new SurfaceComponents.CustomComponent(this, path, data);
+  };
+
+  this.__getCharPosition__ = function(el, offset) {
+    var range = document.createRange();
+    range.setStart(el, offset);
+
+    var charPos = 0;
+
+    for (var i = 0; i < this.components.length; i++) {
+      var component = this.components[i];
+
+      var cmpStart = range.compareBoundaryPoints(0, component.getRange());
+
+      // console.log("Comparing boundaries for", component.label, "START", cmpStart);
+      if (cmpStart < 0) {
+        break;
+      }
+
+      var cmpEnd = range.compareBoundaryPoints(3, component.getRange());
+      // console.log("Comparing boundaries for", component.label, "END", cmpEnd);
+
+      // the cursor is within this component
+      if (cmpEnd < 0) {
+        charPos = offset;
+      } else {
+        charPos = component.getLength();
+      }
+    }
+
+    return charPos;
+  };
+
+  this.__getDOMPosition__ = function(charPos) {
+    var l, component;
+    for (var i = 0; i < this.components.length; i++) {
+      component = this.components[i];
+
+      if (!component.getLength) {
+        throw new Error("The provided component can not be used with the generic mapper implementation. getLength() missing.");
+      }
+      if (!component.mapCharPos) {
+        throw new Error("The provided component can not be used with the generic mapper implementation. getRange() missing.");
+      }
+
+      l = component.getLength();
+
+      if (charPos<l) {
+        return component.mapCharPos(charPos);
+      } else {
+        charPos -= l;
+      }
+    }
+    return component.mapCharPos(l);
+  };
+
+  this.__createRange__ = function(el) {
+    var range = document.createRange();
+    range.selectNode(el);
+    return range;
+  };
+
+  this.addSubSurface = function(name, childSurface) {
+    for (var i = 0; i < childSurface.components.length; i++) {
+      var c = childSurface.components[i];
+      c.name = name;
+      this.components.push(c);
+    };
+  };
+};
+NodeSurface.prototype = new NodeSurface.Prototype();
+
+module.exports = NodeSurface;
+
+},{"./surface_components":104}],103:[function(require,module,exports){
+"use strict";
+
+var View = require("substance-application").View;
+var _ = require("underscore");
+
+// Substance.Node.View
+// -----------------
+var NodeView = function(node, viewFactory) {
+  View.call(this);
+
+  this.node = node;
+  this.viewFactory = viewFactory;
+
+  this.$el.addClass('content-node').addClass(node.type);
+  this.$el.attr('id', this.node.id);
+};
+
+NodeView.Prototype = function() {
+
+  // Rendering
+  // --------
+  //
+  this.render = function() {
+    this.disposeChildViews();
+    this.el.innerHTML = "";
+    this.content = document.createElement("DIV");
+    this.content.classList.add("content");
+    this.el.appendChild(this.content);
+    return this;
+  };
+
+  this.dispose = function() {
+    this.stopListening();
+    this.disposeChildViews();
+  };
+
+  this.disposeChildViews = function() {
+    if (this.childViews) {
+      _.each(this.childViews, function(view) {
+        if (view) view.dispose();
+      });
+    }
+  };
+
+  // A general graph update listener that dispatches
+  // to `this.onNodeUpdate(op)`
+  // --------
+  //
+
+  this.onGraphUpdate = function(op) {
+    if(op.path[0] === this.node.id && (op.type === "update" || op.type === "set") ) {
+      this.onNodeUpdate(op);
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  // Callback to get noticed about updates applied to the underlying node.
+  // --------
+  //
+
+  this.onNodeUpdate = function(/*op*/) {
+    // do nothing by default
+  };
+};
+
+NodeView.Prototype.prototype = View.prototype;
+NodeView.prototype = new NodeView.Prototype();
+
+module.exports = NodeView;
+
+},{"substance-application":4,"underscore":147}],104:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+var __createRange__ = function(el) {
+  var range = document.createRange();
+  range.selectNode(el);
+  return range;
+};
+
+var AbstractComponent = function(surface) {
+  this.surface = surface;
+  this.node = surface.node;
+  this.path = null;
+  this.__range__ = null;
+};
+
+AbstractComponent.Prototype = function() {
+  this.getRange = function() {
+    if (!this.__range__) {
+      this.__range__ = __createRange__(this.getElement());
+    }
+    return this.__range__;
+  };
+
+  this.element = function(f) {
+    this.__getElement__ = f;
+    return this;
+  };
+
+  this.length = function(f) {
+    this.__getLength__ = f;
+    return this;
+  };
+
+  this.mapping = function(f) {
+    this.__mapCharPos__ = f;
+    return this;
+  };
+
+  this.getElement = function() {
+    if (!this.el) {
+      this.el = this.__getElement__.call(this);
+      if (!this.el) {
+        throw new Error("You tried to access a component which has not been rendered!");
+      }
+    }
+    return this.el;
+  };
+
+  this.__getElement__ = function() {
+    throw new Error("This method is abstract and must be overridden");
+  };
+
+  this.getLength = function() {
+    return this.__getLength__.call(this);
+  };
+
+  this.__getLength__ = function() {
+    throw new Error("This is abstract and must be overridden");
+  };
+
+  this.mapCharPos = function(charPos) {
+    return this.__mapCharPos__.call(this, charPos);
+  };
+
+  this.__mapCharPos__ = function() {
+    throw new Error("This method is abstract and must be overridden");
+  };
+
+};
+AbstractComponent.prototype = new AbstractComponent.Prototype();
+
+var PropertyComponent = function(surface, property, propertyPath) {
+  AbstractComponent.call(this, surface);
+  this.type = "property";
+  this.path = [surface.node.id, property];
+  this.propertyPath = propertyPath || this.path;
+};
+PropertyComponent.Prototype = function() {};
+PropertyComponent.Prototype.prototype = AbstractComponent.prototype;
+PropertyComponent.prototype = new PropertyComponent.Prototype();
+
+var CustomComponent = function(surface, path, data) {
+  AbstractComponent.call(this, surface);
+  this.type = "custom";
+  if (_.isString(path)) {
+    path = [surface.node.id, path];
+  }
+  this.path = path;
+  _.extend(this, data);
+};
+CustomComponent.Prototype = function() {};
+CustomComponent.Prototype.prototype = AbstractComponent.prototype;
+CustomComponent.prototype = new CustomComponent.Prototype();
+
+module.exports = {
+  PropertyComponent: PropertyComponent,
+  CustomComponent: CustomComponent
+};
+
+},{"underscore":147}],105:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./paragraph"),
+  View: require("./paragraph_view")
+};
+
+},{"./paragraph":106,"./paragraph_view":107}],106:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+var DocumentNode = require("../node/node");
+
+var Paragraph = function(node, document) {
+  DocumentNode.call(this, node, document);
+};
+
+Paragraph.type = {
+  "id": "paragraph",
+  "parent": "content",
+  "properties": {
+    "children": ["array", "content"]
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Paragraph.description = {
+  "name": "Paragraph",
+  "remarks": [
+    "A Paragraph can have inline elements such as images."
+  ],
+  "properties": {
+    "children": "An array of content node references",
+  }
+};
+
+// Example
+// -------
+//
+
+Paragraph.example = {
+  "type": "paragraph",
+  "id": "paragraph_1",
+  "children ": [
+    "text_1",
+    "image_1",
+    "text_2"
+  ]
+};
+
+Paragraph.Prototype = function() {
+
+  this.getChildren = function() {
+    return _.map(this.properties.children, function(id) {
+      return this.document.get(id);
+    }, this);
+  };
+
+};
+
+Paragraph.Prototype.prototype = DocumentNode.prototype;
+Paragraph.prototype = new Paragraph.Prototype();
+Paragraph.prototype.constructor = Paragraph;
+
+Paragraph.prototype.defineProperties();
+
+module.exports = Paragraph;
+
+},{"../node/node":101,"underscore":147}],107:[function(require,module,exports){
+"use strict";
+
+var NodeView = require("../node/node_view");
+
+// Substance.Image.View
+// ==========================================================================
+
+var ParagraphView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+};
+
+ParagraphView.Prototype = function() {
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+    // TODO
+    return this;
+  };
+
+  this.onNodeUpdate = function(op) {
+    if (op.path[0] === this.node.id && op.path[1] === "children") {
+      this.render();
+    }
+  };
+};
+
+ParagraphView.Prototype.prototype = NodeView.prototype;
+ParagraphView.prototype = new ParagraphView.Prototype();
+
+module.exports = ParagraphView;
+
+},{"../node/node_view":103}],108:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./remark"),
+  View: require("./remark_view"),
+  Surface: require("../issue/issue_surface")
+};
+
+},{"../issue/issue_surface":91,"./remark":109,"./remark_view":110}],109:[function(require,module,exports){
+"use strict";
+
+var Issue = require('../issue/issue');
+
+var Remark = function(node, document) {
+  Issue.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+Remark.type = {
+  "id": "remark",
+  "parent": "issue",
+  "properties": {
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Remark.description = {
+  "name": "Remark",
+  "remarks": [
+    "References a range in a text-ish node and tags it as emphasized"
+  ],
+  "properties": {
+  }
+};
+
+// Example Remark annotation
+// -----------------
+//
+
+Remark.example = {
+  "type": "remark",
+  "id": "remark_1",
+  "title": "Can you explain?",
+  "description": "I don't get the argument here."
+};
+
+Remark.Prototype = function() {};
+
+Remark.Prototype.prototype = Issue.prototype;
+Remark.prototype = new Remark.Prototype();
+Remark.prototype.constructor = Remark;
+
+module.exports = Remark;
+
+},{"../issue/issue":90}],110:[function(require,module,exports){
+"use strict";
+
+var IssueView = require("../issue/issue_view");
+
+var RemarkView = function(node, viewFactory) {
+  IssueView.call(this, node, viewFactory);
+};
+
+RemarkView.Prototype = function() {
+
+};
+
+RemarkView.Prototype.prototype = IssueView.prototype;
+RemarkView.prototype = new RemarkView.Prototype();
+
+module.exports = RemarkView;
+
+},{"../issue/issue_view":92}],111:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./remark_reference")
+};
+
+},{"./remark_reference":112}],112:[function(require,module,exports){
+"use strict";
+
+var Annotation = require('../annotation/annotation');
+
+var RemarkReference = function(node, document) {
+  Annotation.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+RemarkReference.type = {
+  "id": "remark_reference",
+  "parent": "annotation",
+  "properties": {
+    "target": "remark"
+  }
+};
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+RemarkReference.description = {
+  "name": "RemarkReference",
+  "remarks": [
+    "References a range in a text-ish node and references a remark"
+  ],
+  "properties": {
+    "target": "Referenced remark id"
+  }
+};
+
+
+// Example RemarkReference annotation
+// -----------------
+//
+
+RemarkReference.example = {
+  "type": "remark_reference_1",
+  "id": "remark_reference_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ]
+};
+
+RemarkReference.Prototype = function() {};
+
+RemarkReference.Prototype.prototype = Annotation.prototype;
+RemarkReference.prototype = new RemarkReference.Prototype();
+RemarkReference.prototype.constructor = RemarkReference;
+
+RemarkReference.prototype.defineProperties();
+
+module.exports = RemarkReference;
+
+},{"../annotation/annotation":44}],113:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./strong")
+};
+
+},{"./strong":114}],114:[function(require,module,exports){
+"use strict";
+
+var Annotation = require('../annotation/annotation');
+
+var Strong = function(node, document) {
+  Annotation.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+Strong.type = {
+  "id": "strong",
+  "parent": "annotation",
+  "properties": {
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Strong.description = {
+  "name": "Strong",
+  "remarks": [
+    "References a range in a text-ish node and tags it as strong emphasized"
+  ],
+  "properties": {
+  }
+};
+
+
+// Example Strong annotation
+// -----------------
+//
+
+Strong.example = {
+  "type": "strong",
+  "id": "strong_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ]
+};
+
+Strong.Prototype = function() {};
+
+Strong.Prototype.prototype = Annotation.prototype;
+Strong.prototype = new Strong.Prototype();
+Strong.prototype.constructor = Strong;
+
+module.exports = Strong;
+
+},{"../annotation/annotation":44}],115:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./subscript")
+};
+
+},{"./subscript":116}],116:[function(require,module,exports){
+"use strict";
+
+var Annotation = require('../annotation/annotation');
+
+var Subscript = function(node, document) {
+  Annotation.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+Subscript.type = {
+  "id": "subscript",
+  "parent": "annotation",
+  "properties": {
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Subscript.description = {
+  "name": "Subscript",
+  "remarks": [
+    "References a range in a text-ish node and tags it as subscript"
+  ],
+  "properties": {
+  }
+};
+
+
+// Example Subscript annotation
+// -----------------
+//
+
+Subscript.example = {
+  "type": "subscript",
+  "id": "subscript_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ]
+};
+
+Subscript.Prototype = function() {};
+
+Subscript.Prototype.prototype = Annotation.prototype;
+Subscript.prototype = new Subscript.Prototype();
+Subscript.prototype.constructor = Subscript;
+
+module.exports = Subscript;
+
+},{"../annotation/annotation":44}],117:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./superscript")
+};
+
+},{"./superscript":118}],118:[function(require,module,exports){
+"use strict";
+
+var Annotation = require('../annotation/annotation');
+
+var Superscript = function(node, document) {
+  Annotation.call(this, node, document);
+};
+
+// Type definition
+// --------
+
+Superscript.type = {
+  "id": "superscript",
+  "parent": "annotation",
+  "properties": {
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Superscript.description = {
+  "name": "Superscript",
+  "remarks": [
+    "References a range in a text-ish node and tags it as strong emphasized"
+  ],
+  "properties": {
+  }
+};
+
+
+// Example Superscript annotation
+// -----------------
+//
+
+Superscript.example = {
+  "type": "strong",
+  "id": "superscript_1",
+  "path": [
+    "text_54",
+    "content"
+  ],
+  "range": [
+    85,
+    95
+  ]
+};
+
+
+Superscript.Prototype = function() {};
+
+Superscript.Prototype.prototype = Annotation.prototype;
+Superscript.prototype = new Superscript.Prototype();
+Superscript.prototype.constructor = Superscript;
+
+module.exports = Superscript;
+
+},{"../annotation/annotation":44}],119:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./table"),
+  View: require("./table_view")
+};
+
+},{"./table":120,"./table_view":121}],120:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var DocumentNode = require("../node/node");
+
+var Table = function(node, document) {
+  DocumentNode.call(this, node, document);
+};
+
+Table.type = {
+  "id": "table",
+  "parent": "content",
+  "properties": {
+    "label": "string",
+    "source_id": "string",
+    "headers": ["array", "content"],
+    "cells": ["array", "array", "content"],
+    "caption": "content"
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Table.description = {
+  "name": "Table",
+  "remarks": [],
+  "properties": {
+    "items": "An array of references which contain the content of each cell",
+  }
+};
+
+
+// Example Formula
+// -----------------
+//
+
+Table.example = {
+  "type": "table",
+  "id": "table_1",
+  "headers": ["text_1", "text_2"],
+  "cells": [
+    ["cell_1_1", "cell_1_2"],
+    ["cell_2_1", "cell_2_2"]
+  ]
+};
+
+Table.Prototype = function() {
+
+  this.getHeaders = function() {
+    return _.map(this.properties.headers, function(id) {
+      return this.document.get(id);
+    }, this);
+  };
+
+  this.getCells = function() {
+    var children = [];
+    for (var i = 0; i < this.properties.cells.length; i++) {
+      var rowIds = this.properties.cells[i];
+      var row = [];
+      for (var j = 0; j < rowIds.length; j++) {
+        row.push(this.document.get(rowIds[j]));
+      }
+      children.push(row);
+    }
+    return children;
+  };
+
+  this.getCaption = function() {
+    var caption;
+    if (this.properties.caption) {
+      caption = this.document.get(this.properties.caption);
+    }
+    return caption;
+  };
+
+};
+
+Table.Prototype.prototype = DocumentNode.prototype;
+Table.prototype = new Table.Prototype();
+Table.prototype.constructor = Table;
+
+Table.prototype.defineProperties();
+
+// Property aliases
+// ----
+
+Object.defineProperties(Table.prototype, {
+  // Used as a resource header
+  header: {
+    get: function() { return this.properties.label; },
+    set: function() { throw new Error("This is a read-only alias property."); }
+  }
+});
+
+// Construction
+// ----
+
+Table.create = function(data) {
+ var result = {};
+
+  var tableId = data.id;
+  var table = {
+    id: tableId,
+    type: "table",
+    label: data.label,
+    headers: [],
+    cells: []
+  };
+
+  var id, node;
+  if (data.headers) {
+    for (var i = 0; i < data.headers.length; i++) {
+      var h = data.headers[i];
+      id = "th_" + i + "_" + tableId;
+      node = {
+        id: id,
+        type: "text",
+        content: h
+      };
+      result[id] = node;
+      table.headers.push(id);
+    }
+  }
+
+  for (var row = 0; row < data.cells.length; row++) {
+    var rowData = data.cells[row];
+    var tableRow = [];
+    for (var col = 0; col < rowData.length; col++) {
+      var cell = rowData[col];
+      id = "td_" + "_" + row + "_" + col + "_" + tableId;
+      node = {
+        id: id,
+        type: "text",
+        content: cell
+      };
+      result[id] = node;
+      tableRow.push(id);
+    }
+    table.cells.push(tableRow);
+  }
+
+  if (data.caption) {
+    id = "caption_"+ tableId;
+    node = {
+      id: id,
+      type: "text",
+      content: data.caption
+    };
+    result[id] = node;
+    table.caption = id;
+  }
+
+  result[table.id] = table;
+
+  return result;
+};
+
+module.exports = Table;
+
+},{"../node/node":101,"underscore":147}],121:[function(require,module,exports){
+"use strict";
+
+var NodeView = require("../node/node_view");
+var _ = require("underscore");
+
+// TableView
+// =========
+
+var TableView = function(node, viewFactory) {
+  NodeView.call(this, node, viewFactory);
+};
+
+TableView.Prototype = function() {
+
+  this.render = function() {
+    NodeView.prototype.render.call(this);
+
+    // var tableEl = document.createElement("table");
+
+    // // table header
+    // var cellNode, cellView;
+    // var tableHeaders = this.node.getHeaders();
+    // var thead = document.createElement("thead");
+    // if (tableHeaders.length > 0) {
+    //   var rowEl = document.createElement("tr");
+    //   for (var i = 0; i < tableHeaders.length; i++) {
+    //     cellNode = tableHeaders[i];
+    //     cellView = this.viewFactory.createView(cellNode);
+    //     var cellEl = document.createElement("th");
+    //     cellEl.appendChild(cellView.render().el);
+    //     rowEl.appendChild(cellEl);
+
+    //     this.childrenViews.push(cellView);
+    //   };
+    //   thead.appendChild(rowEl);
+    // }
+    // tableEl.appendChild(thead);
+
+    // // table rows
+    // var tableCells = this.node.getCells();
+    // var tbody = document.createElement("tbody");
+    // for (var row = 0; row < tableCells.length; row++) {
+    //   var tableRow = tableCells[row];
+
+    //   var rowEl = document.createElement("tr");
+    //   for (var col = 0; col < tableRow.length; col++) {
+    //     cellNode = tableRow[col];
+    //     cellView = this.viewFactory.createView(cellNode);
+    //     var cellEl = document.createElement("td");
+    //     cellEl.appendChild(cellView.render().el);
+    //     rowEl.appendChild(cellEl);
+
+    //     this.childrenViews.push(cellView);
+    //   }
+    //   tbody.appendChild(rowEl);
+    // }
+    // tableEl.appendChild(tbody);
+
+    // this.content.appendChild(tableEl);
+
+    // // table caption
+    // if (this.node.caption) {
+    //   var caption = this.node.getCaption();
+    //   var captionView = this.viewFactory.createView(caption);
+    //   var captionEl = captionView.render().el;
+    //   captionEl.classList.add("caption");
+    //   this.content.appendChild(captionEl);
+    //   this.childrenViews.push(captionView);
+    // }
+
+    // this.el.appendChild(this.content);
+
+    return this;
+  };
+
+  this.onNodeUpdate = function(op) {
+    if (op.path[0] === this.node.id) {
+      if (op.path[1] === "headers" || op.path[1] === "cells") {
+        this.render();
+      }
+    }
+  };
+};
+
+TableView.Prototype.prototype = NodeView.prototype;
+TableView.prototype = new TableView.Prototype();
+TableView.prototype.constructor = TableView;
+
+module.exports = TableView;
+
+},{"../node/node_view":103,"underscore":147}],122:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Model: require("./text_node"),
+  View: require("./text_view"),
+  Surface: require("./text_surface")
+};
+
+},{"./text_node":123,"./text_surface":124,"./text_view":125}],123:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var SRegExp = require("substance-regexp");
+var Operator = require('substance-operator');
+var ObjectOperation = Operator.ObjectOperation;
+var TextOperation = Operator.TextOperation;
+var DocumentNode = require("../node/node");
+
+// Substance.Text
+// -----------------
+//
+
+var Text = function(node, document) {
+  DocumentNode.call(this, node, document);
+};
+
+
+Text.type = {
+  "id": "text",
+  "parent": "content",
+  "properties": {
+    "source_id": "string",
+    "content": "string"
+  }
+};
+
+
+// This is used for the auto-generated docs
+// -----------------
+//
+
+Text.description = {
+  "name": "Text",
+  "remarks": [
+    "A simple text fragement that can be annotated. Usually text nodes are combined in a paragraph.",
+  ],
+  "properties": {
+    "source_id": "Text element source id",
+    "content": "Content"
+  }
+};
+
+
+// Example Paragraph
+// -----------------
+//
+
+Text.example = {
+  "type": "paragraph",
+  "id": "paragraph_1",
+  "content": "Lorem ipsum dolor sit amet, adipiscing elit.",
+};
+
+
+Text.Prototype = function() {
+
+  this.getChangePosition = function(op) {
+    if (op.path[1] === "content") {
+      var lastChange = Operator.Helpers.last(op.diff);
+      if (lastChange.isInsert()) {
+        return lastChange.pos+lastChange.length();
+      } else if (lastChange.isDelete()) {
+        return lastChange.pos;
+      }
+    }
+    return -1;
+  };
+
+  this.getLength = function() {
+    return this.properties.content.length;
+  };
+
+  this.insertOperation = function(charPos, text) {
+    return ObjectOperation.Update([this.properties.id, "content"],
+      TextOperation.Insert(charPos, text));
+  };
+
+  this.deleteOperation = function(startChar, endChar) {
+    var content = this.properties.content;
+    return ObjectOperation.Update([this.properties.id, "content"],
+      TextOperation.Delete(startChar, content.substring(startChar, endChar)),
+      "string");
+  };
+
+  this.prevWord = function(charPos) {
+
+    var content = this.properties.content;
+
+    // Matches all word boundaries in a string
+    var wordBounds = new SRegExp(/\b\w/g).match(content);
+    var prevBounds = _.select(wordBounds, function(m) {
+      return m.index < charPos;
+    }, this);
+
+    // happens if there is some leading non word stuff
+    if (prevBounds.length === 0) {
+      return 0;
+    } else {
+      return _.last(prevBounds).index;
+    }
+  };
+
+  this.nextWord = function(charPos) {
+    var content = this.properties.content;
+
+    // Matches all word boundaries in a string
+    var wordBounds = new SRegExp(/\w\b/g).match(content.substring(charPos));
+
+    // at the end there might be trailing stuff which is not detected as word boundary
+    if (wordBounds.length === 0) {
+      return content.length;
+    }
+    // before, there should be some boundaries
+    else {
+      var nextBound = wordBounds[0];
+      return charPos + nextBound.index + 1;
+    }
+  };
+
+  this.canJoin = function(other) {
+    return (other instanceof Text);
+  };
+
+  this.join = function(doc, other) {
+    var pos = this.properties.content.length;
+    var text = other.content;
+
+    doc.update([this.id, "content"], [pos, text]);
+    var annotations = doc.indexes["annotations"].get(other.id);
+
+    _.each(annotations, function(anno) {
+      doc.set([anno.id, "path"], [this.properties.id, "content"]);
+      doc.set([anno.id, "range"], [anno.range[0]+pos, anno.range[1]+pos]);
+    }, this);
+  };
+
+  this.isBreakable = function() {
+    return true;
+  };
+
+  this.break = function(doc, pos) {
+    var tail = this.properties.content.substring(pos);
+
+    // 1. Create a new node containing the tail content
+    var newNode = this.toJSON();
+    // letting the textish node override the type of the new node
+    // e.g., a 'heading' breaks into a 'paragraph'
+    newNode.type = this.splitInto ? this.splitInto : this.properties.type;
+    newNode.id = doc.uuid(this.properties.type);
+    newNode.content = tail;
+    doc.create(newNode);
+
+    // 2. Move all annotations
+    var annotations = doc.indexes["annotations"].get(this.properties.id);
+    _.each(annotations, function(annotation) {
+      if (annotation.range[0] >= pos) {
+        doc.set([annotation.id, "path"], [newNode.id, "content"]);
+        doc.set([annotation.id, "range"], [annotation.range[0]-pos, annotation.range[1]-pos]);
+      }
+    });
+
+    // 3. Trim this node's content;
+    doc.update([this.properties.id, "content"], TextOperation.Delete(pos, tail));
+
+    // return the new node
+    return newNode;
+  };
+
+};
+
+Text.Prototype.prototype = DocumentNode.prototype;
+Text.prototype = new Text.Prototype();
+Text.prototype.constructor = Text;
+
+Text.prototype.defineProperties();
+
+module.exports = Text;
+
+},{"../node/node":101,"substance-operator":126,"substance-regexp":133,"underscore":147}],124:[function(require,module,exports){
+"use strict";
+
+var NodeSurface = require("../node/node_surface");
+
+var TextSurface = function(node, surfaceProvider, options) {
+  NodeSurface.call(this, node, surfaceProvider);
+  options = options || {};
+  this.property = options.property || "content";
+
+  var self = this;
+
+  if (options.property) {
+    this.components.push(this.propertyComponent(options.property, options.propertyPath));
+  } else {
+    this.components.push(this.propertyComponent(self.property)
+      .length(function() {
+        return self.node[self.property].length;
+      })
+    );
+  }
+};
+
+// This surface has not been refactored. We simply override the default implementation
+// and use the existing implementation.
+TextSurface.Prototype = function() {
+
+  this.getCharPosition = function(el, offset) {
+    if (!this.view) {
+      throw new Error("No view attached.");
+    }
+
+    // Bootstrapping: cases that happened with empty text node.
+    // In these cases we return charPos = 0
+    if (this.view._fragments.length === 0 || el === this.view._fragments[0].el.parentElement) {
+      return 0;
+    }
+
+    // Otherwise find the correct TEXT element
+    var frag;
+    for (var i = 0; i < this.view._fragments.length; i++) {
+      var f = this.view._fragments[i];
+      if (f.el === el) {
+        frag = f;
+        break;
+      }
+    }
+
+    if (!frag) {
+      console.error("AAAAArg", el);
+      throw new Error("Could not lookup text element.");
+    }
+
+    var charPos = frag.charPos + offset;
+    return charPos;
+  };
+
+  // Returns the corresponding DOM element position for the given character
+  // --------
+  //
+  // A DOM position is specified by a tuple of element and offset.
+  // In the case of text nodes it is a TEXT element.
+
+  this.getDOMPosition = function(charPos) {
+    if (!this.view) {
+      throw new Error("No view attached.");
+    }
+    var result = this.view._lookupPostion(charPos);
+    var frag = result[0];
+    var offset = result[1];
+
+    var range = document.createRange();
+    range.setStart(frag.el, offset);
+    return range;
+  };
+
+  this.getComponent = function() {
+    return this.components[0];
+  };
+};
+TextSurface.Prototype.prototype = NodeSurface.prototype;
+TextSurface.prototype = new TextSurface.Prototype();
+
+// A helper which turned out to be useful for editable textish properties
+// --------
+// The node view must provide a corresponding view under `childViews[property]`
+TextSurface.textProperty = function(nodeSurface, property, propertyPath) {
+  // TODO: it is not very convenient to create a Text sub-surface for a textish property:
+  var options = { property: property };
+  if (propertyPath) options[propertyPath] = propertyPath;
+  var propertySurface = new TextSurface(nodeSurface.node, nodeSurface.surfaceProvider, options);
+  var propertyComponent = propertySurface.components[0];
+  propertyComponent.element(function() {
+      return nodeSurface.view.childViews[property].el;
+    })
+    .length(function() {
+      // HACK: somehow we need a plus one here... dunno
+      return nodeSurface.node[property].length + 1;
+    });
+  propertyComponent.name = property;
+  return propertyComponent;
+};
+
+module.exports = TextSurface;
+
+},{"../node/node_surface":102}],125:[function(require,module,exports){
+"use strict";
+
+var NodeView = require('../node/node_view');
+var $$ = require("substance-application").$$;
+var Fragmenter = require("substance-util").Fragmenter;
+var Annotator = require("substance-document").Annotator;
+
+// Substance.Text.View
+// -----------------
+//
+// Manipulation interface shared by all textish types (paragraphs, headings)
+// This behavior can overriden by the concrete node types
+
+function _getAnnotationBehavior(doc) {
+  if (doc.constructor && doc.constructor.annotationBehavior) {
+    return doc.constructor.annotationBehavior;
+  } else {
+    throw new Error("Missing AnnotationBehavior.");
+  }
+}
+
+var TextView = function(node, renderer, options) {
+  NodeView.call(this, node);
+  options = options || {};
+
+  this.property = options.property || "content";
+
+  this.$el.addClass('content-node text');
+
+  if (node.type === "text") {
+    this.$el.addClass("text-node");
+  }
+
+  // If TextView is used to display a custom property,
+  // we don't have an id. Only full-fledged text nodes
+  // have id's.
+  if (options.property) {
+    // Note: currently NodeView sets the id. In this mode the must not be set
+    // as we are displaying a textish property of a node, not a text node.
+    // IMO it is ok to have the id set by default, as it is the 99% case.
+    this.$el.removeAttr('id');
+    this.$el.removeClass('content-node');
+    this.$el.addClass(options.property);
+  }
+
+  this.$el.attr('data-path', this.property);
+
+  this._annotations = {};
+  this.annotationBehavior = _getAnnotationBehavior(node.document);
+
+  // Note: due to (nested) annotations this DOM node is fragmented
+  // into several child nodes which contain a primitive DOM TextNodes.
+  // We wrap each of these nodes into a Fragment object.
+  // A Fragment object offers the chance to override things like the
+  // interpreted length or the manipulation behavior.
+  this._fragments = [];
+};
+
+var _findTextEl;
+
+TextView.Prototype = function() {
+
+  // Rendering
+  // =============================
+  //
+
+  this.render = function(enhancer) {
+    NodeView.prototype.render.call(this, enhancer);
+
+    this.renderContent();
+    return this;
+  };
+
+  this.renderContent = function() {
+    this.content.innerHTML = "";
+
+    this._annotations = this.node.document.getIndex("annotations").get([this.node.id, this.property]);
+    this.renderWithAnnotations(this._annotations);
+  };
+
+  this.insert = function(pos, str) {
+    console.log("Trying incremental insert....");
+    var result = this._lookupPostion(pos);
+    var frag = result[0];
+    var textNode = frag.el;
+    var offset = result[1];
+
+    var text = textNode.textContent;
+    text = text.substring(0, offset) + str + text.substring(offset);
+    textNode.textContent = text;
+
+    // update the cached fragment positions
+    for (var i = frag.index+1; i < this._fragments.length; i++) {
+      this._fragments[i].charPos += str.length;
+    }
+  };
+
+  this.delete = function(pos, length) {
+    var result = this._lookupPostion(pos);
+    var frag = result[0];
+    var textNode = frag.el;
+    var offset = result[1];
+
+    var text = textNode.textContent;
+
+    // can not do this incrementally if it is a greater delete
+    if (length >= text.length) {
+      this.renderContent();
+      return;
+    }
+
+    text = text.substring(0, offset) + text.substring(offset+length);
+    textNode.textContent = text;
+
+    // update the cached fragment positions
+    for (var i = frag.index+1; i < this._fragments.length; i++) {
+      this._fragments[i].charPos -= length;
+    }
+  };
+
+  this._lookupPostion = function(pos) {
+    var frag, l;
+    for (var i = 0; i < this._fragments.length; i++) {
+      frag = this._fragments[i];
+      l = frag.getLength();
+
+      // right in the middle of a fragment
+      if (pos < l) {
+        return [frag, pos];
+      }
+      // the position is not within this fragment
+      else if (pos > l) {
+        pos -= l;
+      }
+      // ... at the boundary we consider the element's level
+      else {
+        var next = this._fragments[i+1];
+        // if the element level of the next fragment is lower then we put the cursor there
+        if (next && next.level < frag.level) {
+          return [next, 0];
+        }
+        // otherwise we leave the cursor in the current fragment
+        else {
+          return [frag, l];
+        }
+      }
+    }
+    return [frag, l];
+  };
+
+  this.onNodeUpdate = function(op) {
+    if (op.path[1] === this.property) {
+      // console.log("Updating text view: ", op);
+      if (op.type === "update") {
+        var update = op.diff;
+        if (update.isInsert()) {
+          this.insert(update.pos, update.str);
+          return true;
+        } else if (update.isDelete()) {
+          this.delete(update.pos, update.str.length);
+          return true;
+        }
+      } else if (op.type === "set") {
+        this.renderContent();
+        return true;
+      }
+    }
+    return false;
+  };
+
+  this.onGraphUpdate = function(op) {
+    // Call super handler and return if that has processed the operation already
+    if (NodeView.prototype.onGraphUpdate.call(this, op)) {
+      return true;
+    }
+
+
+    // Otherwise deal with annotation changes
+    if (Annotator.changesAnnotations(this.node.document, op, [this.node.id, this.property])) {
+      if (op.type === "create" || op.type === "delete") {
+        console.log("Rerendering TextView due to annotation update", op);
+        this.renderContent();
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  this.createAnnotationElement = function(entry) {
+    var el;
+    if (entry.type === "link") {
+      el = $$('a.annotation.'+entry.type, {
+        id: entry.id,
+        href: this.node.document.get(entry.id).url // "http://zive.at"
+      });
+    } else {
+      el = $$('span.annotation.'+entry.type, {
+        id: entry.id
+      });
+    }
+
+    return el;
+  };
+
+  this.renderWithAnnotations = function(annotations) {
+    var self = this;
+    var text = this.node[this.property];
+    var fragment = document.createDocumentFragment();
+
+    // this splits the text and annotations into smaller pieces
+    // which is necessary to generate proper HTML.
+    var fragmenter = new Fragmenter(this.annotationBehavior.levels);
+
+    this._fragments = [];
+
+    var _entry = null;
+    var _index = 0;
+    var _charPos = 0;
+    var _level  = 0;
+
+    fragmenter.onText = function(context, text) {
+      var el = document.createTextNode(text);
+
+      // Note: we create the data structures to allow lookup fragments
+      // for coordinate mapping and incremental changes
+      // TODO: to override the Fragment behavior we would need to override this
+      self._fragments.push(new TextView.DefaultFragment(el, _index++, _charPos, _level));
+      _charPos += text.length;
+      context.appendChild(el);
+    };
+
+    fragmenter.onEnter = function(entry, parentContext) {
+      _entry = entry;
+      _level++;
+      var el = self.createAnnotationElement(entry);
+      parentContext.appendChild(el);
+      return el;
+    };
+
+    fragmenter.onExit = function(entry, parentContext) {
+      _level--;
+    };
+
+    // this calls onText and onEnter in turns...
+    fragmenter.start(fragment, text, annotations);
+
+    // set the content
+    this.content.innerHTML = "";
+    this.content.appendChild(fragment);
+  };
+
+  // Free the memory
+  // --------
+
+  this.dispose = function() {
+    this.stopListening();
+  };
+};
+
+TextView.Prototype.prototype = NodeView.prototype;
+TextView.prototype = new TextView.Prototype();
+
+var _unshiftAll = function(arr, other) {
+  for (var i = 0; i < other.length; i++) {
+    arr.unshift(other[i]);
+  }
+};
+
+_findTextEl = function(el, pos) {
+  var childNodes = [];
+  _unshiftAll(childNodes, el.childNodes);
+
+  while(childNodes.length) {
+    var next = childNodes.shift();
+    if (next.nodeType === Node.TEXT_NODE) {
+      var t = next.textContent;
+      if (t.length >= pos) {
+        return [next, pos];
+      } else {
+        pos -= t.length;
+      }
+    } else {
+      _unshiftAll(childNodes, next.childNodes);
+    }
+  }
+};
+
+TextView.Fragment = function(el, index, charPos, level) {
+  this.el = el;
+
+  // the position in the fragments array
+  this.index = index;
+
+  this.charPos = charPos;
+
+  // Note: the level is used to determine the behavior at element boundaries.
+  // Basiscally, for character positions at the boundaries, a manipulation is done
+  // in the node with lower level.
+  this.level = level;
+
+};
+
+TextView.Fragment.Prototype = function() {
+  this.getLength = function() {
+    throw new Error("This method is abstract");
+  };
+};
+TextView.Fragment.prototype = new TextView.Fragment.Prototype();
+
+TextView.DefaultFragment = function() {
+  TextView.Fragment.apply(this, arguments);
+};
+TextView.DefaultFragment.Prototype = function() {
+  this.getLength = function() {
+    return this.el.length;
+  };
+};
+TextView.DefaultFragment.Prototype.prototype = TextView.Fragment.prototype;
+TextView.DefaultFragment.prototype = new TextView.DefaultFragment.Prototype();
+
+module.exports = TextView;
+
+},{"../node/node_view":103,"substance-application":4,"substance-document":35,"substance-util":140}],126:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+  Operation: require('./src/operation'),
+  Compound: require('./src/compound'),
+  ArrayOperation: require('./src/array_operation'),
+  TextOperation: require('./src/text_operation'),
+  ObjectOperation: require('./src/object_operation'),
+  Helpers: require('./src/operation_helpers')
+};
+
+},{"./src/array_operation":127,"./src/compound":128,"./src/object_operation":129,"./src/operation":130,"./src/operation_helpers":131,"./src/text_operation":132}],127:[function(require,module,exports){
+"use strict";
+
+// Import
+// ========
+
+var _ = require('underscore');
+var util   = require('substance-util');
+var errors = util.errors;
+var Operation = require('./operation');
+var Compound = require('./compound');
+
+var NOP = "NOP";
+var DEL = "delete";
+var INS = "insert";
+var MOV = 'move';
+
+// ArrayOperations can be used to describe changes to arrays by operations.
+// ========
+//
+// Insertions
+// --------
+//
+// An insertion is specified by
+//    {
+//      type: '+',
+//      val:  <value>,
+//      pos:  <position>
+//    }
+// or shorter:
+//    ['+', <value>, <position>]
+//
+//
+// Deletions
+// --------
+//
+// A deletion is in the same way as Insertions but with '-' as type.
+//
+//    ['-', <value>, <position>]
+//
+// The value must be specified too as otherwise the operation would not be invertible.
+//
+var Move;
+
+var ArrayOperation = function(options) {
+
+  if (options.type === undefined) {
+    throw new errors.OperationError("Illegal argument: insufficient data.");
+  }
+
+  // Insert: '+', Delete: '-', Move: '>>'
+  this.type = options.type;
+
+  if (this.type === NOP) return;
+
+  // the position where to apply the operation
+  this.pos = options.pos;
+
+  // the string to delete or insert
+  this.val = options.val;
+
+  // Move operations have a target position
+  this.target = options.target;
+
+  // sanity checks
+  if(this.type !== NOP && this.type !== INS && this.type !== DEL && this.type !== MOV) {
+    throw new errors.OperationError("Illegal type.");
+  }
+
+  if (this.type === INS || this.type === DEL) {
+    if (this.pos === undefined || this.val === undefined) {
+      throw new errors.OperationError("Illegal argument: insufficient data.");
+    }
+    if (!_.isNumber(this.pos) && this.pos < 0) {
+      throw new errors.OperationError("Illegal argument: expecting positive number as pos.");
+    }
+  } else if (this.type === MOV) {
+    if (this.pos === undefined || this.target === undefined) {
+      throw new errors.OperationError("Illegal argument: insufficient data.");
+    }
+    if (!_.isNumber(this.pos) && this.pos < 0) {
+      throw new errors.OperationError("Illegal argument: expecting positive number as pos.");
+    }
+    if (!_.isNumber(this.target) && this.target < 0) {
+      throw new errors.OperationError("Illegal argument: expecting positive number as target.");
+    }
+  }
+};
+
+ArrayOperation.fromJSON = function(data) {
+  if (_.isArray(data)) {
+    if (data[0] === MOV) {
+      return new Move(data[1], data[2]);
+    } else {
+      return new ArrayOperation(data);
+    }
+  }
+  if (data.type === MOV) {
+    return Move.fromJSON(data);
+  } else if (data.type === Compound.TYPE) {
+    var ops = [];
+    for (var idx = 0; idx < data.ops.length; idx ++) {
+      ops.push(ArrayOperation.fromJSON(data.ops[idx]));
+    }
+    return ArrayOperation.Compound(ops);
+  }
+  else  {
+    return new ArrayOperation(data);
+  }
+};
+
+ArrayOperation.Prototype = function() {
+
+  this.clone = function() {
+    return new ArrayOperation(this);
+  };
+
+  this.apply = function(array) {
+
+    if (this.type === NOP) {
+      return array;
+    }
+
+    var adapter = (array instanceof ArrayOperation.ArrayAdapter) ? array : new ArrayOperation.ArrayAdapter(array);
+
+    // Insert
+    if (this.type === INS) {
+      adapter.insert(this.pos, this.val);
+    }
+    // Delete
+    else if (this.type === DEL) {
+      adapter.delete(this.pos, this.val);
+    }
+    else {
+      throw new errors.OperationError("Illegal state.");
+    }
+    return array;
+  };
+
+  this.invert = function() {
+    var data = this.toJSON();
+
+    if (this.type === INS) data.type = DEL;
+    else if (this.type === DEL) data.type = INS;
+    else if (this.type === NOP) data.type = NOP;
+    else {
+      throw new errors.OperationError("Illegal state.");
+    }
+
+    return new ArrayOperation(data);
+  };
+
+  this.hasConflict = function(other) {
+    return ArrayOperation.hasConflict(this, other);
+  };
+
+  this.toJSON = function() {
+    var result = {
+      type: this.type,
+    };
+
+    if (this.type === NOP) return result;
+
+    result.pos = this.pos;
+    result.val = this.val;
+
+    return result;
+  };
+
+  this.isInsert = function() {
+    return this.type === INS;
+  };
+
+  this.isDelete = function() {
+    return this.type === DEL;
+  };
+
+  this.isNOP = function() {
+    return this.type === NOP;
+  };
+
+  this.isMove = function() {
+    return this.type === MOV;
+  };
+
+};
+ArrayOperation.Prototype.prototype = Operation.prototype;
+ArrayOperation.prototype = new ArrayOperation.Prototype();
+
+var _NOP = 0;
+var _DEL = 1;
+var _INS = 2;
+var _MOV = 4;
+
+var CODE = {};
+CODE[NOP] = _NOP;
+CODE[DEL] = _DEL;
+CODE[INS] = _INS;
+CODE[MOV] = _MOV;
+
+var _hasConflict = [];
+
+_hasConflict[_DEL | _DEL] = function(a,b) {
+  return a.pos === b.pos;
+};
+
+_hasConflict[_DEL | _INS] = function() {
+  return false;
+};
+
+_hasConflict[_INS | _INS] = function(a,b) {
+  return a.pos === b.pos;
+};
+
+/*
+  As we provide Move as quasi atomic operation we have to look at it conflict potential.
+
+  A move is realized as composite of Delete and Insert.
+
+  M / I: ( -> I / I conflict)
+
+    m.s < i && m.t == i-1
+    else i && m.t == i
+
+  M / D: ( -> D / D conflict)
+
+    m.s === d
+
+  M / M:
+
+    1. M/D conflict
+    2. M/I conflict
+*/
+
+var hasConflict = function(a, b) {
+  if (a.type === NOP || b.type === NOP) return false;
+  var caseId = CODE[a.type] | CODE[b.type];
+
+  if (_hasConflict[caseId]) {
+    return _hasConflict[caseId](a,b);
+  } else {
+    return false;
+  }
+};
+
+var transform0;
+
+function transform_insert_insert(a, b, first) {
+
+  if (a.pos === b.pos) {
+    if (first) {
+      b.pos += 1;
+    } else {
+      a.pos += 1;
+    }
+  }
+  // a before b
+  else if (a.pos < b.pos) {
+    b.pos += 1;
+  }
+
+  // a after b
+  else  {
+    a.pos += 1;
+  }
+
+}
+
+function transform_delete_delete(a, b) {
+
+  // turn the second of two concurrent deletes into a NOP
+  if (a.pos === b.pos) {
+    b.type = NOP;
+    a.type = NOP;
+    return;
+  }
+
+  if (a.pos < b.pos) {
+    b.pos -= 1;
+  } else {
+    a.pos -= 1;
+  }
+
+}
+
+function transform_insert_delete(a, b) {
+
+  // reduce to a normalized case
+  if (a.type === DEL) {
+    var tmp = a;
+    a = b;
+    b = tmp;
+  }
+
+  if (a.pos <= b.pos) {
+    b.pos += 1;
+  } else {
+    a.pos -= 1;
+  }
+
+}
+
+function transform_move(a, b, check, first) {
+  if (a.type !== MOV) return transform_move(b, a, check, !first);
+
+  var del = {type: DEL, pos: a.pos};
+  var ins = {type: INS, pos: a.target};
+
+  var options = {inplace: true, check:check};
+
+  if (b.type === DEL && a.pos === b.pos) {
+    a.type = NOP;
+    b.pos = a.target;
+
+  } else if (b.type === MOV && a.pos === b.pos) {
+    if (first) {
+      b.pos = a.target;
+      a.type = NOP;
+    } else {
+      a.pos = b.target;
+      b.type = NOP;
+    }
+  } else {
+
+    if (first) {
+      transform0(del, b, options);
+      transform0(ins, b, options);
+    } else {
+      transform0(b, del, options);
+      transform0(b, ins, options);
+    }
+
+    a.pos = del.pos;
+    a.target = ins.pos;
+
+  }
+}
+
+transform0 = function(a, b, options) {
+
+  options = options || {};
+
+  if (options.check && hasConflict(a, b)) {
+    throw Operation.conflict(a, b);
+  }
+
+  if (!options.inplace) {
+    a = util.clone(a);
+    b = util.clone(b);
+  }
+
+  if (a.type === NOP || b.type === NOP)  {
+    // nothing to transform
+  }
+  else if (a.type === INS && b.type === INS)  {
+    transform_insert_insert(a, b, true);
+  }
+  else if (a.type === DEL && b.type === DEL) {
+    transform_delete_delete(a, b, true);
+  }
+  else if (a.type === MOV || b.type === MOV) {
+    transform_move(a, b, options.check, true);
+  }
+  else {
+    transform_insert_delete(a, b, true);
+  }
+
+  return [a, b];
+};
+
+var __apply__ = function(op, array) {
+  if (_.isArray(op)) {
+    if (op[0] === MOV) {
+      op = new Move(op[1], op[2]);
+    } else {
+      op = new ArrayOperation(op);
+    }
+  } else if (!(op instanceof ArrayOperation)) {
+    op = ArrayOperation.fromJSON(op);
+  }
+  return op.apply(array);
+};
+
+ArrayOperation.transform = Compound.createTransform(transform0);
+ArrayOperation.hasConflict = hasConflict;
+
+ArrayOperation.perform = __apply__;
+// DEPRECATED: use ArrayOperation.perform
+ArrayOperation.apply = __apply__;
+
+// Note: this is implemented manually, to avoid the value parameter
+// necessary for Insert and Delete
+var Move = function(source, target) {
+
+  this.type = MOV;
+  this.pos = source;
+  this.target = target;
+
+  if (!_.isNumber(this.pos) || !_.isNumber(this.target) || this.pos < 0 || this.target < 0) {
+    throw new errors.OperationError("Illegal argument");
+  }
+};
+
+Move.Prototype = function() {
+
+  this.clone = function() {
+    return new Move(this.pos, this.target);
+  };
+
+  this.apply = function(array) {
+    if (this.type === NOP) return array;
+
+    var adapter = (array instanceof ArrayOperation.ArrayAdapter) ? array : new ArrayOperation.ArrayAdapter(array);
+
+    var val = array[this.pos];
+    adapter.move(val, this.pos, this.target);
+
+    return array;
+  };
+
+  this.invert = function() {
+    return new Move(this.target, this.pos);
+  };
+
+  this.toJSON = function() {
+    return {
+      type: MOV,
+      pos: this.pos,
+      target: this.target
+    };
+  };
+
+};
+Move.Prototype.prototype = ArrayOperation.prototype;
+Move.prototype = new Move.Prototype();
+
+Move.fromJSON = function(data) {
+  return new Move(data.pos, data.target);
+};
+
+
+// classical LCSS, implemented inplace and using traceback trick
+var lcss = function(arr1, arr2) {
+  var i,j;
+  var L = [0];
+
+  for (i = 0; i < arr1.length; i++) {
+    for (j = 0; j < arr2.length; j++) {
+      L[j+1] = L[j+1] || 0;
+      if (_.isEqual(arr1[i], arr2[j])) {
+        L[j+1] = Math.max(L[j+1], L[j]+1);
+      } else {
+        L[j+1] = Math.max(L[j+1], L[j]);
+      }
+    }
+  }
+
+  var seq = [];
+  for (j = arr2.length; j >= 0; j--) {
+    if (L[j] > L[j-1]) {
+      seq.unshift(arr2[j-1]);
+    }
+  }
+
+  return seq;
+};
+
+
+// Factory methods
+// -------
+// 
+// Note: you should use these methods instead of manually define
+// an operation. This is allows us to change the underlying implementation
+// without breaking your code.
+
+
+ArrayOperation.Insert = function(pos, val) {
+  return new ArrayOperation({type:INS, pos: pos, val: val});
+};
+
+
+// Factory methods
+// -------
+// 
+// Deletes an element from an array
+// When array is provided value is looked up
+// When pos is given, element at that position gets removed
+
+ArrayOperation.Delete = function(posOrArray, val) {
+  var pos = posOrArray;
+  if (_.isArray(pos)) {
+    pos = pos.indexOf(val);
+  }
+  if (pos < 0) return new ArrayOperation({type: NOP});
+  return new ArrayOperation({type:DEL, pos: pos, val: val});
+};
+
+ArrayOperation.Move = function(pos1, pos2) {
+  return new Move(pos1, pos2);
+};
+
+ArrayOperation.Push = function(arr, val) {
+  var index = arr.length;
+  return ArrayOperation.Insert(index, val);
+};
+
+ArrayOperation.Pop = function(arr) {
+  // First we need to find a way to return values
+  var index = arr.length-1;
+  return ArrayOperation.Delete(index, arr[index]);
+};
+
+
+// Creates a compound operation that transforms the given oldArray
+// into the new Array
+ArrayOperation.Update = function(oldArray, newArray) {
+
+  // 1. Compute longest common subsequence
+  var seq = lcss(oldArray, newArray);
+
+  // 2. Iterate through the three sequences and generate a sequence of
+  //    retains, deletes, and inserts
+
+  var a = seq;
+  var b = oldArray;
+  var c = newArray;
+  var pos1, pos2, pos3;
+  pos1 = 0;
+  pos2 = 0;
+  pos3 = 0;
+
+  seq = [];
+
+  while(pos2 < b.length || pos3 < c.length) {
+    if (a[pos1] === b[pos2] && b[pos2] === c[pos3]) {
+      pos1++; pos2++; pos3++;
+      seq.push(1);
+    } else if (a[pos1] === b[pos2]) {
+      seq.push(['+', c[pos3++]]);
+    } else {
+      seq.push(['-', b[pos2++]]);
+    }
+  }
+
+  // 3. Create a compound for the computed sequence
+
+  return ArrayOperation.Sequence(seq);
+};
+
+ArrayOperation.Compound = function(ops) {
+  // do not create a Compound if not necessary
+  if (ops.length === 1) return ops[0];
+  else return new Compound(ops);
+};
+
+// Convenience factory method to create an operation that clears the given array.
+// --------
+//
+
+ArrayOperation.Clear = function(arr) {
+  var ops = [];
+  for (var idx = 0; idx < arr.length; idx++) {
+    ops.push(ArrayOperation.Delete(0, arr[idx]));
+  }
+  return ArrayOperation.Compound(ops);
+};
+
+
+
+// Convenience factory method to create an incremental complex array update.
+// --------
+//
+// Example:
+//  Input:
+//    [1,2,3,4,5,6,7]
+//  Sequence:
+//    [2, ['-', 3], 2, ['+', 8]]
+//  Output:
+//    [1,2,4,5,8,6,7]
+//
+// Syntax:
+//
+//  - positive Number: skip / retain
+//  - tuple ['-', <val>]: delete element at current position
+//  - tuple ['+', <val>]: insert element at current position
+
+ArrayOperation.Sequence = function(seq) {
+  var pos = 0;
+  var ops = [];
+
+  for (var idx = 0; idx < seq.length; idx++) {
+    var s = seq[idx];
+
+    if (_.isNumber(s) && s > 0) {
+      pos += s;
+    } else {
+      if (s[0] === "+") {
+        ops.push(ArrayOperation.Insert(pos, s[1]));
+        pos+=1;
+      } else if (s[0] === "-") {
+        ops.push(ArrayOperation.Delete(pos, s[1]));
+      } else {
+        throw new errors.OperationError("Illegal operation.");
+      }
+    }
+  }
+
+  return new Compound(ops);
+};
+
+ArrayOperation.create = function(array, spec) {
+  var type = spec[0];
+  var val, pos;
+  if (type === INS || type === "+") {
+    pos = spec[1];
+    val = spec[2];
+    return ArrayOperation.Insert(pos, val);
+  } else if (type === DEL || type === "-") {
+    pos = spec[1];
+    val = array[pos];
+    return ArrayOperation.Delete(pos, val);
+  } else if (type === MOV || type === ">>") {
+    pos = spec[1];
+    var target = spec[2];
+    return ArrayOperation.Move(pos, target);
+  } else {
+    throw new errors.OperationError("Illegal specification.");
+  }
+};
+
+var ArrayAdapter = function(arr) {
+  this.array = arr;
+};
+
+ArrayAdapter.prototype = {
+  insert: function(pos, val) {
+    if (this.array.length < pos) {
+      throw new errors.OperationError("Provided array is too small.");
+    }
+    this.array.splice(pos, 0, val);
+  },
+
+  delete: function(pos, val) {
+    if (this.array.length < pos) {
+      throw new errors.OperationError("Provided array is too small.");
+    }
+    if (this.array[pos] !== val) {
+      throw new errors.OperationError("Unexpected value at position " + pos + ". Expected " + val + ", found " + this.array[pos]);
+    }
+    this.array.splice(pos, 1);
+  },
+
+  move: function(val, pos, to) {
+    if (this.array.length < pos) {
+      throw new errors.OperationError("Provided array is too small.");
+    }
+    this.array.splice(pos, 1);
+
+    if (this.array.length < to) {
+      throw new errors.OperationError("Provided array is too small.");
+    }
+    this.array.splice(to, 0, val);
+  }
+};
+ArrayOperation.ArrayAdapter = ArrayAdapter;
+
+ArrayOperation.NOP = NOP;
+ArrayOperation.DELETE = DEL;
+ArrayOperation.INSERT = INS;
+ArrayOperation.MOVE = MOV;
+
+// Export
+// ========
+
+module.exports = ArrayOperation;
+
+},{"./compound":128,"./operation":130,"substance-util":140,"underscore":147}],128:[function(require,module,exports){
+"use strict";
+
+// Import
+// ========
+
+var _    = require('underscore');
+var util   = require('substance-util');
+var Operation = require('./operation');
+
+// Module
+// ========
+
+var COMPOUND = "compound";
+
+var Compound = function(ops) {
+  this.type = COMPOUND;
+  this.ops = ops;
+  this.alias = undefined;
+
+  if (!ops || ops.length === 0) {
+    throw new Operation.OperationError("No operations given.");
+  }
+};
+
+Compound.Prototype = function() {
+
+  this.clone = function() {
+    var ops = [];
+    for (var idx = 0; idx < this.ops.length; idx++) {
+      ops.push(util.clone(this.ops[idx]));
+    }
+    return new Compound(ops);
+  };
+
+  this.apply = function(obj) {
+    for (var idx = 0; idx < this.ops.length; idx++) {
+      obj = this.ops[idx].apply(obj);
+    }
+    return obj;
+  };
+
+  this.invert = function() {
+    var ops = [];
+    for (var idx = 0; idx < this.ops.length; idx++) {
+      // reverse the order of the inverted atomic commands
+      ops.unshift(this.ops[idx].invert());
+    }
+
+    return new Compound(ops);
+  };
+
+  this.toJSON = function() {
+    var result = {
+      type: COMPOUND,
+      ops: this.ops,
+    };
+    if (this.alias) result.alias = this.alias;
+    return result;
+  };
+
+};
+Compound.Prototype.prototype = Operation.prototype;
+Compound.prototype = new Compound.Prototype();
+
+Compound.TYPE = COMPOUND;
+
+// Transforms a compound and another given change inplace.
+// --------
+//
+
+var compound_transform = function(a, b, first, check, transform0) {
+  var idx;
+
+  if (b.type === COMPOUND) {
+    for (idx = 0; idx < b.ops.length; idx++) {
+      compound_transform(a, b.ops[idx], first, check, transform0);
+    }
+  }
+
+  else {
+    for (idx = 0; idx < a.ops.length; idx++) {
+      var _a, _b;
+      if (first) {
+        _a = a.ops[idx];
+        _b = b;
+      } else {
+        _a = b;
+        _b = a.ops[idx];
+      }
+      transform0(_a, _b, {inplace: true, check: check});
+    }
+  }
+};
+
+// A helper to create a transform method that supports Compounds.
+// --------
+//
+
+Compound.createTransform = function(primitive_transform) {
+  return function(a, b, options) {
+    options = options || {};
+    if(a.type === COMPOUND || b.type === COMPOUND) {
+      if (!options.inplace) {
+        a = util.clone(a);
+        b = util.clone(b);
+      }
+      if (a.type === COMPOUND) {
+        compound_transform(a, b, true, options.check, primitive_transform);
+      } else if (b.type === COMPOUND) {
+        compound_transform(b, a, false, options.check, primitive_transform);
+      }
+      return [a, b];
+    } else {
+      return primitive_transform(a, b, options);
+    }
+
+  };
+};
+
+// Export
+// ========
+
+module.exports = Compound;
+
+},{"./operation":130,"substance-util":140,"underscore":147}],129:[function(require,module,exports){
+"use strict";
+
+// Import
+// ========
+
+var _ = require('underscore');
+var util = require('substance-util');
+var errors = util.errors;
+var Operation = require('./operation');
+var Compound = require('./compound');
+var TextOperation = require('./text_operation');
+var ArrayOperation = require('./array_operation');
+
+var NOP = "NOP";
+var CREATE = "create";
+var DELETE = 'delete';
+var UPDATE = 'update';
+var SET = 'set';
+
+var ObjectOperation = function(data) {
+
+  this.type = data.type;
+  this.path = data.path;
+
+  if (this.type === CREATE || this.type === DELETE) {
+    this.val = data.val;
+  }
+
+  // Updates can be given as value or as Operation (Text, Array)
+  else if (this.type === UPDATE) {
+    if (data.diff !== undefined) {
+      this.diff = data.diff;
+      this.propertyType = data.propertyType;
+    } else {
+      throw new errors.OperationError("Illegal argument: update by value or by diff must be provided");
+    }
+  }
+
+  else if (this.type === SET) {
+    this.val = data.val;
+    this.original = data.original;
+  }
+};
+
+ObjectOperation.fromJSON = function(data) {
+  if (data.type === Compound.TYPE) {
+    var ops = [];
+    for (var idx = 0; idx < data.ops.length; idx++) {
+      ops.push(ObjectOperation.fromJSON(data.ops[idx]));
+    }
+    return ObjectOperation.Compound(ops);
+
+  } else {
+    var op = new ObjectOperation(data);
+    if (data.type === "update") {
+      switch (data.propertyType) {
+      case "string":
+        op.diff = TextOperation.fromJSON(op.diff);
+        break;
+      case "array":
+        op.diff = ArrayOperation.fromJSON(op.diff);
+        break;
+      default:
+        throw new Error("Don't know how to deserialize this operation:" + JSON.stringify(data));
+      }
+    }
+    return op;
+  }
+};
+
+ObjectOperation.Prototype = function() {
+
+  this.clone = function() {
+    return new ObjectOperation(this);
+  };
+
+  this.isNOP = function() {
+    if (this.type === NOP) return true;
+    else if (this.type === UPDATE) return this.diff.isNOP();
+  };
+
+  this.apply = function(obj) {
+    if (this.type === NOP) return obj;
+
+    // Note: this allows to use a custom adapter implementation
+    // to support other object like backends
+    var adapter = (obj instanceof ObjectOperation.Object) ? obj : new ObjectOperation.Object(obj);
+
+    if (this.type === CREATE) {
+      // clone here as the operations value must not be changed
+      adapter.create(this.path, util.clone(this.val));
+      return obj;
+    }
+
+    var val = adapter.get(this.path);
+
+    if (this.type === DELETE) {
+      // TODO: maybe we could tolerate such deletes
+      if (val === undefined) {
+        throw new errors.OperationError("Property " + JSON.stringify(this.path) + " not found.");
+      }
+      adapter.delete(this.path, val);
+    }
+
+    else if (this.type === UPDATE) {
+      if (this.propertyType === 'object') {
+        val = ObjectOperation.apply(this.diff, val);
+        if(!adapter.inplace()) adapter.update(this.path, val, this.diff);
+      }
+      else if (this.propertyType === 'array') {
+        val = ArrayOperation.apply(this.diff, val);
+        if(!adapter.inplace()) adapter.update(this.path, val, this.diff);
+      }
+      else if (this.propertyType === 'string') {
+        val = TextOperation.apply(this.diff, val);
+        adapter.update(this.path, val, this.diff);
+      }
+      else {
+        throw new errors.OperationError("Unsupported type for operational update.");
+      }
+    }
+
+    else if (this.type === SET) {
+      // clone here as the operations value must not be changed
+      adapter.set(this.path, util.clone(this.val));
+    }
+
+    else {
+      throw new errors.OperationError("Illegal state.");
+    }
+
+    return obj;
+  };
+
+  this.invert = function() {
+
+    if (this.type === NOP) {
+      return { type: NOP };
+    }
+
+    var result = new ObjectOperation(this);
+
+    if (this.type === CREATE) {
+      result.type = DELETE;
+    }
+
+    else if (this.type === DELETE) {
+      result.type = CREATE;
+    }
+
+    else if (this.type === UPDATE) {
+      var invertedDiff;
+      if (this.propertyType === 'string') {
+        invertedDiff = TextOperation.fromJSON(this.diff).invert();
+      } else if (this.propertyType === 'array') {
+        invertedDiff = ArrayOperation.fromJSON(this.diff).invert();
+      }
+      result.diff = invertedDiff;
+      result.propertyType = this.propertyType;
+    }
+
+    else if (this.type === SET) {
+      result.val = this.original;
+      result.original = this.val;
+    }
+
+    else {
+      throw new errors.OperationError("Illegal state.");
+    }
+
+    return result;
+  };
+
+  this.hasConflict = function(other) {
+    return ObjectOperation.hasConflict(this, other);
+  };
+
+  this.toJSON = function() {
+
+    if (this.type === NOP) {
+      return {
+        type: NOP
+      };
+    }
+
+    var data = {
+      type: this.type,
+      path: this.path,
+    };
+
+    if (this.type === CREATE || this.type === DELETE) {
+      data.val = this.val;
+    }
+
+    else if (this.type === UPDATE) {
+      data.diff = this.diff;
+      data.propertyType = this.propertyType;
+    }
+
+    else if (this.type === SET) {
+      data.val = this.val;
+      data.original = this.original;
+    }
+
+    return data;
+  };
+
+};
+ObjectOperation.Prototype.prototype = Operation.prototype;
+ObjectOperation.prototype = new ObjectOperation.Prototype();
+
+ObjectOperation.Object = function(obj) {
+  this.obj = obj;
+};
+
+ObjectOperation.Object.Prototype = function() {
+
+  function resolve(self, obj, path, create) {
+    var item = obj;
+    var idx = 0;
+    for (; idx < path.length-1; idx++) {
+      if (item === undefined) {
+        throw new Error("Key error: could not find element for path " + JSON.stringify(self.path));
+      }
+
+      if (item[path[idx]] === undefined && create) {
+        item[path[idx]] = {};
+      }
+
+      item = item[path[idx]];
+    }
+    return {parent: item, key: path[idx]};
+  }
+
+  this.get = function(path) {
+    var item = resolve(this, this.obj, path);
+    return item.parent[item.key];
+  };
+
+  this.create = function(path, value) {
+    var item = resolve(this, this.obj, path, true);
+    if (item.parent[item.key] !== undefined) {
+      throw new errors.OperationError("Value already exists. path =" + JSON.stringify(path));
+    }
+    item.parent[item.key] = value;
+  };
+
+  // Note: in the default implementation we do not need the diff
+  this.update = function(path, value, diff) {
+    this.set(path, value);
+  };
+
+  this.set = function(path, value) {
+    var item = resolve(this, this.obj, path);
+    item.parent[item.key] = value;
+  };
+
+  this.delete = function(path) {
+    var item = resolve(this, this.obj, path);
+    delete item.parent[item.key];
+  };
+
+  this.inplace = function() {
+    return true;
+  };
+
+};
+ObjectOperation.Object.prototype = new ObjectOperation.Object.Prototype();
+
+
+var hasConflict = function(a, b) {
+  if (a.type === NOP || b.type === NOP) return false;
+
+  return _.isEqual(a.path, b.path);
+};
+
+var transform_delete_delete = function(a, b) {
+  // both operations have the same effect.
+  // the transformed operations are turned into NOPs
+  a.type = NOP;
+  b.type = NOP;
+};
+
+var transform_create_create = function() {
+  // TODO: maybe it would be possible to create an differntial update that transforms the one into the other
+  // However, we fail for now.
+  throw new errors.OperationError("Can not transform two concurring creates of the same property");
+};
+
+var transform_delete_create = function(a, b, flipped) {
+  if (a.type !== DELETE) {
+    return transform_delete_create(b, a, true);
+  }
+
+  if (!flipped) {
+    a.type = NOP;
+  } else {
+    a.val = b.val;
+    b.type = NOP;
+  }
+};
+
+var transform_delete_update = function(a, b, flipped) {
+  if (a.type !== DELETE) {
+    return transform_delete_update(b, a, true);
+  }
+
+  var op;
+  if (b.propertyType === 'string') {
+    op = TextOperation.fromJSON(b.diff);
+  } else if (b.propertyType === 'array') {
+    op = ArrayOperation.fromJSON(b.diff);
+  }
+
+  // (DELETE, UPDATE) is transformed into (DELETE, CREATE)
+  if (!flipped) {
+    a.type = NOP;
+    b.type = CREATE;
+    b.val = op.apply(a.val);
+  }
+  // (UPDATE, DELETE): the delete is updated to delete the updated value
+  else {
+    a.val = op.apply(a.val);
+    b.type = NOP;
+  }
+
+};
+
+var transform_create_update = function() {
+  // it is not possible to reasonably transform this.
+  throw new errors.OperationError("Can not transform a concurring create and update of the same property");
+};
+
+var transform_update_update = function(a, b) {
+
+  // Note: this is a conflict the user should know about
+
+  var op_a, op_b, t;
+  if (b.propertyType === 'string') {
+    op_a = TextOperation.fromJSON(a.diff);
+    op_b = TextOperation.fromJSON(b.diff);
+    t = TextOperation.transform(op_a, op_b, {inplace: true});
+  } else if (b.propertyType === 'array') {
+    op_a = ArrayOperation.fromJSON(a.diff);
+    op_b = ArrayOperation.fromJSON(b.diff);
+    t = ArrayOperation.transform(op_a, op_b, {inplace: true});
+  } else if (b.propertyType === 'object') {
+    op_a = ObjectOperation.fromJSON(a.diff);
+    op_b = ObjectOperation.fromJSON(b.diff);
+    t = ObjectOperation.transform(op_a, op_b, {inplace: true});
+  }
+
+  a.diff = t[0];
+  b.diff = t[1];
+};
+
+var transform_create_set = function(a, b, flipped) {
+  if (a.type !== CREATE) return transform_create_set(b, a, true);
+
+  if (!flipped) {
+    a.type = NOP;
+    b.original = a.val;
+  } else {
+    a.type = SET;
+    a.original = b.val;
+    b.type = NOP;
+  }
+
+};
+
+var transform_delete_set = function(a, b, flipped) {
+  if (a.type !== DELETE) return transform_delete_set(b, a, true);
+
+  if (!flipped) {
+    a.type = NOP;
+    b.type = CREATE;
+    b.original = undefined;
+  } else {
+    a.val = b.val;
+    b.type = NOP;
+  }
+
+};
+
+var transform_update_set = function() {
+  throw new errors.OperationError("Can not transform update/set of the same property.");
+};
+
+var transform_set_set = function(a, b) {
+  a.type = NOP;
+  b.original = a.val;
+};
+
+var _NOP = 0;
+var _CREATE = 1;
+var _DELETE = 2;
+var _UPDATE = 4;
+var _SET = 8;
+
+var CODE = {};
+CODE[NOP] =_NOP;
+CODE[CREATE] = _CREATE;
+CODE[DELETE] = _DELETE;
+CODE[UPDATE] = _UPDATE;
+CODE[SET] = _SET;
+
+var __transform__ = [];
+__transform__[_DELETE | _DELETE] = transform_delete_delete;
+__transform__[_DELETE | _CREATE] = transform_delete_create;
+__transform__[_DELETE | _UPDATE] = transform_delete_update;
+__transform__[_CREATE | _CREATE] = transform_create_create;
+__transform__[_CREATE | _UPDATE] = transform_create_update;
+__transform__[_UPDATE | _UPDATE] = transform_update_update;
+__transform__[_CREATE | _SET   ] = transform_create_set;
+__transform__[_DELETE | _SET   ] = transform_delete_set;
+__transform__[_UPDATE | _SET   ] = transform_update_set;
+__transform__[_SET    | _SET   ] = transform_set_set;
+
+var transform = function(a, b, options) {
+
+  options = options || {};
+
+  var conflict = hasConflict(a, b);
+
+  if (options.check && conflict) {
+    throw Operation.conflict(a, b);
+  }
+
+  if (!options.inplace) {
+    a = util.clone(a);
+    b = util.clone(b);
+  }
+
+  // without conflict: a' = a, b' = b
+  if (!conflict) {
+    return [a, b];
+  }
+
+  __transform__[CODE[a.type] | CODE[b.type]](a,b);
+
+  return [a, b];
+};
+
+ObjectOperation.transform = Compound.createTransform(transform);
+ObjectOperation.hasConflict = hasConflict;
+
+var __apply__ = function(op, obj) {
+  if (!(op instanceof ObjectOperation)) {
+    op = ObjectOperation.fromJSON(op);
+  }
+  return op.apply(obj);
+};
+
+// TODO: rename to "exec" or perform
+ObjectOperation.apply = __apply__;
+
+ObjectOperation.Create = function(path, val) {
+  return new ObjectOperation({type: CREATE, path: path, val: val});
+};
+
+ObjectOperation.Delete = function(path, val) {
+  return new ObjectOperation({type: DELETE, path: path, val: val});
+};
+
+function guessPropertyType(op) {
+
+  if (op instanceof Compound) {
+    return guessPropertyType(op.ops[0]);
+  }
+  if (op instanceof TextOperation) {
+    return "string";
+  }
+  else if (op instanceof ArrayOperation) {
+    return  "array";
+  }
+  else {
+    return "other";
+  }
+}
+
+ObjectOperation.Update = function(path, diff, propertyType) {
+  propertyType = propertyType || guessPropertyType(diff);
+
+  return new ObjectOperation({
+    type: UPDATE,
+    path: path,
+    diff: diff,
+    propertyType: propertyType
+  });
+};
+
+ObjectOperation.Set = function(path, oldVal, newVal) {
+  return new ObjectOperation({
+    type: SET,
+    path: path,
+    val: newVal,
+    original: oldVal
+  });
+};
+
+ObjectOperation.Compound = function(ops) {
+  if (ops.length === 0) return null;
+  else return new Compound(ops);
+};
+
+// TODO: this can not deal with cyclic references
+var __extend__ = function(obj, newVals, path, deletes, creates, updates) {
+  var keys = Object.getOwnPropertyNames(newVals);
+
+  for (var idx = 0; idx < keys.length; idx++) {
+    var key = keys[idx];
+    var p = path.concat(key);
+
+    if (newVals[key] === undefined && obj[key] !== undefined) {
+      deletes.push(ObjectOperation.Delete(p, obj[key]));
+
+    } else if (_.isObject(newVals[key])) {
+
+      // TODO: for now, the structure must be the same
+      if (!_.isObject(obj[key])) {
+        throw new errors.OperationError("Incompatible arguments: newVals must have same structure as obj.");
+      }
+      __extend__(obj[key], newVals[key], p, deletes, creates, updates);
+
+    } else {
+      if (obj[key] === undefined) {
+        creates.push(ObjectOperation.Create(p, newVals[key]));
+      } else {
+        var oldVal = obj[key];
+        var newVal = newVals[key];
+        if (!_.isEqual(oldVal, newVal)) {
+          updates.push(ObjectOperation.Set(p, oldVal, newVal));
+        }
+      }
+    }
+  }
+};
+
+ObjectOperation.Extend = function(obj, newVals) {
+  var deletes = [];
+  var creates = [];
+  var updates = [];
+  __extend__(obj, newVals, [], deletes, creates, updates);
+  return ObjectOperation.Compound(deletes.concat(creates).concat(updates));
+};
+
+ObjectOperation.NOP = NOP;
+ObjectOperation.CREATE = CREATE;
+ObjectOperation.DELETE = DELETE;
+ObjectOperation.UPDATE = UPDATE;
+ObjectOperation.SET = SET;
+
+// Export
+// ========
+
+module.exports = ObjectOperation;
+
+},{"./array_operation":127,"./compound":128,"./operation":130,"./text_operation":132,"substance-util":140,"underscore":147}],130:[function(require,module,exports){
+"use strict";
+
+// Import
+// ========
+
+var util   = require('substance-util');
+var errors   = util.errors;
+
+var OperationError = errors.define("OperationError", -1);
+var Conflict = errors.define("Conflict", -1);
+
+var Operation = function() {};
+
+Operation.Prototype = function() {
+
+  this.clone = function() {
+    throw new Error("Not implemented.");
+  };
+
+  this.apply = function() {
+    throw new Error("Not implemented.");
+  };
+
+  this.invert = function() {
+    throw new Error("Not implemented.");
+  };
+
+  this.hasConflict = function() {
+    throw new Error("Not implemented.");
+  };
+
+};
+
+Operation.prototype = new Operation.Prototype();
+
+Operation.conflict = function(a, b) {
+  var conflict = new errors.Conflict("Conflict: " + JSON.stringify(a) +" vs " + JSON.stringify(b));
+  conflict.a = a;
+  conflict.b = b;
+  return conflict;
+};
+
+Operation.OperationError = OperationError;
+Operation.Conflict = Conflict;
+
+// Export
+// ========
+
+module.exports = Operation;
+
+},{"substance-util":140}],131:[function(require,module,exports){
+"use strict";
+
+var TextOperation = require("./text_operation");
+var ArrayOperation = require("./array_operation");
+
+var Helpers = {};
+
+Helpers.last = function(op) {
+  if (op.type === "compound") {
+    return op.ops[op.ops.length-1];
+  }
+  return op;
+};
+
+// Iterates all atomic operations contained in a given operation
+// --------
+//
+// - op: an Operation instance
+// - iterator: a `function(op)`
+// - context: the `this` context for the iterator function
+// - reverse: if present, the operations are iterated reversely
+
+Helpers.each = function(op, iterator, context, reverse) {
+  if (op.type === "compound") {
+    var l = op.ops.length;
+    for (var i = 0; i < l; i++) {
+      var child = op.ops[i];
+      if (reverse) {
+        child = op.ops[l-i-1];
+      }
+      if (child.type === "compound") {
+        if (Helpers.each(child, iterator, context, reverse) === false) {
+          return false;
+        }
+      }
+      else {
+        if (iterator.call(context, child) === false) {
+          return false;
+        }
+      }
+    }
+    return true;
+  } else {
+    return iterator.call(context, op);
+  }
+};
+
+Helpers.invert = function(op, type) {
+  switch (type) {
+  case "string":
+    return TextOperation.fromJSON(op).invert();
+  case "array":
+    return ArrayOperation.fromJSON(op).invert();
+  default:
+    throw new Error("Don't know how to invert this operation.");
+  }
+};
+
+module.exports = Helpers;
+
+},{"./array_operation":127,"./text_operation":132}],132:[function(require,module,exports){
+"use strict";
+
+// Import
+// ========
+
+var _ = require('underscore');
+var util = require('substance-util');
+var errors = util.errors;
+var Operation = require('./operation');
+var Compound = require('./compound');
+
+
+var INS = "+";
+var DEL = "-";
+
+var TextOperation = function(options) {
+
+  // if this operation should be created using an array
+  if (_.isArray(options)) {
+    options = {
+      type: options[0],
+      pos: options[1],
+      str: options[2]
+    };
+  }
+
+  if (options.type === undefined || options.pos === undefined || options.str === undefined) {
+    throw new errors.OperationError("Illegal argument: insufficient data.");
+  }
+
+  // '+' or '-'
+  this.type = options.type;
+
+  // the position where to apply the operation
+  this.pos = options.pos;
+
+  // the string to delete or insert
+  this.str = options.str;
+
+  // sanity checks
+  if(!this.isInsert() && !this.isDelete()) {
+    throw new errors.OperationError("Illegal type.");
+  }
+  if (!_.isString(this.str)) {
+    throw new errors.OperationError("Illegal argument: expecting string.");
+  }
+  if (!_.isNumber(this.pos) && this.pos < 0) {
+    throw new errors.OperationError("Illegal argument: expecting positive number as pos.");
+  }
+};
+
+TextOperation.fromJSON = function(data) {
+
+  if (data.type === Compound.TYPE) {
+    var ops = [];
+    for (var idx = 0; idx < data.ops.length; idx++) {
+      ops.push(TextOperation.fromJSON(data.ops[idx]));
+    }
+    return TextOperation.Compound(ops);
+
+  } else {
+    return new TextOperation(data);
+  }
+};
+
+TextOperation.Prototype = function() {
+
+  this.clone = function() {
+    return new TextOperation(this);
+  };
+
+  this.isNOP = function() {
+    return this.type === "NOP" || this.str.length === 0;
+  };
+
+  this.isInsert = function() {
+    return this.type === INS;
+  };
+
+  this.isDelete = function() {
+    return this.type === DEL;
+  };
+
+  this.length = function() {
+    return this.str.length;
+  };
+
+  this.apply = function(str) {
+    if (this.isEmpty()) return str;
+
+    var adapter = (str instanceof TextOperation.StringAdapter) ? str : new TextOperation.StringAdapter(str);
+
+    if (this.type === INS) {
+      adapter.insert(this.pos, this.str);
+    }
+    else if (this.type === DEL) {
+      adapter.delete(this.pos, this.str.length);
+    }
+    else {
+      throw new errors.OperationError("Illegal operation type: " + this.type);
+    }
+
+    return adapter.get();
+  };
+
+  this.invert = function() {
+    var data = {
+      type: this.isInsert() ? '-' : '+',
+      pos: this.pos,
+      str: this.str
+    };
+    return new TextOperation(data);
+  };
+
+  this.hasConflict = function(other) {
+    return TextOperation.hasConflict(this, other);
+  };
+
+  this.isEmpty = function() {
+    return this.str.length === 0;
+  };
+
+  this.toJSON = function() {
+    return {
+      type: this.type,
+      pos: this.pos,
+      str: this.str
+    };
+  };
+
+};
+TextOperation.Prototype.prototype = Operation.prototype;
+TextOperation.prototype = new TextOperation.Prototype();
+
+var hasConflict = function(a, b) {
+
+  // Insert vs Insert:
+  //
+  // Insertions are conflicting iff their insert position is the same.
+
+  if (a.type === INS && b.type === INS)  return (a.pos === b.pos);
+
+  // Delete vs Delete:
+  //
+  // Deletions are conflicting if their ranges overlap.
+
+  if (a.type === DEL && b.type === DEL) {
+    // to have no conflict, either `a` should be after `b` or `b` after `a`, otherwise.
+    return !(a.pos >= b.pos + b.str.length || b.pos >= a.pos + a.str.length);
+  }
+
+  // Delete vs Insert:
+  //
+  // A deletion and an insertion are conflicting if the insert position is within the deleted range.
+
+  var del, ins;
+  if (a.type === DEL) {
+    del = a; ins = b;
+  } else {
+    del = b; ins = a;
+  }
+
+  return (ins.pos >= del.pos && ins.pos < del.pos + del.str.length);
+};
+
+// Transforms two Insertions
+// --------
+
+function transform_insert_insert(a, b, first) {
+
+  if (a.pos === b.pos) {
+    if (first) {
+      b.pos += a.str.length;
+    } else {
+      a.pos += b.str.length;
+    }
+  }
+
+  else if (a.pos < b.pos) {
+    b.pos += a.str.length;
+  }
+
+  else {
+    a.pos += b.str.length;
+  }
+
+}
+
+// Transform two Deletions
+// --------
+//
+
+function transform_delete_delete(a, b, first) {
+
+  // reduce to a normalized case
+  if (a.pos > b.pos) {
+    return transform_delete_delete(b, a, !first);
+  }
+
+  if (a.pos === b.pos && a.str.length > b.str.length) {
+    return transform_delete_delete(b, a, !first);
+  }
+
+
+  // take out overlapping parts
+  if (b.pos < a.pos + a.str.length) {
+    var s = b.pos - a.pos;
+    var s1 = a.str.length - s;
+    var s2 = s + b.str.length;
+
+    a.str = a.str.slice(0, s) + a.str.slice(s2);
+    b.str = b.str.slice(s1);
+    b.pos -= s;
+  } else {
+    b.pos -= a.str.length;
+  }
+
+}
+
+// Transform Insert and Deletion
+// --------
+//
+
+function transform_insert_delete(a, b) {
+
+  if (a.type === DEL) {
+    return transform_insert_delete(b, a);
+  }
+
+  // we can assume, that a is an insertion and b is a deletion
+
+  // a is before b
+  if (a.pos <= b.pos) {
+    b.pos += a.str.length;
+  }
+
+  // a is after b
+  else if (a.pos >= b.pos + b.str.length) {
+    a.pos -= b.str.length;
+  }
+
+  // Note: this is a conflict case the user should be noticed about
+  // If applied still, the deletion takes precedence
+  // a.pos > b.pos && <= b.pos + b.length()
+  else {
+    var s = a.pos - b.pos;
+    b.str = b.str.slice(0, s) + a.str + b.str.slice(s);
+    a.str = "";
+  }
+
+}
+
+var transform0 = function(a, b, options) {
+
+  options = options || {};
+
+  if (options.check && hasConflict(a, b)) {
+    throw Operation.conflict(a, b);
+  }
+
+  if (!options.inplace) {
+    a = util.clone(a);
+    b = util.clone(b);
+  }
+
+  if (a.type === INS && b.type === INS)  {
+    transform_insert_insert(a, b, true);
+  }
+  else if (a.type === DEL && b.type === DEL) {
+    transform_delete_delete(a, b, true);
+  }
+  else {
+    transform_insert_delete(a,b);
+  }
+
+  return [a, b];
+};
+
+var __apply__ = function(op, array) {
+  if (_.isArray(op)) {
+    op = new TextOperation(op);
+  }
+  else if (!(op instanceof TextOperation)) {
+    op = TextOperation.fromJSON(op);
+  }
+  return op.apply(array);
+};
+
+TextOperation.transform = Compound.createTransform(transform0);
+TextOperation.apply = __apply__;
+
+var StringAdapter = function(str) {
+  this.str = str;
+};
+StringAdapter.prototype = {
+  insert: function(pos, str) {
+    if (this.str.length < pos) {
+      throw new errors.OperationError("Provided string is too short.");
+    }
+    this.str = this.str.slice(0, pos) + str + this.str.slice(pos);
+  },
+
+  delete: function(pos, length) {
+    if (this.str.length < pos + length) {
+      throw new errors.OperationError("Provided string is too short.");
+    }
+    this.str = this.str.slice(0, pos) + this.str.slice(pos + length);
+  },
+
+  get: function() {
+    return this.str;
+  }
+};
+
+TextOperation.Insert = function(pos, str) {
+  return new TextOperation(["+", pos, str]);
+};
+
+TextOperation.Delete = function(pos, str) {
+  return new TextOperation(["-", pos, str]);
+};
+
+TextOperation.Compound = function(ops) {
+  // do not create a Compound if not necessary
+  if (ops.length === 1) return ops[0];
+  else return new Compound(ops);
+};
+
+// Converts from a given a sequence in the format of Tim's lib
+// which is an array of numbers and strings.
+// 1. positive number: retain a number of characters
+// 2. negative number: delete a string with the given length at the current position
+// 3. string: insert the given string at the current position
+
+TextOperation.fromOT = function(str, ops) {
+
+  var atomicOps = []; // atomic ops
+
+  // iterating through the sequence and bookkeeping the position
+  // in the source and destination str
+  var srcPos = 0,
+      dstPos = 0;
+
+  if (!_.isArray(ops)) {
+    ops = _.toArray(arguments).slice(1);
+  }
+
+  _.each(ops, function(op) {
+    if (_.isString(op)) { // insert chars
+      atomicOps.push(TextOperation.Insert(dstPos, op));
+      dstPos += op.length;
+    } else if (op<0) { // delete n chars
+      var n = -op;
+      atomicOps.push(TextOperation.Delete(dstPos, str.slice(srcPos, srcPos+n)));
+      srcPos += n;
+    } else { // skip n chars
+      srcPos += op;
+      dstPos += op;
+    }
+  });
+
+  if (atomicOps.length === 0) {
+    return null;
+  }
+
+  return TextOperation.Compound(atomicOps);
+};
+
+TextOperation.fromSequence = TextOperation.fromOT;
+
+// A helper class to model Text selections and to provide an easy way
+// to bookkeep changes by other applied TextOperations
+var Range = function(range) {
+  if (_.isArray(range)) {
+    this.start = range[0];
+    this.length = range[1];
+  } else {
+    this.start = range.start;
+    this.length = range.length;
+  }
+};
+
+// Transforms a given range tuple (offset, length) in-place.
+// --------
+//
+
+var range_transform = function(range, textOp, expandLeft, expandRight) {
+
+  var changed = false;
+
+  // handle compound operations
+  if (textOp.type === Compound.TYPE) {
+    for (var idx = 0; idx < textOp.ops.length; idx++) {
+      var op = textOp.ops[idx];
+      range_transform(range, op);
+    }
+    return;
+  }
+
+
+  var start, end;
+
+  if (_.isArray(range)) {
+    start = range[0];
+    end = range[1];
+  } else {
+    start = range.start;
+    end = start + range.length;
+  }
+
+  // Delete
+  if (textOp.type === DEL) {
+    var pos1 = textOp.pos;
+    var pos2 = textOp.pos+textOp.str.length;
+
+    if (pos1 <= start) {
+      start -= Math.min(pos2-pos1, start-pos1);
+      changed = true;
+    }
+    if (pos1 <= end) {
+      end -= Math.min(pos2-pos1, end-pos1);
+      changed = true;
+    }
+
+  } else if (textOp.type === INS) {
+    var pos = textOp.pos;
+    var l = textOp.str.length;
+
+    if ( (pos < start) ||
+         (pos === start && !expandLeft) ) {
+      start += l;
+      changed = true;
+    }
+
+    if ( (pos < end) ||
+         (pos === end && expandRight) ) {
+      end += l;
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    if (_.isArray(range)) {
+      range[0] = start;
+      range[1] = end;
+    } else {
+      range.start = start;
+      range.length = end - start;
+    }
+  }
+
+  return changed;
+};
+
+Range.Prototype = function() {
+
+  this.clone = function() {
+    return new Range(this);
+  };
+
+  this.toJSON = function() {
+    var result = {
+      start: this.start,
+      length: this.length
+    };
+    // if (this.expand) result.expand = true;
+    return result;
+  };
+
+  this.transform = function(textOp, expand) {
+    return range_transform(this.range, textOp, expand);
+  };
+
+};
+Range.prototype = new Range.Prototype();
+
+Range.transform = function(range, op, expandLeft, expandRight) {
+  return range_transform(range, op, expandLeft, expandRight);
+};
+
+Range.fromJSON = function(data) {
+  return new Range(data);
+};
+
+TextOperation.StringAdapter = StringAdapter;
+TextOperation.Range = Range;
+TextOperation.INSERT = INS;
+TextOperation.DELETE = DEL;
+
+// Export
+// ========
+
+module.exports = TextOperation;
+
+},{"./compound":128,"./operation":130,"substance-util":140,"underscore":147}],133:[function(require,module,exports){
+"use strict";
+
+module.exports = require("./src/regexp");
+
+},{"./src/regexp":134}],134:[function(require,module,exports){
+"use strict";
+
+// Substanc.RegExp.Match
+// ================
+//
+// Regular expressions in Javascript they way they should be.
+
+var Match = function(match) {
+  this.index = match.index;
+  this.match = [];
+
+  for (var i=0; i < match.length; i++) {
+    this.match.push(match[i]);
+  }
+};
+
+Match.Prototype = function() {
+
+  // Returns the capture groups
+  // --------
+  //
+
+  this.captures = function() {
+    return this.match.slice(1);
+  };
+
+  // Serialize to string
+  // --------
+  //
+
+  this.toString = function() {
+    return this.match[0];
+  };
+};
+
+Match.prototype = new Match.Prototype();
+
+// Substance.RegExp
+// ================
+//
+
+var RegExp = function(exp) {
+  this.exp = exp;
+};
+
+RegExp.Prototype = function() {
+
+  this.match = function(str) {
+    if (str === undefined) throw new Error('No string given');
+    
+    if (!this.exp.global) {
+      return this.exp.exec(str);
+    } else {
+      var matches = [];
+      var match;
+      // Reset the state of the expression
+      this.exp.compile(this.exp);
+
+      // Execute until last match has been found
+
+      while ((match = this.exp.exec(str)) !== null) {
+        matches.push(new Match(match));
+      }
+      return matches;
+    }
+  };
+};
+
+RegExp.prototype = new RegExp.Prototype();
+
+RegExp.Match = Match;
+
+
+// Export
+// ========
+
+module.exports = RegExp;
+
+},{}],135:[function(require,module,exports){
+"use strict";
+
+var Surface = require("./src/surface");
+Surface.SurfaceController = require("./src/surface_controller");
+
+module.exports = Surface;
+},{"./src/surface":136,"./src/surface_controller":137}],136:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var View = require("substance-application").View;
+var util = require("substance-util");
+
+// Substance.Surface
+// ==========================================================================
+
+var Surface = function(docCtrl, renderer, options) {
+  View.call(this);
+
+  options = options || {};
+
+  // Rename docCtrl to surfaceCtrl ?
+  this.docCtrl = docCtrl;
+  this.renderer = renderer;
+  this.document = docCtrl.session.document;
+
+  // Pull out the registered nodetypes on the written article
+  this.nodeTypes = this.document.nodeTypes;
+  this.nodeViews = this.renderer.nodeViews;
+
+  this.$el.addClass('surface');
+
+  this.listenTo(this.document, "property:updated", this.onUpdateView);
+  this.listenTo(this.document, "graph:reset", this.reset);
+
+};
+
+
+Surface.Prototype = function() {
+
+  // Private helpers
+  // ---------------
+
+  var _extractPath = function(el) {
+    var path = [];
+    var current = el;
+    while(current !== undefined) {
+
+      // if available extract a path fragment
+      if (current.getAttribute) {
+        // if there is a path attibute we collect it
+        var p = current.getAttribute("data-path");
+        if (p) path.unshift(p);
+      }
+
+      // node-views
+      if ($(current).is(".content-node")) {
+        var id = current.getAttribute("id");
+        if (!id) {
+          throw new Error("Every element with class 'content-node' must have an 'id' attribute.");
+        }
+        path.unshift(id);
+
+        // STOP here
+        return path;
+      }
+
+      current = current.parentElement;
+    }
+
+    return null;
+  };
+
+  var _mapDOMCoordinates = function(el, offset) {
+    var pos, charPos;
+
+    var container = this.docCtrl.container;
+
+    // extract a path by looking for ".content-node" and ".node-property"
+    var elementPath = _extractPath(el);
+
+    if (!elementPath) {
+      throw new Error("Could not find node.");
+    }
+
+    // get the position from the container
+    var component = container.lookup(elementPath);
+    if (!component) return null;
+
+    // TODO rethink when it is a good time to attach the view to the node surface
+    // FIXME: here we have a problem now. The TextSurface depends on the TextView
+    // which can not be retrieved easily.
+    if (!component.surface.hasView()) {
+      // HACK attach only top-level surfaces and leave propagation to its implementation
+      // This needs all be rethought and improved...
+      // Splitting node view and node surface does not feel right
+      // Note: node surface = headless node view, but knowing all about the internal structure
+      var nodeId = component.path[0];
+      var topLevelSurface = component.surface.surfaceProvider.getNodeSurface(nodeId);
+      var topLevelView = this.nodeViews[nodeId];
+      topLevelSurface.attachView(topLevelView);
+    }
+    if (!component.surface.hasView()) {
+      throw new Error("NodeView.attachView() must propagate down to child views.");
+    }
+
+    pos = component.pos;
+    charPos = component.surface.getCharPosition(el, offset);
+
+    return [pos, charPos];
+  };
+
+  // Read out current DOM selection and update selection in the model
+  // ---------------
+
+  this.updateSelection = function(/*e*/) {
+    var wSel = window.getSelection();
+
+    // HACK: sometimes it happens that the selection anchor node is undefined.
+    // Try to understand and fix someday.
+    if (wSel.anchorNode === null) {
+      console.error("Ooops. Please try to fix this.");
+      return;
+    }
+
+    // Set selection to the cursor if clicked on the cursor.
+    if ($(wSel.anchorNode.parentElement).is(".cursor")) {
+      this.docCtrl.selection.collapse("cursor");
+      return;
+    }
+
+    var wRange = wSel.getRangeAt(0);
+    var wStartPos;
+    var wEndPos;
+
+    // Note: there are three different cases:
+    // 1. selection started at startContainer (regular)
+    // 2. selection started at endContainer (reverse)
+    // 3. selection done via double click (anchor in different to range boundaries)
+    // In cases 1. + 3. the range is used as given, in case 2. reversed.
+
+    wStartPos = [wRange.startContainer, wRange.startOffset];
+    wEndPos = [wRange.endContainer, wRange.endOffset];
+
+    if (wRange.endContainer === wSel.anchorNode && wRange.endOffset === wSel.anchorOffset) {
+      var tmp = wStartPos;
+      wStartPos = wEndPos;
+      wEndPos = tmp;
+    }
+
+    // Note: we clear the selection whenever we can not map the window selelection
+    // can not be mapped to model coordinates.
+
+    var startPos = _mapDOMCoordinates.call(this, wStartPos[0], wStartPos[1]);
+    if (!startPos) {
+      wSel.removeAllRanges();
+      this.docCtrl.selection.clear();
+      return;
+    }
+
+    var endPos;
+    if (wRange.collapsed) {
+      endPos = startPos;
+    } else {
+      endPos = _mapDOMCoordinates.call(this, wEndPos[0], wEndPos[1]);
+      if (!endPos) {
+        wSel.removeAllRanges();
+        this.docCtrl.selection.clear();
+        return;
+      }
+    }
+
+    // console.log("Surface.updateSelection()", startPos, endPos);
+    this.docCtrl.selection.set({start: startPos, end: endPos});
+  };
+
+
+  // Renders the current selection
+  // --------
+  //
+
+  var _mapModelCoordinates = function(pos) {
+    var container = this.docCtrl.container;
+    var component = container.getComponent(pos[0]);
+    // TODO rethink when it is a good time to attach the view to the node surface
+    if (!component.surface.hasView()) {
+      var view = this.nodeViews[component.node.id];
+      component.surface.attachView(view);
+    }
+    var wCoor = component.surface.getDOMPosition(pos[1]);
+    return wCoor;
+  };
+
+  this.renderSelection = function() {
+    var sel = this.docCtrl.selection;
+
+    if (sel.isNull()) {
+      return;
+    }
+
+    var wRange = document.createRange();
+
+    var wStartPos = _mapModelCoordinates.call(this, sel.start);
+    wRange.setStart(wStartPos.startContainer, wStartPos.startOffset);
+
+    // TODO: is there a better way to manipulate the current selection?
+    var wSel = window.getSelection();
+    wSel.removeAllRanges();
+    wSel.addRange(wRange);
+
+    // Move the caret to the end position
+    // Note: this is the only way to get reversed selections.
+    if (!sel.isCollapsed()) {
+      var wEndPos = _mapModelCoordinates.call(this, [sel.cursor.pos, sel.cursor.charPos]);
+      wSel.extend(wEndPos.endContainer, wEndPos.endOffset);
+    }
+  };
+
+  // Render it
+  // --------
+  //
+  // input.image-files
+  // .controls
+  // .nodes
+  //   .content-node.paragraph
+  //   .content-node.heading
+  //   ...
+  // .cursor
+
+  this.render = function() {
+
+    var fileInput = document.createElement('input');
+    fileInput.className = "image-files";
+    fileInput.setAttribute("type", "file");
+
+    fileInput.setAttribute("name", "files[]");
+
+    var controls = document.createElement('div');
+    controls.className = "controls";
+    var nodes = document.createElement('div');
+    nodes.className = "nodes";
+
+    var cursor = document.createElement('div');
+    cursor.className = "cursor";
+
+    this.el.appendChild(fileInput);
+    this.el.appendChild(controls);
+    this.el.appendChild(nodes);
+    this.el.appendChild(cursor);
+
+    // Actual content goes here
+    // --------
+    //
+    // We get back a document fragment from the renderer
+
+    nodes.appendChild(this.renderer.render());
+
+    // TODO: fixme
+    this.$('input.image-files').hide();
+    this.$cursor = this.$('.cursor');
+    this.$cursor.hide();
+
+    // keep the nodes for later access
+    this._nodesEl = nodes;
+
+    return this;
+  };
+
+  this.reset = function() {
+    _.each(this.nodeViews, function(nodeView) {
+      nodeView.dispose();
+    });
+    this.render();
+  };
+
+  // Cleanup view before removing it
+  // --------
+  //
+
+  this.dispose = function() {
+    this.stopListening();
+    _.each(this.nodeViews, function(n) {
+      n.dispose();
+    }, this);
+    if (this.keyboard) this.keyboard.disconnect(this.el);
+  };
+
+  // HACK: used by outline
+  // TODO: meditate on the Surface's API
+  this.getContainer = function() {
+    return this.docCtrl.container;
+  };
+
+  // TODO: we could factor this out into something like a ContainerView?
+
+  function insertOrAppend(container, pos, el) {
+    var childs = container.childNodes;
+    if (pos < childs.length) {
+      var refNode = childs[pos];
+      container.insertBefore(el, refNode);
+    } else {
+      container.appendChild(el);
+    }
+  }
+
+  this.onUpdateView = function(path, diff) {
+    if (path.length !== 2 || path[0] !== this.docCtrl.session.container.name || path[1] !== "nodes") return;
+
+    var nodeId, node;
+    var container = this._nodesEl;
+
+    var children, el;
+
+    if (diff.isInsert()) {
+      // Create a view and insert render it into the nodes container element.
+      nodeId = diff.val;
+      node = this.document.get(nodeId);
+      // TODO: this will hopefully be solved in a clean way
+      // when we have done the 'renderer' refactorings
+      if (this.nodeTypes[node.type]) {
+        var nodeView = this.renderer.createView(node);
+        this.nodeViews[nodeId] = nodeView;
+        el = nodeView.render().el;
+        insertOrAppend(container, diff.pos, el);
+      }
+    }
+    else if (diff.isDelete()) {
+      // Dispose the view and remove its element from the nodes container
+      nodeId = diff.val;
+      if (this.nodeViews[nodeId]) {
+        this.nodeViews[nodeId].dispose();
+      }
+      delete this.nodeViews[nodeId];
+      children = container.children;
+      container.removeChild(children[diff.pos]);
+    }
+    else if (diff.isMove()) {
+      children = container.children;
+      el = children[diff.pos];
+      container.removeChild(el);
+      insertOrAppend(container, diff.target, el);
+    } else if (diff.type === "NOP") {
+    } else {
+      throw new Error("Illegal state.");
+    }
+  };
+
+};
+
+_.extend(Surface.Prototype, util.Events.Listener);
+
+Surface.Prototype.prototype = View.prototype;
+Surface.prototype = new Surface.Prototype();
+
+
+module.exports = Surface;
+},{"substance-application":4,"substance-util":140,"underscore":147}],137:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+
+
+// A Controller that makes Nodes and a Document.Container readable and selectable
+// ========
+//
+// This is a just stripped down version of the EditorController
+// TODO: Let EditorController derive from SurfaceController? Oliver, thoughts?
+
+var SurfaceController = function(documentSession) {
+  this.session = documentSession;
+};
+
+SurfaceController.Prototype = function() {
+  _.extend(this, util.Events);
+
+  this.isEditor = function() {
+    return false;
+  };
+};
+
+SurfaceController.prototype = new SurfaceController.Prototype();
+
+Object.defineProperties(SurfaceController.prototype, {
+  "selection": {
+    get: function() {
+      return this.session.selection;
+    },
+    set: function() {
+      throw new Error("Immutable.");
+    }
+  },
+  "annotator": {
+    get: function() {
+      return this.session.annotator;
+    },
+    set: function() {
+      throw new Error("Immutable.");
+    }
+  },
+  "container": {
+    get: function() {
+      return this.session.container;
+    },
+    set: function() {
+      throw new Error("Immutable.");
+    }
+  },
+  "document": {
+    get: function() {
+      return this.session.document;
+    },
+    set: function() {
+      throw new Error("Immutable.");
+    }
+  },
+  "view": {
+    get: function() {
+      // TODO: 'view' is not very accurate as it is actually the name of a view node
+      // Beyond that 'view' as a node type is also confusing considering the Views.
+      console.error("TODO: rename this property.");
+      return this.session.container.name;
+    },
+    set: function() {
+      throw new Error("Immutable.");
+    }
+  }
+});
+
+module.exports = SurfaceController;
+},{"substance-util":140,"underscore":147}],138:[function(require,module,exports){
+"use strict";
+
+var TOC = require("./toc_view");
+
+module.exports = TOC;
+},{"./toc_view":139}],139:[function(require,module,exports){
+"use strict";
+
+var View = require("substance-application").View;
+var $$ = require("substance-application").$$;
+var Data = require("substance-data");
+var Index = Data.Graph.Index;
+var _ = require("underscore");
+
+// Substance.TOC.View
+// ==========================================================================
+
+var TOCView = function(docCtrl) {
+  View.call(this);
+  this.docCtrl = docCtrl;
+
+  this.$el.addClass("toc");
+};
+
+TOCView.Prototype = function() {
+
+  // Renderer
+  // --------
+
+  this.render = function() {
+    this.el.innerHTML = "";
+
+    // TODO: we can do this efficiently using an Index
+    this.headings = _.filter(this.docCtrl.container.getNodes(), function(node) {
+      return node.type === "heading";
+    });
+
+    if (this.headings.length <= 2 && !this.SHOW_ALWAYS) return this;
+    _.each(this.headings, function(heading) {
+      this.el.appendChild($$('a.heading-ref.level-'+heading.level, {
+        id: "toc_"+heading.id,
+        text: heading.content,
+        "sbs-click": "jumpToNode("+heading.id+")"
+      }));
+    }, this);
+
+    return this;
+  };
+
+  // Renderer
+  // --------
+  //
+
+  this.setActiveNode = function(nodeId) {
+    this.$('.heading-ref.active').removeClass('active');
+    this.$('#toc_'+nodeId).addClass('active');
+  };
+
+};
+
+TOCView.Prototype.prototype = View.prototype;
+TOCView.prototype = new TOCView.Prototype();
+
+module.exports = TOCView;
+
+},{"substance-application":4,"substance-data":28,"underscore":147}],140:[function(require,module,exports){
+"use strict";
+
+var util = require("./src/util");
+
+util.async = require("./src/async");
+util.errors = require("./src/errors");
+util.html = require("./src/html");
+util.dom = require("./src/dom");
+util.Fragmenter = require("./src/fragmenter");
+
+module.exports = util;
+
+},{"./src/async":141,"./src/dom":142,"./src/errors":143,"./src/fragmenter":144,"./src/html":145,"./src/util":146}],141:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("./util.js");
+
+// Helpers for Asynchronous Control Flow
+// --------
+
+var async = {};
+
+function callAsynchronousChain(options, cb) {
+  var _finally = options["finally"] || function(err, data) { cb(err, data); };
+  _finally = _.once(_finally);
+  var data = options.data || {};
+  var functions = options.functions;
+
+  if (!_.isFunction(cb)) {
+    return cb("Illegal arguments: a callback function must be provided");
+  }
+
+  var index = 0;
+  var stopOnError = (options.stopOnError===undefined) ? true : options.stopOnError;
+  var errors = [];
+
+  function process(data) {
+    var func = functions[index];
+
+    // stop if no function is left
+    if (!func) {
+      if (errors.length > 0) {
+        return _finally(new Error("Multiple errors occurred.", data));
+      } else {
+        return _finally(null, data);
+      }
+    }
+
+    // A function that is used as call back for each function
+    // which does the progression in the chain via recursion.
+    // On errors the given callback will be called and recursion is stopped.
+    var recursiveCallback = _.once(function(err, data) {
+      // stop on error
+      if (err) {
+        if (stopOnError) {
+          return _finally(err, null);
+        } else {
+          errors.push(err);
+        }
+      }
+
+      index += 1;
+      process(data);
+    });
+
+    // catch exceptions and propagat
+    try {
+      if (func.length === 0) {
+        func();
+        recursiveCallback(null, data);
+      }
+      else if (func.length === 1) {
+        func(recursiveCallback);
+      }
+      else {
+        func(data, recursiveCallback);
+      }
+    } catch (err) {
+      console.log("util.async caught error:", err);
+      util.printStackTrace(err);
+      _finally(err);
+    }
+  }
+
+  // start processing
+  process(data);
+}
+
+// Calls a given list of asynchronous functions sequentially
+// -------------------
+// options:
+//    functions:  an array of functions of the form f(data,cb)
+//    data:       data provided to the first function; optional
+//    finally:    a function that will always be called at the end, also on errors; optional
+
+async.sequential = function(options, cb) {
+  // allow to call this with an array of functions instead of options
+  if(_.isArray(options)) {
+    options = { functions: options };
+  }
+  callAsynchronousChain(options, cb);
+};
+
+function asynchronousIterator(options) {
+  return function(data, cb) {
+    // retrieve items via selector if a selector function is given
+    var items = options.selector ? options.selector(data) : options.items;
+    var _finally = options["finally"] || function(err, data) { cb(err, data); };
+    _finally = _.once(_finally);
+
+    // don't do nothing if no items are given
+    if (!items) {
+      return _finally(null, data);
+    }
+
+    var isArray = _.isArray(items);
+
+    if (options.before) {
+      options.before(data);
+    }
+
+    var funcs = [];
+    var iterator = options.iterator;
+
+    // TODO: discuss convention for iterator function signatures.
+    // trying to achieve a combination of underscore and node.js callback style
+    function arrayFunction(item, index) {
+      return function(data, cb) {
+        if (iterator.length === 2) {
+          iterator(item, cb);
+        } else if (iterator.length === 3) {
+          iterator(item, index, cb);
+        } else {
+          iterator(item, index, data, cb);
+        }
+      };
+    }
+
+    function objectFunction(value, key) {
+      return function(data, cb) {
+        if (iterator.length === 2) {
+          iterator(value, cb);
+        } else if (iterator.length === 3) {
+          iterator(value, key, cb);
+        } else {
+          iterator(value, key, data, cb);
+        }
+      };
+    }
+
+    if (isArray) {
+      for (var idx = 0; idx < items.length; idx++) {
+        funcs.push(arrayFunction(items[idx], idx));
+      }
+    } else {
+      for (var key in items) {
+        funcs.push(objectFunction(items[key], key));
+      }
+    }
+
+    //console.log("Iterator:", iterator, "Funcs:", funcs);
+    var chainOptions = {
+      functions: funcs,
+      data: data,
+      finally: _finally,
+      stopOnError: options.stopOnError
+    };
+    callAsynchronousChain(chainOptions, cb);
+  };
+}
+
+// Creates an each-iterator for util.async chains
+// -----------
+//
+//     var func = util.async.each(items, function(item, [idx, [data,]] cb) { ... });
+//     var func = util.async.each(options)
+//
+// options:
+//    items:    the items to be iterated
+//    selector: used to select items dynamically from the data provided by the previous function in the chain
+//    before:   an extra function called before iteration
+//    iterator: the iterator function (item, [idx, [data,]] cb)
+//       with item: the iterated item,
+//            data: the propagated data (optional)
+//            cb:   the callback
+
+// TODO: support only one version and add another function
+async.iterator = function(options_or_items, iterator) {
+  var options;
+  if (arguments.length == 1) {
+    options = options_or_items;
+  } else {
+    options = {
+      items: options_or_items,
+      iterator: iterator
+    };
+  }
+  return asynchronousIterator(options);
+};
+
+async.each = function(options, cb) {
+  // create the iterator and call instantly
+  var f = asynchronousIterator(options);
+  f(null, cb);
+};
+
+module.exports = async;
+
+},{"./util.js":146,"underscore":147}],142:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+// Helpers for working with the DOM
+
+var dom = {};
+
+dom.ChildNodeIterator = function(arg) {
+  if(_.isArray(arg)) {
+    this.nodes = arg;
+  } else {
+    this.nodes = arg.childNodes;
+  }
+  this.length = this.nodes.length;
+  this.pos = -1;
+};
+
+dom.ChildNodeIterator.prototype = {
+  hasNext: function() {
+    return this.pos < this.length - 1;
+  },
+
+  next: function() {
+    this.pos += 1;
+    return this.nodes[this.pos];
+  },
+
+  back: function() {
+    if (this.pos >= 0) {
+      this.pos -= 1;
+    }
+    return this;
+  }
+};
+
+// Note: it is not safe regarding browser in-compatibilities
+// to access el.children directly.
+dom.getChildren = function(el) {
+  if (el.children !== undefined) return el.children;
+  var children = [];
+  var child = el.firstElementChild;
+  while (child) {
+    children.push(child);
+    child = child.nextElementSibling;
+  }
+  return children;
+};
+
+dom.getNodeType = function(el) {
+  if (el.nodeType === Node.TEXT_NODE) {
+    return "text";
+  } else if (el.nodeType === Node.COMMENT_NODE) {
+    return "comment";
+  } else if (el.tagName) {
+    return el.tagName.toLowerCase();
+  } else {
+    throw new Error("Unknown node type");
+  }
+};
+
+module.exports = dom;
+
+},{"underscore":147}],143:[function(require,module,exports){
+"use strict";
+
+// Imports
+// ====
+
+var _ = require('underscore');
+var util = require('./util');
+
+// Module
+// ====
+
+var errors = {};
+
+errors.SubstanceError = function(name, code, message) {
+  if (arguments.length == 1) {
+    message = name;
+    name = "SubstanceError";
+    code = -1;
+  }
+
+  this.message = message;
+  this.name = name;
+  this.code = code;
+
+  this.__stack = util.callstack(1);
+};
+
+errors.SubstanceError.Prototype = function() {
+
+  this.toString = function() {
+    return this.name+":"+this.message;
+  };
+
+  this.toJSON = function() {
+    return {
+      name: this.name,
+      message: this.message,
+      code: this.code,
+      stack: this.stack
+    };
+  };
+
+  this.printStackTrace = function() {
+    util.printStackTrace(this);
+  };
+
+};
+errors.SubstanceError.prototype = new errors.SubstanceError.Prototype();
+
+Object.defineProperty(errors.SubstanceError.prototype, "stack", {
+  get: function() {
+    var str = [];
+    for (var idx = 0; idx < this.__stack.length; idx++) {
+      var s = this.__stack[idx];
+      str.push(s.file+":"+s.line+":"+s.col+" ("+s.func+")");
+    }
+    return str.join("\n");
+  },
+  set: function() { throw new Error("immutable.")}
+});
+
+errors.define = function(className, code) {
+  if (code === undefined) code = -1;
+  errors[className] = errors.SubstanceError.bind(null, className, code);
+  errors[className].prototype = errors.SubstanceError.prototype;
+  return errors[className];
+};
+
+module.exports = errors;
+
+},{"./util":146,"underscore":147}],144:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+var ENTER = 1;
+var EXIT = -1;
+
+// Fragmenter
+// --------
+//
+// An algorithm that is used to fragment overlapping structure elements
+// following a priority rule set.
+// E.g., we use this for creating DOM elements for annotations. The annotations
+// can partially be overlapping. However this is not allowed in general for DOM elements
+// or other hierarchical structures.
+//
+// Example: For the Annotation use casec consider a 'comment' spanning partially
+// over an 'emphasis' annotation.
+// 'The <comment>quick brown <bold>fox</comment> jumps over</bold> the lazy dog.'
+// We want to be able to create a valid XML structure:
+// 'The <comment>quick brown <bold>fox</bold></comment><bold> jumps over</bold> the lazy dog.'
+//
+// For that one would choose
+//
+//     {
+//        'comment': 0,
+//        'bold': 1
+//     }
+//
+// as priority levels.
+// In case of structural violations as in the example, elements with a higher level
+// would be fragmented and those with lower levels would be preserved as one piece.
+//
+// TODO: If a violation for nodes of the same level occurs an Error should be thrown.
+// Currently, in such cases the first element that is opened earlier is preserved.
+
+var Fragmenter = function(levels) {
+  if (!levels) {
+    throw new Error("Requires a specification of element levels.");
+  }
+  this.levels = levels;
+};
+
+Fragmenter.Prototype = function() {
+
+  // This is a sweep algorithm wich uses a set of ENTER/EXIT entries
+  // to manage a stack of active elements.
+  // Whenever a new element is entered it will be appended to its parent element.
+  // The stack is ordered by the annotation types.
+  //
+  // Examples:
+  //
+  // - simple case:
+  //
+  //       [top] -> ENTER(idea1) -> [top, idea1]
+  //
+  //   Creates a new 'idea' element and appends it to 'top'
+  //
+  // - stacked ENTER:
+  //
+  //       [top, idea1] -> ENTER(bold1) -> [top, idea1, bold1]
+  //
+  //   Creates a new 'bold' element and appends it to 'idea1'
+  //
+  // - simple EXIT:
+  //
+  //       [top, idea1] -> EXIT(idea1) -> [top]
+  //
+  //   Removes 'idea1' from stack.
+  //
+  // - reordering ENTER:
+  //
+  //       [top, bold1] -> ENTER(idea1) -> [top, idea1, bold1]
+  //
+  //   Inserts 'idea1' at 2nd position, creates a new 'bold1', and appends itself to 'top'
+  //
+  // - reordering EXIT
+  //
+  //       [top, idea1, bold1] -> EXIT(idea1)) -> [top, bold1]
+  //
+  //   Removes 'idea1' from stack and creates a new 'bold1'
+  //
+
+  // Orders sweep events according to following precedences:
+  //
+  // 1. pos
+  // 2. EXIT < ENTER
+  // 3. if both ENTER: ascending level
+  // 4. if both EXIT: descending level
+
+  var _compare = function(a, b) {
+    if (a.pos < b.pos) return -1;
+    if (a.pos > b.pos) return 1;
+
+    if (a.mode < b.mode) return -1;
+    if (a.mode > b.mode) return 1;
+
+    if (a.mode === ENTER) {
+      if (a.level < b.level) return -1;
+      if (a.level > b.level) return 1;
+    }
+
+    if (a.mode === EXIT) {
+      if (a.level > b.level) return -1;
+      if (a.level < b.level) return 1;
+    }
+
+    return 0;
+  };
+
+  var extractEntries = function(annotations) {
+    var entries = [];
+    _.each(annotations, function(a) {
+      var l = this.levels[a.type];
+
+      // ignore annotations that are not registered
+      if (l === undefined) {
+        return;
+      }
+
+      entries.push({ pos : a.range[0], mode: ENTER, level: l, id: a.id, type: a.type });
+      entries.push({ pos : a.range[1], mode: EXIT, level: l, id: a.id, type: a.type });
+    }, this);
+    return entries;
+  };
+
+  this.onText = function(/*context, text*/) {};
+
+  // should return the created user context
+  this.onEnter = function(/*entry, parentContext*/) {
+    return null;
+  };
+  this.onExit = function(/*entry, parentContext*/) {};
+
+  this.enter = function(entry, parentContext) {
+    return this.onEnter(entry, parentContext);
+  };
+
+  this.exit = function(entry, parentContext) {
+    this.onExit(entry, parentContext);
+  };
+
+  this.createText = function(context, text) {
+    this.onText(context, text);
+  };
+
+  this.start = function(rootContext, text, annotations) {
+    var entries = extractEntries.call(this, annotations);
+    entries.sort(_compare.bind(this));
+
+    var stack = [{context: rootContext, entry: null}];
+
+    var pos = 0;
+
+    for (var i = 0; i < entries.length; i++) {
+      var entry = entries[i];
+
+      // in any case we add the last text to the current element
+      this.createText(stack[stack.length-1].context, text.substring(pos, entry.pos));
+
+      pos = entry.pos;
+      var level = 1;
+
+      var idx;
+
+      if (entry.mode === ENTER) {
+        // find the correct position and insert an entry
+        for (; level < stack.length; level++) {
+          if (entry.level < stack[level].entry.level) {
+            break;
+          }
+        }
+        stack.splice(level, 0, {entry: entry});
+      }
+      else if (entry.mode === EXIT) {
+        // find the according entry and remove it from the stack
+        for (; level < stack.length; level++) {
+          if (stack[level].entry.id === entry.id) {
+            break;
+          }
+        }
+        for (idx = level; idx < stack.length; idx++) {
+          this.exit(stack[idx].entry, stack[idx-1].context);
+        }
+        stack.splice(level, 1);
+      }
+
+      // create new elements for all lower entries
+      for (idx = level; idx < stack.length; idx++) {
+        stack[idx].context = this.enter(stack[idx].entry, stack[idx-1].context);
+      }
+    }
+
+    // Finally append a trailing text node
+    this.createText(rootContext, text.substring(pos));
+  };
+
+};
+Fragmenter.prototype = new Fragmenter.Prototype();
+
+module.exports = Fragmenter;
+
+},{"underscore":147}],145:[function(require,module,exports){
+"use strict";
+
+var html = {};
+var _ = require("underscore");
+
+html.templates = {};
+
+// html.compileTemplate = function(tplName) {
+//   var rawTemplate = $('script[name='+tplName+']').html();
+//   html.templates[tplName] = Handlebars.compile(rawTemplate);
+// };
+
+html.renderTemplate = function(tplName, data) {
+  return html.templates[tplName](data);
+};
+
+// Handlebars.registerHelper('ifelse', function(cond, textIf, textElse) {
+//   textIf = Handlebars.Utils.escapeExpression(textIf);
+//   textElse  = Handlebars.Utils.escapeExpression(textElse);
+//   return new Handlebars.SafeString(cond ? textIf : textElse);
+// });
+
+if (typeof window !== "undefined") {
+  // A fake console to calm down some browsers.
+  if (!window.console) {
+    window.console = {
+      log: function(msg) {
+        // No-op
+      }
+    };
+  }
+}
+
+// Render Underscore templates
+html.tpl = function (tpl, ctx) {
+  ctx = ctx || {};
+  var source = $('script[name='+tpl+']').html();
+  return _.template(source, ctx);
+};
+
+// Exports
+// ====
+
+module.exports = html;
+
+},{"underscore":147}],146:[function(require,module,exports){
+"use strict";
+
+// Imports
+// ====
+
+var _ = require('underscore');
+
+// Module
+// ====
+
+var util = {};
+
+// UUID Generator
+// -----------------
+
+/*!
+Math.uuid.js (v1.4)
+http://www.broofa.com
+mailto:robert@broofa.com
+
+Copyright (c) 2010 Robert Kieffer
+Dual licensed under the MIT and GPL licenses.
+*/
+
+util.uuid = function (prefix, len) {
+  var chars = '0123456789abcdefghijklmnopqrstuvwxyz'.split(''),
+      uuid = [],
+      radix = 16,
+      idx;
+  len = len || 32;
+
+  if (len) {
+    // Compact form
+    for (idx = 0; idx < len; idx++) uuid[idx] = chars[0 | Math.random()*radix];
+  } else {
+    // rfc4122, version 4 form
+    var r;
+
+    // rfc4122 requires these characters
+    uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
+    uuid[14] = '4';
+
+    // Fill in random data.  At i==19 set the high bits of clock sequence as
+    // per rfc4122, sec. 4.1.5
+    for (idx = 0; idx < 36; idx++) {
+      if (!uuid[idx]) {
+        r = 0 | Math.random()*16;
+        uuid[idx] = chars[(idx == 19) ? (r & 0x3) | 0x8 : r];
+      }
+    }
+  }
+  return (prefix ? prefix : "") + uuid.join('');
+};
+
+// creates a uuid function that generates counting uuids
+util.uuidGen = function(defaultPrefix) {
+  var id = 1;
+  defaultPrefix = (defaultPrefix !== undefined) ? defaultPrefix : "uuid_";
+  return function(prefix) {
+    prefix = prefix || defaultPrefix;
+    return prefix+(id++);
+  };
+};
+
+
+// Events
+// ---------------
+
+// Taken from Backbone.js
+//
+// A module that can be mixed in to *any object* in order to provide it with
+// custom events. You may bind with `on` or remove with `off` callback
+// functions to an event; `trigger`-ing an event fires all callbacks in
+// succession.
+//
+//     var object = {};
+//     _.extend(object, util.Events);
+//     object.on('expand', function(){ alert('expanded'); });
+//     object.trigger('expand');
+//
+
+// A difficult-to-believe, but optimized internal dispatch function for
+// triggering events. Tries to keep the usual cases speedy (most internal
+// Backbone events have 3 arguments).
+var triggerEvents = function(events, args) {
+  var ev, i = -1, l = events.length, a1 = args[0], a2 = args[1], a3 = args[2];
+  switch (args.length) {
+    case 0: while (++i < l) (ev = events[i]).callback.call(ev.ctx); return;
+    case 1: while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1); return;
+    case 2: while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1, a2); return;
+    case 3: while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1, a2, a3); return;
+    default: while (++i < l) (ev = events[i]).callback.apply(ev.ctx, args);
+  }
+};
+
+// Regular expression used to split event strings.
+var eventSplitter = /\s+/;
+
+// Implement fancy features of the Events API such as multiple event
+// names `"change blur"` and jQuery-style event maps `{change: action}`
+// in terms of the existing API.
+var eventsApi = function(obj, action, name, rest) {
+  if (!name) return true;
+
+  // Handle event maps.
+  if (typeof name === 'object') {
+    for (var key in name) {
+      obj[action].apply(obj, [key, name[key]].concat(rest));
+    }
+    return false;
+  }
+
+  // Handle space separated event names.
+  if (eventSplitter.test(name)) {
+    var names = name.split(eventSplitter);
+    for (var i = 0, l = names.length; i < l; i++) {
+      obj[action].apply(obj, [names[i]].concat(rest));
+    }
+    return false;
+  }
+
+  return true;
+};
+
+util.Events = {
+
+  // Bind an event to a `callback` function. Passing `"all"` will bind
+  // the callback to all events fired.
+  on: function(name, callback, context) {
+    if (!eventsApi(this, 'on', name, [callback, context]) || !callback) return this;
+    this._events =  this._events || {};
+    var events = this._events[name] || (this._events[name] = []);
+    events.push({callback: callback, context: context, ctx: context || this});
+    return this;
+  },
+
+  // Bind an event to only be triggered a single time. After the first time
+  // the callback is invoked, it will be removed.
+  once: function(name, callback, context) {
+    if (!eventsApi(this, 'once', name, [callback, context]) || !callback) return this;
+    var self = this;
+    var once = _.once(function() {
+      self.off(name, once);
+      callback.apply(this, arguments);
+    });
+    once._callback = callback;
+    return this.on(name, once, context);
+  },
+
+  // Remove one or many callbacks. If `context` is null, removes all
+  // callbacks with that function. If `callback` is null, removes all
+  // callbacks for the event. If `name` is null, removes all bound
+  // callbacks for all events.
+  off: function(name, callback, context) {
+    var retain, ev, events, names, i, l, j, k;
+    if (!this._events || !eventsApi(this, 'off', name, [callback, context])) return this;
+    if (!name && !callback && !context) {
+      this._events = {};
+      return this;
+    }
+
+    names = name ? [name] : _.keys(this._events);
+    for (i = 0, l = names.length; i < l; i++) {
+      name = names[i];
+      events = this._events[name];
+      if (events) {
+        this._events[name] = retain = [];
+        if (callback || context) {
+          for (j = 0, k = events.length; j < k; j++) {
+            ev = events[j];
+            if ((callback && callback !== ev.callback && callback !== ev.callback._callback) ||
+                (context && context !== ev.context)) {
+              retain.push(ev);
+            }
+          }
+        }
+        if (!retain.length) delete this._events[name];
+      }
+    }
+
+    return this;
+  },
+
+  // Trigger one or many events, firing all bound callbacks. Callbacks are
+  // passed the same arguments as `trigger` is, apart from the event name
+  // (unless you're listening on `"all"`, which will cause your callback to
+  // receive the true name of the event as the first argument).
+  trigger: function(name) {
+    if (!this._events) return this;
+    var args = Array.prototype.slice.call(arguments, 1);
+    if (!eventsApi(this, 'trigger', name, args)) return this;
+    var events = this._events[name];
+    var allEvents = this._events.all;
+    if (events) triggerEvents(events, args);
+    if (allEvents) triggerEvents(allEvents, arguments);
+    return this;
+  },
+
+  triggerLater: function() {
+    var self = this;
+    var _arguments = arguments;
+    setTimeout(function() {
+      self.trigger.apply(self, _arguments);
+    }, 0);
+  },
+
+  // Tell this object to stop listening to either specific events ... or
+  // to every object it's currently listening to.
+  stopListening: function(obj, name, callback) {
+    var listeners = this._listeners;
+    if (!listeners) return this;
+    var deleteListener = !name && !callback;
+    if (typeof name === 'object') callback = this;
+    if (obj) (listeners = {})[obj._listenerId] = obj;
+    for (var id in listeners) {
+      listeners[id].off(name, callback, this);
+      if (deleteListener) delete this._listeners[id];
+    }
+    return this;
+  }
+
+};
+
+var listenMethods = {listenTo: 'on', listenToOnce: 'once'};
+
+// Inversion-of-control versions of `on` and `once`. Tell *this* object to
+// listen to an event in another object ... keeping track of what it's
+// listening to.
+_.each(listenMethods, function(implementation, method) {
+  util.Events[method] = function(obj, name, callback) {
+    var listeners = this._listeners || (this._listeners = {});
+    var id = obj._listenerId || (obj._listenerId = _.uniqueId('l'));
+    listeners[id] = obj;
+    if (typeof name === 'object') callback = this;
+    obj[implementation](name, callback, this);
+    return this;
+  };
+});
+
+// Aliases for backwards compatibility.
+util.Events.bind   = util.Events.on;
+util.Events.unbind = util.Events.off;
+
+util.Events.Listener = {
+
+  listenTo: function(obj, name, callback) {
+    if (!_.isFunction(callback)) {
+      throw new Error("Illegal argument: expecting function as callback, was: " + callback);
+    }
+
+    // initialize container for keeping handlers to unbind later
+    this._handlers = this._handlers || [];
+
+    obj.on(name, callback, this);
+
+    this._handlers.push({
+      unbind: function() {
+        obj.off(name, callback);
+      }
+    });
+
+    return this;
+  },
+
+  stopListening: function() {
+    if (this._handlers) {
+      for (var i = 0; i < this._handlers.length; i++) {
+        this._handlers[i].unbind();
+      }
+    }
+  }
+
+};
+
+util.propagate = function(data, cb) {
+  if(!_.isFunction(cb)) {
+    throw "Illegal argument: provided callback is not a function";
+  }
+  return function(err) {
+    if (err) return cb(err);
+    cb(null, data);
+  };
+};
+
+// shamelessly stolen from backbone.js:
+// Helper function to correctly set up the prototype chain, for subclasses.
+// Similar to `goog.inherits`, but uses a hash of prototype properties and
+// class properties to be extended.
+var ctor = function(){};
+util.inherits = function(parent, protoProps, staticProps) {
+  var child;
+
+  // The constructor function for the new subclass is either defined by you
+  // (the "constructor" property in your `extend` definition), or defaulted
+  // by us to simply call the parent's constructor.
+  if (protoProps && protoProps.hasOwnProperty('constructor')) {
+    child = protoProps.constructor;
+  } else {
+    child = function(){ parent.apply(this, arguments); };
+  }
+
+  // Inherit class (static) properties from parent.
+  _.extend(child, parent);
+
+  // Set the prototype chain to inherit from `parent`, without calling
+  // `parent`'s constructor function.
+  ctor.prototype = parent.prototype;
+  child.prototype = new ctor();
+
+  // Add prototype properties (instance properties) to the subclass,
+  // if supplied.
+  if (protoProps) _.extend(child.prototype, protoProps);
+
+  // Add static properties to the constructor function, if supplied.
+  if (staticProps) _.extend(child, staticProps);
+
+  // Correctly set child's `prototype.constructor`.
+  child.prototype.constructor = child;
+
+  // Set a convenience property in case the parent's prototype is needed later.
+  child.__super__ = parent.prototype;
+
+  return child;
+};
+
+// Util to read seed data from file system
+// ----------
+
+util.getJSON = function(resource, cb) {
+  if (typeof exports !== 'undefined') {
+    var fs = require('fs');
+    var obj = JSON.parse(fs.readFileSync(resource, 'utf8'));
+    cb(null, obj);
+  } else {
+    //console.log("util.getJSON", resource);
+    $.getJSON(resource)
+      .done(function(obj) { cb(null, obj); })
+      .error(function(err) { cb(err, null); });
+  }
+};
+
+util.prototype = function(that) {
+  /*jshint proto: true*/ // supressing a warning about using deprecated __proto__.
+  return Object.getPrototypeOf ? Object.getPrototypeOf(that) : that.__proto__;
+};
+
+util.inherit = function(Super, Self) {
+  var super_proto = _.isFunction(Super) ? new Super() : Super;
+  var proto;
+  if (_.isFunction(Self)) {
+    Self.prototype = super_proto;
+    proto = new Self();
+  } else {
+    var TmpClass = function(){};
+    TmpClass.prototype = super_proto;
+    proto = _.extend(new TmpClass(), Self);
+  }
+  return proto;
+};
+
+util.pimpl = function(pimpl) {
+  var Pimpl = function(self) {
+    this.self = self;
+  };
+  Pimpl.prototype = pimpl;
+  return function(self) { self = self || this; return new Pimpl(self); };
+};
+
+util.parseStackTrace = function(err) {
+  var SAFARI_STACK_ELEM = /([^@]*)@(.*):(\d+)/;
+  var CHROME_STACK_ELEM = /\s*at ([^(]*)[(](.*):(\d+):(\d+)[)]/;
+
+  var idx;
+  var stackTrace = err.stack.split('\n');
+
+  // parse the stack trace: each line is a tuple (function, file, lineNumber)
+  // Note: unfortunately this is interpreter specific
+  // safari: "<function>@<file>:<lineNumber>"
+  // chrome: "at <function>(<file>:<line>:<col>"
+
+  var stack = [];
+  for (idx = 0; idx < stackTrace.length; idx++) {
+    var match = SAFARI_STACK_ELEM.exec(stackTrace[idx]);
+    if (!match) match = CHROME_STACK_ELEM.exec(stackTrace[idx]);
+    if (match) {
+      var entry = {
+        func: match[1],
+        file: match[2],
+        line: match[3],
+        col: match[4] || 0
+      };
+      if (entry.func === "") entry.func = "<anonymous>";
+      stack.push(entry);
+    }
+  }
+
+  return stack;
+};
+
+util.callstack = function(k) {
+  var err;
+  try { throw new Error(); } catch (_err) { err = _err; }
+  var stack = util.parseStackTrace(err);
+  k = k || 0;
+  return stack.splice(k+1);
+};
+
+util.stacktrace = function (err) {
+  var stack = (arguments.length === 0) ? util.callstack().splice(1) : util.parseStackTrace(err);
+  var str = [];
+  _.each(stack, function(s) {
+    str.push(s.file+":"+s.line+":"+s.col+" ("+s.func+")");
+  });
+  return str.join("\n");
+};
+
+util.printStackTrace = function(err, N) {
+  if (!err.stack) return;
+
+  var stack;
+
+  // Substance errors have a nice stack already
+  if (err.__stack !== undefined) {
+    stack = err.__stack;
+  }
+  // built-in errors have the stack trace as one string
+  else if (_.isString(err.stack)) {
+    stack = util.parseStackTrace(err);
+  }
+  else return;
+
+  N = N || stack.length;
+  N = Math.min(N, stack.length);
+
+  for (var idx = 0; idx < N; idx++) {
+    var s = stack[idx];
+    console.log(s.file+":"+s.line+":"+s.col, "("+s.func+")");
+  }
+};
+
+// computes the difference of obj1 to obj2
+util.diff = function(obj1, obj2) {
+  var diff;
+  if (_.isArray(obj1) && _.isArray(obj2)) {
+    diff = _.difference(obj2, obj1);
+    // return null in case of equality
+    if (diff.length === 0) return null;
+    else return diff;
+  }
+  if (_.isObject(obj1) && _.isObject(obj2)) {
+    diff = {};
+    _.each(Object.keys(obj2), function(key) {
+      var d = util.diff(obj1[key], obj2[key]);
+      if (d) diff[key] = d;
+    });
+    // return null in case of equality
+    if (_.isEmpty(diff)) return null;
+    else return diff;
+  }
+  if(obj1 !== obj2) return obj2;
+};
+
+// Deep-Clone a given object
+// --------
+// Note: this is currently done via JSON.parse(JSON.stringify(obj))
+//       which is in fact not optimal, as it depends on `toJSON` implementation.
+util.deepclone = function(obj) {
+  if (obj === undefined) return undefined;
+  if (obj === null) return null;
+  return JSON.parse(JSON.stringify(obj));
+};
+
+// Clones a given object
+// --------
+// Calls obj's `clone` function if available,
+// otherwise clones the obj using `util.deepclone()`.
+util.clone = function(obj) {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  if (_.isFunction(obj.clone)) {
+    return obj.clone();
+  }
+  return util.deepclone(obj);
+};
+
+util.freeze = function(obj) {
+  var idx;
+  if (_.isObject(obj)) {
+    if (Object.isFrozen(obj)) return obj;
+
+    var keys = Object.keys(obj);
+    for (idx = 0; idx < keys.length; idx++) {
+      var key = keys[idx];
+      obj[key] = util.freeze(obj[key]);
+    }
+    return Object.freeze(obj);
+  } else if (_.isArray(obj)) {
+    var arr = obj;
+    for (idx = 0; idx < arr.length; idx++) {
+      arr[idx] = util.freeze(arr[idx]);
+    }
+    return Object.freeze(arr);
+  } else {
+    return obj; // Object.freeze(obj);
+  }
+};
+
+util.later = function(f, context) {
+  return function() {
+    var _args = arguments;
+    setTimeout(function() {
+      f.apply(context, _args);
+    }, 0);
+  };
+};
+
+
+// Returns true if a string doesn't contain any real content
+
+util.isEmpty = function(str) {
+  return !str.match(/\w/);
+};
+
+// Export
+// ====
+
+module.exports = util;
+
+},{"fs":152,"underscore":147}],147:[function(require,module,exports){
+//     Underscore.js 1.5.2
+//     http://underscorejs.org
+//     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+//     Underscore may be freely distributed under the MIT license.
+
+(function() {
+
+  // Baseline setup
+  // --------------
+
+  // Establish the root object, `window` in the browser, or `exports` on the server.
+  var root = this;
+
+  // Save the previous value of the `_` variable.
+  var previousUnderscore = root._;
+
+  // Establish the object that gets returned to break out of a loop iteration.
+  var breaker = {};
+
+  // Save bytes in the minified (but not gzipped) version:
+  var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype;
+
+  // Create quick reference variables for speed access to core prototypes.
+  var
+    push             = ArrayProto.push,
+    slice            = ArrayProto.slice,
+    concat           = ArrayProto.concat,
+    toString         = ObjProto.toString,
+    hasOwnProperty   = ObjProto.hasOwnProperty;
+
+  // All **ECMAScript 5** native function implementations that we hope to use
+  // are declared here.
+  var
+    nativeForEach      = ArrayProto.forEach,
+    nativeMap          = ArrayProto.map,
+    nativeReduce       = ArrayProto.reduce,
+    nativeReduceRight  = ArrayProto.reduceRight,
+    nativeFilter       = ArrayProto.filter,
+    nativeEvery        = ArrayProto.every,
+    nativeSome         = ArrayProto.some,
+    nativeIndexOf      = ArrayProto.indexOf,
+    nativeLastIndexOf  = ArrayProto.lastIndexOf,
+    nativeIsArray      = Array.isArray,
+    nativeKeys         = Object.keys,
+    nativeBind         = FuncProto.bind;
+
+  // Create a safe reference to the Underscore object for use below.
+  var _ = function(obj) {
+    if (obj instanceof _) return obj;
+    if (!(this instanceof _)) return new _(obj);
+    this._wrapped = obj;
+  };
+
+  // Export the Underscore object for **Node.js**, with
+  // backwards-compatibility for the old `require()` API. If we're in
+  // the browser, add `_` as a global object via a string identifier,
+  // for Closure Compiler "advanced" mode.
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = _;
+    }
+    exports._ = _;
+  } else {
+    root._ = _;
+  }
+
+  // Current version.
+  _.VERSION = '1.5.2';
+
+  // Collection Functions
+  // --------------------
+
+  // The cornerstone, an `each` implementation, aka `forEach`.
+  // Handles objects with the built-in `forEach`, arrays, and raw objects.
+  // Delegates to **ECMAScript 5**'s native `forEach` if available.
+  var each = _.each = _.forEach = function(obj, iterator, context) {
+    if (obj == null) return;
+    if (nativeForEach && obj.forEach === nativeForEach) {
+      obj.forEach(iterator, context);
+    } else if (obj.length === +obj.length) {
+      for (var i = 0, length = obj.length; i < length; i++) {
+        if (iterator.call(context, obj[i], i, obj) === breaker) return;
+      }
+    } else {
+      var keys = _.keys(obj);
+      for (var i = 0, length = keys.length; i < length; i++) {
+        if (iterator.call(context, obj[keys[i]], keys[i], obj) === breaker) return;
+      }
+    }
+  };
+
+  // Return the results of applying the iterator to each element.
+  // Delegates to **ECMAScript 5**'s native `map` if available.
+  _.map = _.collect = function(obj, iterator, context) {
+    var results = [];
+    if (obj == null) return results;
+    if (nativeMap && obj.map === nativeMap) return obj.map(iterator, context);
+    each(obj, function(value, index, list) {
+      results.push(iterator.call(context, value, index, list));
+    });
+    return results;
+  };
+
+  var reduceError = 'Reduce of empty array with no initial value';
+
+  // **Reduce** builds up a single result from a list of values, aka `inject`,
+  // or `foldl`. Delegates to **ECMAScript 5**'s native `reduce` if available.
+  _.reduce = _.foldl = _.inject = function(obj, iterator, memo, context) {
+    var initial = arguments.length > 2;
+    if (obj == null) obj = [];
+    if (nativeReduce && obj.reduce === nativeReduce) {
+      if (context) iterator = _.bind(iterator, context);
+      return initial ? obj.reduce(iterator, memo) : obj.reduce(iterator);
+    }
+    each(obj, function(value, index, list) {
+      if (!initial) {
+        memo = value;
+        initial = true;
+      } else {
+        memo = iterator.call(context, memo, value, index, list);
+      }
+    });
+    if (!initial) throw new TypeError(reduceError);
+    return memo;
+  };
+
+  // The right-associative version of reduce, also known as `foldr`.
+  // Delegates to **ECMAScript 5**'s native `reduceRight` if available.
+  _.reduceRight = _.foldr = function(obj, iterator, memo, context) {
+    var initial = arguments.length > 2;
+    if (obj == null) obj = [];
+    if (nativeReduceRight && obj.reduceRight === nativeReduceRight) {
+      if (context) iterator = _.bind(iterator, context);
+      return initial ? obj.reduceRight(iterator, memo) : obj.reduceRight(iterator);
+    }
+    var length = obj.length;
+    if (length !== +length) {
+      var keys = _.keys(obj);
+      length = keys.length;
+    }
+    each(obj, function(value, index, list) {
+      index = keys ? keys[--length] : --length;
+      if (!initial) {
+        memo = obj[index];
+        initial = true;
+      } else {
+        memo = iterator.call(context, memo, obj[index], index, list);
+      }
+    });
+    if (!initial) throw new TypeError(reduceError);
+    return memo;
+  };
+
+  // Return the first value which passes a truth test. Aliased as `detect`.
+  _.find = _.detect = function(obj, iterator, context) {
+    var result;
+    any(obj, function(value, index, list) {
+      if (iterator.call(context, value, index, list)) {
+        result = value;
+        return true;
+      }
+    });
+    return result;
+  };
+
+  // Return all the elements that pass a truth test.
+  // Delegates to **ECMAScript 5**'s native `filter` if available.
+  // Aliased as `select`.
+  _.filter = _.select = function(obj, iterator, context) {
+    var results = [];
+    if (obj == null) return results;
+    if (nativeFilter && obj.filter === nativeFilter) return obj.filter(iterator, context);
+    each(obj, function(value, index, list) {
+      if (iterator.call(context, value, index, list)) results.push(value);
+    });
+    return results;
+  };
+
+  // Return all the elements for which a truth test fails.
+  _.reject = function(obj, iterator, context) {
+    return _.filter(obj, function(value, index, list) {
+      return !iterator.call(context, value, index, list);
+    }, context);
+  };
+
+  // Determine whether all of the elements match a truth test.
+  // Delegates to **ECMAScript 5**'s native `every` if available.
+  // Aliased as `all`.
+  _.every = _.all = function(obj, iterator, context) {
+    iterator || (iterator = _.identity);
+    var result = true;
+    if (obj == null) return result;
+    if (nativeEvery && obj.every === nativeEvery) return obj.every(iterator, context);
+    each(obj, function(value, index, list) {
+      if (!(result = result && iterator.call(context, value, index, list))) return breaker;
+    });
+    return !!result;
+  };
+
+  // Determine if at least one element in the object matches a truth test.
+  // Delegates to **ECMAScript 5**'s native `some` if available.
+  // Aliased as `any`.
+  var any = _.some = _.any = function(obj, iterator, context) {
+    iterator || (iterator = _.identity);
+    var result = false;
+    if (obj == null) return result;
+    if (nativeSome && obj.some === nativeSome) return obj.some(iterator, context);
+    each(obj, function(value, index, list) {
+      if (result || (result = iterator.call(context, value, index, list))) return breaker;
+    });
+    return !!result;
+  };
+
+  // Determine if the array or object contains a given value (using `===`).
+  // Aliased as `include`.
+  _.contains = _.include = function(obj, target) {
+    if (obj == null) return false;
+    if (nativeIndexOf && obj.indexOf === nativeIndexOf) return obj.indexOf(target) != -1;
+    return any(obj, function(value) {
+      return value === target;
+    });
+  };
+
+  // Invoke a method (with arguments) on every item in a collection.
+  _.invoke = function(obj, method) {
+    var args = slice.call(arguments, 2);
+    var isFunc = _.isFunction(method);
+    return _.map(obj, function(value) {
+      return (isFunc ? method : value[method]).apply(value, args);
+    });
+  };
+
+  // Convenience version of a common use case of `map`: fetching a property.
+  _.pluck = function(obj, key) {
+    return _.map(obj, function(value){ return value[key]; });
+  };
+
+  // Convenience version of a common use case of `filter`: selecting only objects
+  // containing specific `key:value` pairs.
+  _.where = function(obj, attrs, first) {
+    if (_.isEmpty(attrs)) return first ? void 0 : [];
+    return _[first ? 'find' : 'filter'](obj, function(value) {
+      for (var key in attrs) {
+        if (attrs[key] !== value[key]) return false;
+      }
+      return true;
+    });
+  };
+
+  // Convenience version of a common use case of `find`: getting the first object
+  // containing specific `key:value` pairs.
+  _.findWhere = function(obj, attrs) {
+    return _.where(obj, attrs, true);
+  };
+
+  // Return the maximum element or (element-based computation).
+  // Can't optimize arrays of integers longer than 65,535 elements.
+  // See [WebKit Bug 80797](https://bugs.webkit.org/show_bug.cgi?id=80797)
+  _.max = function(obj, iterator, context) {
+    if (!iterator && _.isArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
+      return Math.max.apply(Math, obj);
+    }
+    if (!iterator && _.isEmpty(obj)) return -Infinity;
+    var result = {computed : -Infinity, value: -Infinity};
+    each(obj, function(value, index, list) {
+      var computed = iterator ? iterator.call(context, value, index, list) : value;
+      computed > result.computed && (result = {value : value, computed : computed});
+    });
+    return result.value;
+  };
+
+  // Return the minimum element (or element-based computation).
+  _.min = function(obj, iterator, context) {
+    if (!iterator && _.isArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
+      return Math.min.apply(Math, obj);
+    }
+    if (!iterator && _.isEmpty(obj)) return Infinity;
+    var result = {computed : Infinity, value: Infinity};
+    each(obj, function(value, index, list) {
+      var computed = iterator ? iterator.call(context, value, index, list) : value;
+      computed < result.computed && (result = {value : value, computed : computed});
+    });
+    return result.value;
+  };
+
+  // Shuffle an array, using the modern version of the 
+  // [Fisher-Yates shuffle](http://en.wikipedia.org/wiki/Fisher–Yates_shuffle).
+  _.shuffle = function(obj) {
+    var rand;
+    var index = 0;
+    var shuffled = [];
+    each(obj, function(value) {
+      rand = _.random(index++);
+      shuffled[index - 1] = shuffled[rand];
+      shuffled[rand] = value;
+    });
+    return shuffled;
+  };
+
+  // Sample **n** random values from an array.
+  // If **n** is not specified, returns a single random element from the array.
+  // The internal `guard` argument allows it to work with `map`.
+  _.sample = function(obj, n, guard) {
+    if (arguments.length < 2 || guard) {
+      return obj[_.random(obj.length - 1)];
+    }
+    return _.shuffle(obj).slice(0, Math.max(0, n));
+  };
+
+  // An internal function to generate lookup iterators.
+  var lookupIterator = function(value) {
+    return _.isFunction(value) ? value : function(obj){ return obj[value]; };
+  };
+
+  // Sort the object's values by a criterion produced by an iterator.
+  _.sortBy = function(obj, value, context) {
+    var iterator = lookupIterator(value);
+    return _.pluck(_.map(obj, function(value, index, list) {
+      return {
+        value: value,
+        index: index,
+        criteria: iterator.call(context, value, index, list)
+      };
+    }).sort(function(left, right) {
+      var a = left.criteria;
+      var b = right.criteria;
+      if (a !== b) {
+        if (a > b || a === void 0) return 1;
+        if (a < b || b === void 0) return -1;
+      }
+      return left.index - right.index;
+    }), 'value');
+  };
+
+  // An internal function used for aggregate "group by" operations.
+  var group = function(behavior) {
+    return function(obj, value, context) {
+      var result = {};
+      var iterator = value == null ? _.identity : lookupIterator(value);
+      each(obj, function(value, index) {
+        var key = iterator.call(context, value, index, obj);
+        behavior(result, key, value);
+      });
+      return result;
+    };
+  };
+
+  // Groups the object's values by a criterion. Pass either a string attribute
+  // to group by, or a function that returns the criterion.
+  _.groupBy = group(function(result, key, value) {
+    (_.has(result, key) ? result[key] : (result[key] = [])).push(value);
+  });
+
+  // Indexes the object's values by a criterion, similar to `groupBy`, but for
+  // when you know that your index values will be unique.
+  _.indexBy = group(function(result, key, value) {
+    result[key] = value;
+  });
+
+  // Counts instances of an object that group by a certain criterion. Pass
+  // either a string attribute to count by, or a function that returns the
+  // criterion.
+  _.countBy = group(function(result, key) {
+    _.has(result, key) ? result[key]++ : result[key] = 1;
+  });
+
+  // Use a comparator function to figure out the smallest index at which
+  // an object should be inserted so as to maintain order. Uses binary search.
+  _.sortedIndex = function(array, obj, iterator, context) {
+    iterator = iterator == null ? _.identity : lookupIterator(iterator);
+    var value = iterator.call(context, obj);
+    var low = 0, high = array.length;
+    while (low < high) {
+      var mid = (low + high) >>> 1;
+      iterator.call(context, array[mid]) < value ? low = mid + 1 : high = mid;
+    }
+    return low;
+  };
+
+  // Safely create a real, live array from anything iterable.
+  _.toArray = function(obj) {
+    if (!obj) return [];
+    if (_.isArray(obj)) return slice.call(obj);
+    if (obj.length === +obj.length) return _.map(obj, _.identity);
+    return _.values(obj);
+  };
+
+  // Return the number of elements in an object.
+  _.size = function(obj) {
+    if (obj == null) return 0;
+    return (obj.length === +obj.length) ? obj.length : _.keys(obj).length;
+  };
+
+  // Array Functions
+  // ---------------
+
+  // Get the first element of an array. Passing **n** will return the first N
+  // values in the array. Aliased as `head` and `take`. The **guard** check
+  // allows it to work with `_.map`.
+  _.first = _.head = _.take = function(array, n, guard) {
+    if (array == null) return void 0;
+    return (n == null) || guard ? array[0] : slice.call(array, 0, n);
+  };
+
+  // Returns everything but the last entry of the array. Especially useful on
+  // the arguments object. Passing **n** will return all the values in
+  // the array, excluding the last N. The **guard** check allows it to work with
+  // `_.map`.
+  _.initial = function(array, n, guard) {
+    return slice.call(array, 0, array.length - ((n == null) || guard ? 1 : n));
+  };
+
+  // Get the last element of an array. Passing **n** will return the last N
+  // values in the array. The **guard** check allows it to work with `_.map`.
+  _.last = function(array, n, guard) {
+    if (array == null) return void 0;
+    if ((n == null) || guard) {
+      return array[array.length - 1];
+    } else {
+      return slice.call(array, Math.max(array.length - n, 0));
+    }
+  };
+
+  // Returns everything but the first entry of the array. Aliased as `tail` and `drop`.
+  // Especially useful on the arguments object. Passing an **n** will return
+  // the rest N values in the array. The **guard**
+  // check allows it to work with `_.map`.
+  _.rest = _.tail = _.drop = function(array, n, guard) {
+    return slice.call(array, (n == null) || guard ? 1 : n);
+  };
+
+  // Trim out all falsy values from an array.
+  _.compact = function(array) {
+    return _.filter(array, _.identity);
+  };
+
+  // Internal implementation of a recursive `flatten` function.
+  var flatten = function(input, shallow, output) {
+    if (shallow && _.every(input, _.isArray)) {
+      return concat.apply(output, input);
+    }
+    each(input, function(value) {
+      if (_.isArray(value) || _.isArguments(value)) {
+        shallow ? push.apply(output, value) : flatten(value, shallow, output);
+      } else {
+        output.push(value);
+      }
+    });
+    return output;
+  };
+
+  // Flatten out an array, either recursively (by default), or just one level.
+  _.flatten = function(array, shallow) {
+    return flatten(array, shallow, []);
+  };
+
+  // Return a version of the array that does not contain the specified value(s).
+  _.without = function(array) {
+    return _.difference(array, slice.call(arguments, 1));
+  };
+
+  // Produce a duplicate-free version of the array. If the array has already
+  // been sorted, you have the option of using a faster algorithm.
+  // Aliased as `unique`.
+  _.uniq = _.unique = function(array, isSorted, iterator, context) {
+    if (_.isFunction(isSorted)) {
+      context = iterator;
+      iterator = isSorted;
+      isSorted = false;
+    }
+    var initial = iterator ? _.map(array, iterator, context) : array;
+    var results = [];
+    var seen = [];
+    each(initial, function(value, index) {
+      if (isSorted ? (!index || seen[seen.length - 1] !== value) : !_.contains(seen, value)) {
+        seen.push(value);
+        results.push(array[index]);
+      }
+    });
+    return results;
+  };
+
+  // Produce an array that contains the union: each distinct element from all of
+  // the passed-in arrays.
+  _.union = function() {
+    return _.uniq(_.flatten(arguments, true));
+  };
+
+  // Produce an array that contains every item shared between all the
+  // passed-in arrays.
+  _.intersection = function(array) {
+    var rest = slice.call(arguments, 1);
+    return _.filter(_.uniq(array), function(item) {
+      return _.every(rest, function(other) {
+        return _.indexOf(other, item) >= 0;
+      });
+    });
+  };
+
+  // Take the difference between one array and a number of other arrays.
+  // Only the elements present in just the first array will remain.
+  _.difference = function(array) {
+    var rest = concat.apply(ArrayProto, slice.call(arguments, 1));
+    return _.filter(array, function(value){ return !_.contains(rest, value); });
+  };
+
+  // Zip together multiple lists into a single array -- elements that share
+  // an index go together.
+  _.zip = function() {
+    var length = _.max(_.pluck(arguments, "length").concat(0));
+    var results = new Array(length);
+    for (var i = 0; i < length; i++) {
+      results[i] = _.pluck(arguments, '' + i);
+    }
+    return results;
+  };
+
+  // Converts lists into objects. Pass either a single array of `[key, value]`
+  // pairs, or two parallel arrays of the same length -- one of keys, and one of
+  // the corresponding values.
+  _.object = function(list, values) {
+    if (list == null) return {};
+    var result = {};
+    for (var i = 0, length = list.length; i < length; i++) {
+      if (values) {
+        result[list[i]] = values[i];
+      } else {
+        result[list[i][0]] = list[i][1];
+      }
+    }
+    return result;
+  };
+
+  // If the browser doesn't supply us with indexOf (I'm looking at you, **MSIE**),
+  // we need this function. Return the position of the first occurrence of an
+  // item in an array, or -1 if the item is not included in the array.
+  // Delegates to **ECMAScript 5**'s native `indexOf` if available.
+  // If the array is large and already in sort order, pass `true`
+  // for **isSorted** to use binary search.
+  _.indexOf = function(array, item, isSorted) {
+    if (array == null) return -1;
+    var i = 0, length = array.length;
+    if (isSorted) {
+      if (typeof isSorted == 'number') {
+        i = (isSorted < 0 ? Math.max(0, length + isSorted) : isSorted);
+      } else {
+        i = _.sortedIndex(array, item);
+        return array[i] === item ? i : -1;
+      }
+    }
+    if (nativeIndexOf && array.indexOf === nativeIndexOf) return array.indexOf(item, isSorted);
+    for (; i < length; i++) if (array[i] === item) return i;
+    return -1;
+  };
+
+  // Delegates to **ECMAScript 5**'s native `lastIndexOf` if available.
+  _.lastIndexOf = function(array, item, from) {
+    if (array == null) return -1;
+    var hasIndex = from != null;
+    if (nativeLastIndexOf && array.lastIndexOf === nativeLastIndexOf) {
+      return hasIndex ? array.lastIndexOf(item, from) : array.lastIndexOf(item);
+    }
+    var i = (hasIndex ? from : array.length);
+    while (i--) if (array[i] === item) return i;
+    return -1;
+  };
+
+  // Generate an integer Array containing an arithmetic progression. A port of
+  // the native Python `range()` function. See
+  // [the Python documentation](http://docs.python.org/library/functions.html#range).
+  _.range = function(start, stop, step) {
+    if (arguments.length <= 1) {
+      stop = start || 0;
+      start = 0;
+    }
+    step = arguments[2] || 1;
+
+    var length = Math.max(Math.ceil((stop - start) / step), 0);
+    var idx = 0;
+    var range = new Array(length);
+
+    while(idx < length) {
+      range[idx++] = start;
+      start += step;
+    }
+
+    return range;
+  };
+
+  // Function (ahem) Functions
+  // ------------------
+
+  // Reusable constructor function for prototype setting.
+  var ctor = function(){};
+
+  // Create a function bound to a given object (assigning `this`, and arguments,
+  // optionally). Delegates to **ECMAScript 5**'s native `Function.bind` if
+  // available.
+  _.bind = function(func, context) {
+    var args, bound;
+    if (nativeBind && func.bind === nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
+    if (!_.isFunction(func)) throw new TypeError;
+    args = slice.call(arguments, 2);
+    return bound = function() {
+      if (!(this instanceof bound)) return func.apply(context, args.concat(slice.call(arguments)));
+      ctor.prototype = func.prototype;
+      var self = new ctor;
+      ctor.prototype = null;
+      var result = func.apply(self, args.concat(slice.call(arguments)));
+      if (Object(result) === result) return result;
+      return self;
+    };
+  };
+
+  // Partially apply a function by creating a version that has had some of its
+  // arguments pre-filled, without changing its dynamic `this` context.
+  _.partial = function(func) {
+    var args = slice.call(arguments, 1);
+    return function() {
+      return func.apply(this, args.concat(slice.call(arguments)));
+    };
+  };
+
+  // Bind all of an object's methods to that object. Useful for ensuring that
+  // all callbacks defined on an object belong to it.
+  _.bindAll = function(obj) {
+    var funcs = slice.call(arguments, 1);
+    if (funcs.length === 0) throw new Error("bindAll must be passed function names");
+    each(funcs, function(f) { obj[f] = _.bind(obj[f], obj); });
+    return obj;
+  };
+
+  // Memoize an expensive function by storing its results.
+  _.memoize = function(func, hasher) {
+    var memo = {};
+    hasher || (hasher = _.identity);
+    return function() {
+      var key = hasher.apply(this, arguments);
+      return _.has(memo, key) ? memo[key] : (memo[key] = func.apply(this, arguments));
+    };
+  };
+
+  // Delays a function for the given number of milliseconds, and then calls
+  // it with the arguments supplied.
+  _.delay = function(func, wait) {
+    var args = slice.call(arguments, 2);
+    return setTimeout(function(){ return func.apply(null, args); }, wait);
+  };
+
+  // Defers a function, scheduling it to run after the current call stack has
+  // cleared.
+  _.defer = function(func) {
+    return _.delay.apply(_, [func, 1].concat(slice.call(arguments, 1)));
+  };
+
+  // Returns a function, that, when invoked, will only be triggered at most once
+  // during a given window of time. Normally, the throttled function will run
+  // as much as it can, without ever going more than once per `wait` duration;
+  // but if you'd like to disable the execution on the leading edge, pass
+  // `{leading: false}`. To disable execution on the trailing edge, ditto.
+  _.throttle = function(func, wait, options) {
+    var context, args, result;
+    var timeout = null;
+    var previous = 0;
+    options || (options = {});
+    var later = function() {
+      previous = options.leading === false ? 0 : new Date;
+      timeout = null;
+      result = func.apply(context, args);
+    };
+    return function() {
+      var now = new Date;
+      if (!previous && options.leading === false) previous = now;
+      var remaining = wait - (now - previous);
+      context = this;
+      args = arguments;
+      if (remaining <= 0) {
+        clearTimeout(timeout);
+        timeout = null;
+        previous = now;
+        result = func.apply(context, args);
+      } else if (!timeout && options.trailing !== false) {
+        timeout = setTimeout(later, remaining);
+      }
+      return result;
+    };
+  };
+
+  // Returns a function, that, as long as it continues to be invoked, will not
+  // be triggered. The function will be called after it stops being called for
+  // N milliseconds. If `immediate` is passed, trigger the function on the
+  // leading edge, instead of the trailing.
+  _.debounce = function(func, wait, immediate) {
+    var timeout, args, context, timestamp, result;
+    return function() {
+      context = this;
+      args = arguments;
+      timestamp = new Date();
+      var later = function() {
+        var last = (new Date()) - timestamp;
+        if (last < wait) {
+          timeout = setTimeout(later, wait - last);
+        } else {
+          timeout = null;
+          if (!immediate) result = func.apply(context, args);
+        }
+      };
+      var callNow = immediate && !timeout;
+      if (!timeout) {
+        timeout = setTimeout(later, wait);
+      }
+      if (callNow) result = func.apply(context, args);
+      return result;
+    };
+  };
+
+  // Returns a function that will be executed at most one time, no matter how
+  // often you call it. Useful for lazy initialization.
+  _.once = function(func) {
+    var ran = false, memo;
+    return function() {
+      if (ran) return memo;
+      ran = true;
+      memo = func.apply(this, arguments);
+      func = null;
+      return memo;
+    };
+  };
+
+  // Returns the first function passed as an argument to the second,
+  // allowing you to adjust arguments, run code before and after, and
+  // conditionally execute the original function.
+  _.wrap = function(func, wrapper) {
+    return function() {
+      var args = [func];
+      push.apply(args, arguments);
+      return wrapper.apply(this, args);
+    };
+  };
+
+  // Returns a function that is the composition of a list of functions, each
+  // consuming the return value of the function that follows.
+  _.compose = function() {
+    var funcs = arguments;
+    return function() {
+      var args = arguments;
+      for (var i = funcs.length - 1; i >= 0; i--) {
+        args = [funcs[i].apply(this, args)];
+      }
+      return args[0];
+    };
+  };
+
+  // Returns a function that will only be executed after being called N times.
+  _.after = function(times, func) {
+    return function() {
+      if (--times < 1) {
+        return func.apply(this, arguments);
+      }
+    };
+  };
+
+  // Object Functions
+  // ----------------
+
+  // Retrieve the names of an object's properties.
+  // Delegates to **ECMAScript 5**'s native `Object.keys`
+  _.keys = nativeKeys || function(obj) {
+    if (obj !== Object(obj)) throw new TypeError('Invalid object');
+    var keys = [];
+    for (var key in obj) if (_.has(obj, key)) keys.push(key);
+    return keys;
+  };
+
+  // Retrieve the values of an object's properties.
+  _.values = function(obj) {
+    var keys = _.keys(obj);
+    var length = keys.length;
+    var values = new Array(length);
+    for (var i = 0; i < length; i++) {
+      values[i] = obj[keys[i]];
+    }
+    return values;
+  };
+
+  // Convert an object into a list of `[key, value]` pairs.
+  _.pairs = function(obj) {
+    var keys = _.keys(obj);
+    var length = keys.length;
+    var pairs = new Array(length);
+    for (var i = 0; i < length; i++) {
+      pairs[i] = [keys[i], obj[keys[i]]];
+    }
+    return pairs;
+  };
+
+  // Invert the keys and values of an object. The values must be serializable.
+  _.invert = function(obj) {
+    var result = {};
+    var keys = _.keys(obj);
+    for (var i = 0, length = keys.length; i < length; i++) {
+      result[obj[keys[i]]] = keys[i];
+    }
+    return result;
+  };
+
+  // Return a sorted list of the function names available on the object.
+  // Aliased as `methods`
+  _.functions = _.methods = function(obj) {
+    var names = [];
+    for (var key in obj) {
+      if (_.isFunction(obj[key])) names.push(key);
+    }
+    return names.sort();
+  };
+
+  // Extend a given object with all the properties in passed-in object(s).
+  _.extend = function(obj) {
+    each(slice.call(arguments, 1), function(source) {
+      if (source) {
+        for (var prop in source) {
+          obj[prop] = source[prop];
+        }
+      }
+    });
+    return obj;
+  };
+
+  // Return a copy of the object only containing the whitelisted properties.
+  _.pick = function(obj) {
+    var copy = {};
+    var keys = concat.apply(ArrayProto, slice.call(arguments, 1));
+    each(keys, function(key) {
+      if (key in obj) copy[key] = obj[key];
+    });
+    return copy;
+  };
+
+   // Return a copy of the object without the blacklisted properties.
+  _.omit = function(obj) {
+    var copy = {};
+    var keys = concat.apply(ArrayProto, slice.call(arguments, 1));
+    for (var key in obj) {
+      if (!_.contains(keys, key)) copy[key] = obj[key];
+    }
+    return copy;
+  };
+
+  // Fill in a given object with default properties.
+  _.defaults = function(obj) {
+    each(slice.call(arguments, 1), function(source) {
+      if (source) {
+        for (var prop in source) {
+          if (obj[prop] === void 0) obj[prop] = source[prop];
+        }
+      }
+    });
+    return obj;
+  };
+
+  // Create a (shallow-cloned) duplicate of an object.
+  _.clone = function(obj) {
+    if (!_.isObject(obj)) return obj;
+    return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
+  };
+
+  // Invokes interceptor with the obj, and then returns obj.
+  // The primary purpose of this method is to "tap into" a method chain, in
+  // order to perform operations on intermediate results within the chain.
+  _.tap = function(obj, interceptor) {
+    interceptor(obj);
+    return obj;
+  };
+
+  // Internal recursive comparison function for `isEqual`.
+  var eq = function(a, b, aStack, bStack) {
+    // Identical objects are equal. `0 === -0`, but they aren't identical.
+    // See the [Harmony `egal` proposal](http://wiki.ecmascript.org/doku.php?id=harmony:egal).
+    if (a === b) return a !== 0 || 1 / a == 1 / b;
+    // A strict comparison is necessary because `null == undefined`.
+    if (a == null || b == null) return a === b;
+    // Unwrap any wrapped objects.
+    if (a instanceof _) a = a._wrapped;
+    if (b instanceof _) b = b._wrapped;
+    // Compare `[[Class]]` names.
+    var className = toString.call(a);
+    if (className != toString.call(b)) return false;
+    switch (className) {
+      // Strings, numbers, dates, and booleans are compared by value.
+      case '[object String]':
+        // Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
+        // equivalent to `new String("5")`.
+        return a == String(b);
+      case '[object Number]':
+        // `NaN`s are equivalent, but non-reflexive. An `egal` comparison is performed for
+        // other numeric values.
+        return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
+      case '[object Date]':
+      case '[object Boolean]':
+        // Coerce dates and booleans to numeric primitive values. Dates are compared by their
+        // millisecond representations. Note that invalid dates with millisecond representations
+        // of `NaN` are not equivalent.
+        return +a == +b;
+      // RegExps are compared by their source patterns and flags.
+      case '[object RegExp]':
+        return a.source == b.source &&
+               a.global == b.global &&
+               a.multiline == b.multiline &&
+               a.ignoreCase == b.ignoreCase;
+    }
+    if (typeof a != 'object' || typeof b != 'object') return false;
+    // Assume equality for cyclic structures. The algorithm for detecting cyclic
+    // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
+    var length = aStack.length;
+    while (length--) {
+      // Linear search. Performance is inversely proportional to the number of
+      // unique nested structures.
+      if (aStack[length] == a) return bStack[length] == b;
+    }
+    // Objects with different constructors are not equivalent, but `Object`s
+    // from different frames are.
+    var aCtor = a.constructor, bCtor = b.constructor;
+    if (aCtor !== bCtor && !(_.isFunction(aCtor) && (aCtor instanceof aCtor) &&
+                             _.isFunction(bCtor) && (bCtor instanceof bCtor))) {
+      return false;
+    }
+    // Add the first object to the stack of traversed objects.
+    aStack.push(a);
+    bStack.push(b);
+    var size = 0, result = true;
+    // Recursively compare objects and arrays.
+    if (className == '[object Array]') {
+      // Compare array lengths to determine if a deep comparison is necessary.
+      size = a.length;
+      result = size == b.length;
+      if (result) {
+        // Deep compare the contents, ignoring non-numeric properties.
+        while (size--) {
+          if (!(result = eq(a[size], b[size], aStack, bStack))) break;
+        }
+      }
+    } else {
+      // Deep compare objects.
+      for (var key in a) {
+        if (_.has(a, key)) {
+          // Count the expected number of properties.
+          size++;
+          // Deep compare each member.
+          if (!(result = _.has(b, key) && eq(a[key], b[key], aStack, bStack))) break;
+        }
+      }
+      // Ensure that both objects contain the same number of properties.
+      if (result) {
+        for (key in b) {
+          if (_.has(b, key) && !(size--)) break;
+        }
+        result = !size;
+      }
+    }
+    // Remove the first object from the stack of traversed objects.
+    aStack.pop();
+    bStack.pop();
+    return result;
+  };
+
+  // Perform a deep comparison to check if two objects are equal.
+  _.isEqual = function(a, b) {
+    return eq(a, b, [], []);
+  };
+
+  // Is a given array, string, or object empty?
+  // An "empty" object has no enumerable own-properties.
+  _.isEmpty = function(obj) {
+    if (obj == null) return true;
+    if (_.isArray(obj) || _.isString(obj)) return obj.length === 0;
+    for (var key in obj) if (_.has(obj, key)) return false;
+    return true;
+  };
+
+  // Is a given value a DOM element?
+  _.isElement = function(obj) {
+    return !!(obj && obj.nodeType === 1);
+  };
+
+  // Is a given value an array?
+  // Delegates to ECMA5's native Array.isArray
+  _.isArray = nativeIsArray || function(obj) {
+    return toString.call(obj) == '[object Array]';
+  };
+
+  // Is a given variable an object?
+  _.isObject = function(obj) {
+    return obj === Object(obj);
+  };
+
+  // Add some isType methods: isArguments, isFunction, isString, isNumber, isDate, isRegExp.
+  each(['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp'], function(name) {
+    _['is' + name] = function(obj) {
+      return toString.call(obj) == '[object ' + name + ']';
+    };
+  });
+
+  // Define a fallback version of the method in browsers (ahem, IE), where
+  // there isn't any inspectable "Arguments" type.
+  if (!_.isArguments(arguments)) {
+    _.isArguments = function(obj) {
+      return !!(obj && _.has(obj, 'callee'));
+    };
+  }
+
+  // Optimize `isFunction` if appropriate.
+  if (typeof (/./) !== 'function') {
+    _.isFunction = function(obj) {
+      return typeof obj === 'function';
+    };
+  }
+
+  // Is a given object a finite number?
+  _.isFinite = function(obj) {
+    return isFinite(obj) && !isNaN(parseFloat(obj));
+  };
+
+  // Is the given value `NaN`? (NaN is the only number which does not equal itself).
+  _.isNaN = function(obj) {
+    return _.isNumber(obj) && obj != +obj;
+  };
+
+  // Is a given value a boolean?
+  _.isBoolean = function(obj) {
+    return obj === true || obj === false || toString.call(obj) == '[object Boolean]';
+  };
+
+  // Is a given value equal to null?
+  _.isNull = function(obj) {
+    return obj === null;
+  };
+
+  // Is a given variable undefined?
+  _.isUndefined = function(obj) {
+    return obj === void 0;
+  };
+
+  // Shortcut function for checking if an object has a given property directly
+  // on itself (in other words, not on a prototype).
+  _.has = function(obj, key) {
+    return hasOwnProperty.call(obj, key);
+  };
+
+  // Utility Functions
+  // -----------------
+
+  // Run Underscore.js in *noConflict* mode, returning the `_` variable to its
+  // previous owner. Returns a reference to the Underscore object.
+  _.noConflict = function() {
+    root._ = previousUnderscore;
+    return this;
+  };
+
+  // Keep the identity function around for default iterators.
+  _.identity = function(value) {
+    return value;
+  };
+
+  // Run a function **n** times.
+  _.times = function(n, iterator, context) {
+    var accum = Array(Math.max(0, n));
+    for (var i = 0; i < n; i++) accum[i] = iterator.call(context, i);
+    return accum;
+  };
+
+  // Return a random integer between min and max (inclusive).
+  _.random = function(min, max) {
+    if (max == null) {
+      max = min;
+      min = 0;
+    }
+    return min + Math.floor(Math.random() * (max - min + 1));
+  };
+
+  // List of HTML entities for escaping.
+  var entityMap = {
+    escape: {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#x27;'
+    }
+  };
+  entityMap.unescape = _.invert(entityMap.escape);
+
+  // Regexes containing the keys and values listed immediately above.
+  var entityRegexes = {
+    escape:   new RegExp('[' + _.keys(entityMap.escape).join('') + ']', 'g'),
+    unescape: new RegExp('(' + _.keys(entityMap.unescape).join('|') + ')', 'g')
+  };
+
+  // Functions for escaping and unescaping strings to/from HTML interpolation.
+  _.each(['escape', 'unescape'], function(method) {
+    _[method] = function(string) {
+      if (string == null) return '';
+      return ('' + string).replace(entityRegexes[method], function(match) {
+        return entityMap[method][match];
+      });
+    };
+  });
+
+  // If the value of the named `property` is a function then invoke it with the
+  // `object` as context; otherwise, return it.
+  _.result = function(object, property) {
+    if (object == null) return void 0;
+    var value = object[property];
+    return _.isFunction(value) ? value.call(object) : value;
+  };
+
+  // Add your own custom functions to the Underscore object.
+  _.mixin = function(obj) {
+    each(_.functions(obj), function(name) {
+      var func = _[name] = obj[name];
+      _.prototype[name] = function() {
+        var args = [this._wrapped];
+        push.apply(args, arguments);
+        return result.call(this, func.apply(_, args));
+      };
+    });
+  };
+
+  // Generate a unique integer id (unique within the entire client session).
+  // Useful for temporary DOM ids.
+  var idCounter = 0;
+  _.uniqueId = function(prefix) {
+    var id = ++idCounter + '';
+    return prefix ? prefix + id : id;
+  };
+
+  // By default, Underscore uses ERB-style template delimiters, change the
+  // following template settings to use alternative delimiters.
+  _.templateSettings = {
+    evaluate    : /<%([\s\S]+?)%>/g,
+    interpolate : /<%=([\s\S]+?)%>/g,
+    escape      : /<%-([\s\S]+?)%>/g
+  };
+
+  // When customizing `templateSettings`, if you don't want to define an
+  // interpolation, evaluation or escaping regex, we need one that is
+  // guaranteed not to match.
+  var noMatch = /(.)^/;
+
+  // Certain characters need to be escaped so that they can be put into a
+  // string literal.
+  var escapes = {
+    "'":      "'",
+    '\\':     '\\',
+    '\r':     'r',
+    '\n':     'n',
+    '\t':     't',
+    '\u2028': 'u2028',
+    '\u2029': 'u2029'
+  };
+
+  var escaper = /\\|'|\r|\n|\t|\u2028|\u2029/g;
+
+  // JavaScript micro-templating, similar to John Resig's implementation.
+  // Underscore templating handles arbitrary delimiters, preserves whitespace,
+  // and correctly escapes quotes within interpolated code.
+  _.template = function(text, data, settings) {
+    var render;
+    settings = _.defaults({}, settings, _.templateSettings);
+
+    // Combine delimiters into one regular expression via alternation.
+    var matcher = new RegExp([
+      (settings.escape || noMatch).source,
+      (settings.interpolate || noMatch).source,
+      (settings.evaluate || noMatch).source
+    ].join('|') + '|$', 'g');
+
+    // Compile the template source, escaping string literals appropriately.
+    var index = 0;
+    var source = "__p+='";
+    text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
+      source += text.slice(index, offset)
+        .replace(escaper, function(match) { return '\\' + escapes[match]; });
+
+      if (escape) {
+        source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
+      }
+      if (interpolate) {
+        source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
+      }
+      if (evaluate) {
+        source += "';\n" + evaluate + "\n__p+='";
+      }
+      index = offset + match.length;
+      return match;
+    });
+    source += "';\n";
+
+    // If a variable is not specified, place data values in local scope.
+    if (!settings.variable) source = 'with(obj||{}){\n' + source + '}\n';
+
+    source = "var __t,__p='',__j=Array.prototype.join," +
+      "print=function(){__p+=__j.call(arguments,'');};\n" +
+      source + "return __p;\n";
+
+    try {
+      render = new Function(settings.variable || 'obj', '_', source);
+    } catch (e) {
+      e.source = source;
+      throw e;
+    }
+
+    if (data) return render(data, _);
+    var template = function(data) {
+      return render.call(this, data, _);
+    };
+
+    // Provide the compiled function source as a convenience for precompilation.
+    template.source = 'function(' + (settings.variable || 'obj') + '){\n' + source + '}';
+
+    return template;
+  };
+
+  // Add a "chain" function, which will delegate to the wrapper.
+  _.chain = function(obj) {
+    return _(obj).chain();
+  };
+
+  // OOP
+  // ---------------
+  // If Underscore is called as a function, it returns a wrapped object that
+  // can be used OO-style. This wrapper holds altered versions of all the
+  // underscore functions. Wrapped objects may be chained.
+
+  // Helper function to continue chaining intermediate results.
+  var result = function(obj) {
+    return this._chain ? _(obj).chain() : obj;
+  };
+
+  // Add all of the Underscore functions to the wrapper object.
+  _.mixin(_);
+
+  // Add all mutator Array functions to the wrapper.
+  each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'], function(name) {
+    var method = ArrayProto[name];
+    _.prototype[name] = function() {
+      var obj = this._wrapped;
+      method.apply(obj, arguments);
+      if ((name == 'shift' || name == 'splice') && obj.length === 0) delete obj[0];
+      return result.call(this, obj);
+    };
+  });
+
+  // Add all accessor Array functions to the wrapper.
+  each(['concat', 'join', 'slice'], function(name) {
+    var method = ArrayProto[name];
+    _.prototype[name] = function() {
+      return result.call(this, method.apply(this._wrapped, arguments));
+    };
+  });
+
+  _.extend(_.prototype, {
+
+    // Start chaining a wrapped Underscore object.
+    chain: function() {
+      this._chain = true;
+      return this;
+    },
+
+    // Extracts the result from a wrapped and chained object.
+    value: function() {
+      return this._wrapped;
+    }
+
+  });
+
+}).call(this);
+
+},{}],148:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var Document = require("substance-document");
+var Controller = require("substance-application").Controller;
+var ReaderView = require("./reader_view");
+var util = require("substance-util");
+var DocumentSession = Document.Session;
+var Container = Document.Container;
+var SurfaceController = require("substance-surface").SurfaceController;
+
+// Reader.Controller
+// -----------------
+//
+// Controls the Reader.View
+
+var ReaderController = function(doc, options) {
+
+  // Private reference to the document
+  this.document = doc;
+
+  // E.g. context information
+  this.options = options || {};
+};
+
+ReaderController.Prototype = function() {
+
+  this.hasFigures = function() {
+    return this.figuresCtrl && this.figuresCtrl.container.nodes.length > 0;
+  };
+
+  this.hasInfo = function() {
+    return this.infoCtrl && this.infoCtrl.container.nodes.length > 0;
+  };
+
+  // Initial view creation
+  // --------
+
+  this.createView = function() {
+    if (!this.view) {
+      this.view = new ReaderView(this, this.options);
+    }
+    return this.view;
+  };
+
+  // Initial controller state
+  // --------
+
+  this.initialize = function(newState, cb) {
+    var doc = this.document;
+
+    this.currentContext = newState.contextId;
+
+    // Reader state
+    // -------
+
+    // Note: the sub-controllers exist over the whole life-cycle of this controller
+    // i.e., they are not disposed until this controller is disposed
+
+    var nodeSurfaceProvider = new Container.DefaultNodeSurfaceProvider(doc);
+
+    this.contentCtrl = new SurfaceController(
+      new DocumentSession(new Container(doc, "content", nodeSurfaceProvider))
+    );
+
+    if (doc.get('figures')) {
+      this.figuresCtrl = new SurfaceController(
+        new DocumentSession(new Container(doc, "figures", nodeSurfaceProvider))
+      );
+    }
+
+    if (doc.get('info')) {
+      this.infoCtrl = new SurfaceController(
+        new DocumentSession(new Container(doc, "info", nodeSurfaceProvider))
+      );
+    }
+
+    this.referenceIndex = doc.indexes["references"] || doc.addIndex("references", {
+      types: ["figure_reference", "contributor_reference", "remark_reference", "error_reference"],
+      property: "target"
+    });
+
+    this.createView().render();
+
+    cb(null);
+  };
+
+
+  // Triggers updateState after transition has finished
+  // --------
+
+  this.afterTransition = function(oldState) {
+    if (this.view) {
+      this.view.updateState(this.state, oldState);
+    }
+  };
+
+  var contextMapping = {
+    "figure_reference": "figures",
+    "contributor_reference": "info",
+    "remark_reference": "remarks",
+    "error_reference": "errors"
+  };
+
+  // API used by ReaderView:
+  this.getContextId = function() {
+    return this.state.contextId || "toc";
+  };
+
+  this.getResourceReferenceContainers = function(resourceId) {
+    // A reference is an annotation node. We want to highlight
+    // all (top-level) nodes that contain a reference to the currently activated resource
+    // For that we take all references pointing to the resource
+    // and find the root of the node on which the annotation sticks on.
+    var references = this.referenceIndex.get(resourceId);
+    var container = this.contentCtrl.session.container;
+    var nodes = _.uniq(_.map(references, function(ref) {
+      return container.lookupRootNode(ref.path[0]);
+    }));
+    return nodes;
+  };
+
+};
+
+
+ReaderController.Prototype.prototype = Controller.prototype;
+ReaderController.prototype = new ReaderController.Prototype();
+
+module.exports = ReaderController;
+
+},{"./reader_view":149,"substance-application":4,"substance-document":35,"substance-surface":135,"substance-util":140,"underscore":147}],149:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+var html = util.html;
+var Surface = require("substance-surface");
+var Outline = require("lens-outline");
+var View = require("substance-application").View;
+var TOC = require("substance-toc");
+var Data = require("substance-data");
+var Index = Data.Graph.Index;
+var $$ = require("substance-application").$$;
+
+var CORRECTION = 0; // Extra offset from the top (e.g. when there's a fixed menu bar etc.)
+
+// a function defined below
+var __createRenderer;
+var __createSurface;
+var __addResourcePanel;
+
+
+// Substance.Reader.View
+// ==========================================================================
+//
+
+var ReaderView = function(readerCtrl, options) {
+  View.call(this);
+
+  // Controllers
+  // --------
+
+  this.readerCtrl = readerCtrl;
+  this.options = options || {};
+
+  var doc = this.readerCtrl.document;
+
+  this.$el.addClass('article');
+  this.$el.addClass(doc.schema.id); // Substance article or lens-article?
+
+  // Stores latest body scroll positions per context
+  // Only relevant for mobile
+  this.bodyScroll = {
+    "figures": 0,
+    "info": 0,
+    "toc": 0
+  };
+
+  // Surfaces
+  // --------
+
+  this.contentView = __createSurface(this, doc, "content");
+  this.contentView.el.classList.add("content");
+
+  // Table of Contents
+  // --------
+
+  this.tocView = new TOC(this.readerCtrl.contentCtrl);
+  this.tocView.$el.addClass('resource-view');
+
+  // Other resource panels
+  // --------
+
+  // A Surface for the figures view
+  if (this.readerCtrl.hasFigures()) __addResourcePanel(this, doc, "figures");
+
+  // A Surface for the info view
+  if (this.readerCtrl.hasInfo()) __addResourcePanel(this, doc, "info");
+
+  // Index for resources
+  // --------
+  //
+  // Keep in mind that Substance.Article uses collaborator_reference while the Lens article has
+  // contributor_reference instances.
+
+  this.resources = new Index(this.readerCtrl.document, {
+    types: ["figure_reference", "citation_reference", "contributor_reference"],
+    property: "target"
+  });
+
+
+  // Outline
+  // --------
+
+  this.outline = new Outline(this.contentView);
+
+  // Resource Outline
+  // --------
+
+  this.resourcesOutline = new Outline(this.figuresView);
+
+  // DOM Events
+  // --------
+  //
+
+  this.contentView.$el.on('scroll', _.bind(this.onContentScroll, this));
+
+  // Resource content that is being scrolled
+  if (this.figuresView) this.figuresView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
+  if (this.citationsView) this.citationsView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
+  if (this.infoView) this.infoView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
+
+  // Resource references
+  this.$el.on('click', '.annotation.figure_reference', _.bind(this.toggleFigureReference, this));
+  this.$el.on('click', '.annotation.citation_reference', _.bind(this.toggleCitationReference, this));
+
+  this.$el.on('click', '.resources .content-node .toggle-resource', _.bind(this.toggleResource, this));
+  this.$el.on('click', '.authors .toggle-author', _.bind(this.toggleAuthor, this));
+
+  this.$el.on('click', '.annotation.cross_reference', _.bind(this.followCrossReference, this));
+  this.$el.on('click', '.document .content-node.heading', _.bind(this.setAnchor, this));
+
+  // this.$el.on('click', '.document .content-node.heading .top', _.bind(this.gotoTop, this));
+
+  this.outline.$el.on('click', '.node', _.bind(this._jumpToNode, this));
+};
+
+
+ReaderView.Prototype = function() {
+
+  // Toggles on and off the zoom
+  // --------
+  //
+
+  this.toggleAuthor = function(e) {
+    var resourceId = e.currentTarget.getAttribute('data-id');
+    var state = this.readerCtrl.state;
+
+    if (state.resourceId === resourceId) {
+      // Reset
+      this.readerCtrl.switchState({
+        id: "main",
+        contextId: "toc"
+      });
+    } else {
+      // Highlight
+      this.readerCtrl.switchState({
+        id: "main",
+        contextId: "info",
+        resourceId: resourceId
+      });
+    }
+    return false;
+  };
+
+  this.setAnchor = function(e) {
+    this.toggleNode('toc', $(e.currentTarget).attr('id'));
+  };
+
+  this.gotoTop = function() {
+    // Jump to cover node as that's easiest
+    this.jumpToNode("cover");
+    $(document).scrollTop(0);
+    return false;
+  }
+
+  // Toggles on and off the zoom
+  // --------
+  //
+
+  this.toggleFullscreen = function(resourceId) {
+    var state = this.readerCtrl.state;
+
+    // Always activate the resource
+    this.readerCtrl.modifyState({
+      id: "main",
+      resource: resourceId,
+      fullscreen: !state.fullscreen
+    });
+  };
+
+  this._jumpToNode = function(e) {
+    var nodeId = $(e.currentTarget).attr('id').replace("outline_", "");
+    this.jumpToNode(nodeId);
+    return false;
+  };
+
+  // When clicking on a resource reference in the main body
+  // --------
+  //
+  this.toggleFigureReference = function(e) {
+    this.toggleResourceReference('figures', e);
+    e.preventDefault();
+  };
+
+  this.toggleCitationReference = function(e) {
+    this.toggleResourceReference('citations', e);
+    e.preventDefault();
+  };
+
+  this.toggleResourceReference = function(context, e) {
+    var state = this.readerCtrl.state;
+    var aid = $(e.currentTarget).attr('id');
+    var a = this.readerCtrl.document.get(aid);
+    var resourceId = a.target;
+
+    this.saveScroll();
+    if (resourceId === state.resourceId) {
+      this.readerCtrl.switchState({
+        contextId: this.readerCtrl.currentContext || "toc"
+        // resourceId:  undefined
+      });
+    } else {
+      this.readerCtrl.switchState({
+        id: "main",
+        contextId: context,
+        resourceId: resourceId
+      });
+    }
+  };
+
+  // Follow cross reference
+  // --------
+  //
+
+  this.followCrossReference = function(e) {
+    var aid = $(e.currentTarget).attr('id');
+    var a = this.readerCtrl.document.get(aid);
+    this.jumpToNode(a.target);
+  };
+
+  // On Scroll update outline and mark active heading
+  // --------
+  //
+
+  this.onContentScroll = function() {
+    var scrollTop = this.contentView.$el.scrollTop();
+    this.outline.updateVisibleArea(scrollTop);
+    this.markActiveHeading(scrollTop);
+  };
+
+  this.onResourceContentScroll = function() {
+    var scrollTop = this.resourcesOutline.surface.$el.scrollTop();
+    this.resourcesOutline.updateVisibleArea(scrollTop);
+  };
+
+  // Clear selection
+  // --------
+  //
+
+  this.markActiveHeading = function(scrollTop) {
+    var contentHeight = $('.nodes').height();
+
+    // No headings?
+    if (this.tocView.headings.length === 0) return;
+
+    // Use first heading as default
+    var activeNode = _.first(this.tocView.headings).id;
+
+    this.contentView.$('.content-node.heading').each(function() {
+      if (scrollTop >= $(this).position().top + CORRECTION) {
+        activeNode = this.id;
+      }
+    });
+
+    // Edge case: select last item (once we reach the end of the doc)
+    if (scrollTop + this.contentView.$el.height() >= contentHeight) {
+      activeNode = _.last(this.tocView.headings).id;
+    }
+    this.tocView.setActiveNode(activeNode);
+  };
+
+  // Toggle on-off a resource
+  // --------
+  //
+
+  this.toggleResource = function(e) {
+    var resourceId = $(e.currentTarget).parent().parent().attr('id');
+    var state = this.readerCtrl.state;
+
+    var newState = {
+      contextId: state.contextId,
+    };
+
+    // Toggle off if already on
+    if (state.resourceId !== resourceId) {
+      newState.resourceId = resourceId;
+    }
+
+    this.readerCtrl.switchState(newState);
+  };
+
+  // Jump to the given node id
+  // --------
+  //
+
+  this.jumpToNode = function(nodeId) {
+    var $n = $('#'+nodeId);
+
+    if ($n.length <= 0) return;
+
+    var topOffset = $n.position().top+CORRECTION;
+    this.contentView.$el.scrollTop(topOffset);
+  };
+
+  // Determines whether parts of an element are visible on screen or not
+  // --------
+  //
+  // Only consideres vertical bounds
+
+  this.isElementInViewport = function(el) {
+    var rect = el.getBoundingClientRect();
+    var windowHeight = $(window).height();
+
+    var topEdgeVisible = rect.top >= 0 && rect.top <= windowHeight;
+    var bottomEdgeVisible = rect.bottom >= 0 && rect.bottom <= windowHeight;
+    var topEdgeAboveAndBottomEdgeBelow = rect.top < 0 && rect.bottom > 0;
+
+    return topEdgeVisible || bottomEdgeVisible || topEdgeAboveAndBottomEdgeBelow;
+  };
+
+
+  // Jump to the given resource id
+  // --------
+  //
+
+  this.jumpToResource = function(nodeId, forceJump) {
+    var $n = $('#'+nodeId);
+    var topOffset = $n.position().top;
+
+    if ($n.length <= 0) return;
+
+    // Check if node is already visible on the screen
+    if (!this.isElementInViewport($n[0]) || forceJump) {
+      // Make sure to find out which resource view is currently active
+      if (this.figuresView) this.figuresView.$el.scrollTop(topOffset);
+      if (this.citationsView) this.citationsView.$el.scrollTop(topOffset);
+      if (this.infoView) this.infoView.$el.scrollTop(topOffset);
+      // TODO: Brute force for now
+      $(document).scrollTop(topOffset);
+    }
+  };
+
+
+  // Toggle on-off node focus
+  // --------
+  //
+
+  this.toggleNode = function(context, nodeId) {
+    console.log('TODO: implement toggle node');
+    // var state = this.readerCtrl.state;
+
+    // if (state.node === nodeId && state.context === context) {
+    //   // Toggle off -> reset, preserve the context
+    //   this.readerCtrl.modifyState({
+    //     context: this.readerCtrl.currentContext,
+    //     node: null,
+    //     resource: null
+    //   });
+    // } else {
+    //   this.readerCtrl.modifyState({
+    //     context: context,
+    //     node: nodeId,
+    //     resource: null
+    //   });
+    // }
+  };
+
+  // Get scroll position of active panel
+  // --------
+  //
+  // Content, Figures, Info
+
+  this.getScroll = function() {
+    // Only covers the mobile mode!
+    return $(document).scrollTop();
+  };
+
+  // Recover scroll from previous state (if there is any)
+  // --------
+  //
+  // TODO: retrieve from cookie to persist scroll pos over reload?
+
+  this.recoverScroll = function() {
+    var targetScroll = this.bodyScroll[this.readerCtrl.state.contextId];
+    $(document).scrollTop(targetScroll);
+  };
+
+  // Save current scroll position
+  // --------
+  //
+
+  this.saveScroll = function() {
+    this.bodyScroll[this.readerCtrl.state.contextId] = this.getScroll();
+  };
+
+  // Explicit context switch
+  // --------
+  //
+  // Only triggered by the explicit switch
+  // Implicit context switches happen if someone clicks a figure reference
+
+  this.switchContext = function(contextId) {
+    this.saveScroll();
+    this.readerCtrl.currentContext = contextId;
+    this.readerCtrl.switchState({
+      id: "main",
+      contextId: contextId
+    });
+  };
+
+
+  // Update Reader State
+  // --------
+  //
+  // Called every time the controller state has been modified
+  // Search for readerCtrl.modifyState occurences
+
+  this.updateState = function(state, oldState) {
+    // HACK: avoid to call execute this when the ReaderController has
+    // already been disposed;
+    if (!state) return;
+
+    // Set context on the main element
+    // -------
+
+
+    this.$el.removeClass();
+    this.$el.addClass("article substance-article");
+
+    this.contentView.$('.content-node.active').removeClass('active');
+
+    // Remove active state from annotations
+    this.$('.annotation.active').removeClass('active');
+
+    // Reset focus classes
+    this.$('.context-toggle')
+      .removeClass('focus');
+
+    // Note: by adding the context id to the main element
+    // there are css rules that make only one panel visible
+    // console.log('STATE', state);
+    this.$el.addClass("state-"+state.id);
+    this.$el.addClass(this.readerCtrl.getContextId());
+
+    // TODO: do we still need this?
+    if (state.nodeId !== undefined) {
+      this.contentView.$('#'+state.nodeId).addClass('active');
+    }
+
+    // According to the current context show active resource panel
+    // -------
+
+    this.updateResource(oldState);
+    this.updateOutline();
+
+    // Call recoverScroll only if oldState = toc and !state.resourceId or target contextId is toc
+    if ((oldState.contextId === "toc" && !state.resourceId) || state.contextId === "toc") {
+      this.recoverScroll();
+    }
+  };
+
+  // Based on the current application state, highlight the current resource
+  // -------
+  //
+  // Triggered by updateState
+
+  this.updateResource = function(oldState) {
+    var state = this.readerCtrl.state;
+    var that = this;
+
+    // HACK: avoid to call execute this when the ReaderController has
+    // already been disposed;
+    if (!state) return;
+
+    this.$('.resources .content-node.active').removeClass('active fullscreen');
+    this.$('.toggle-author').removeClass('active');
+
+    // this.contentView.$('.annotation.active').removeClass('active');
+
+    var annotations;
+    if (state.resourceId !== undefined) {
+
+      // TODO: This needs to be done delayed as the parent element must be injected in the DOM.
+      // Despite of this being a secret hack it is definitely not a good way to go.
+      // Instead, I would prefer if this could be done with the el already in the DOM.
+      // E.g., that the first implicit transition ('initialized') will introduce the view to the DOM
+      // and then `updateState` would not need to worry.
+      // This needs some refactoring on the app state API, as 'initialized' is not explicitly reached
+      // when a state is given.
+
+      _.delay(function() {
+        // TODO: do we really need that?
+        if (state.nodeId)  {
+          that.jumpToNode(state.nodeId);
+        }
+        if (state.resourceId) {
+          // Force jump when coming from toc context
+          var forceJump = oldState.contextId === "toc";
+          that.jumpToResource(state.resourceId, forceJump);
+        }
+      });
+
+      // Show selected resource
+      var $res = this.$('#'+state.resourceId);
+      $res.addClass('active');
+
+      if (state.fullscreen) $res.addClass('fullscreen');
+
+      // Mark all annotations that reference the resource
+
+      annotations = this.resources.get(state.resourceId);
+
+      _.each(annotations, function(a) {
+        this.contentView.$('#'+a.id).addClass('active');
+      }, this);
+
+      // This is only used to mark author references on the cover as active
+      // TODO: Use a smarter method as this is rather brute force
+      this.$('#toggle_'+state.resourceId).addClass('active');
+    }
+  };
+
+
+  // Whenever the app state changes
+  // --------
+  //
+  // Triggered by updateResource.
+
+  this.updateOutline = function() {
+    var that = this;
+
+    // TODO: improve this. Using the sub-controllers that way feels bad.
+
+    var state = this.readerCtrl.state;
+    // HACK: avoid to call execute this when the ReaderController has
+    // already been disposed;
+    if (!state) return;
+
+    var contextId = this.readerCtrl.getContextId();
+
+    var outlineParams = {
+      context: contextId
+    };
+
+    var highlightedNodes;
+    if (state.resourceId !== undefined) {
+      highlightedNodes = this.readerCtrl.getResourceReferenceContainers(state.resourceId);
+      outlineParams["highlightedNodes"] = highlightedNodes;
+    }
+    else if (state.nodeId !== undefined) {
+      outlineParams["selectedNode"] = state.nodeId;
+    }
+    else if (state.id === "focus") {
+      var focusState = this.readerCtrl.focusCtrl.state;
+      highlightedNodes = this.readerCtrl.getResourceReferenceContainers(focusState.resourceId);
+      outlineParams["highlightedNodes"] = highlightedNodes;
+      outlineParams["context"] = focusState.contextId;
+    }
+
+    that.outline.update(outlineParams);
+
+    // Resources outline
+    // -------------------
+
+    if (state.contextId === "toc") {
+      // that.resourcesOutline.surface = this.tocView;
+      $(that.resourcesOutline.el).addClass('hidden');
+      return;
+    } else if (state.contextId === "figures") {
+      that.resourcesOutline.surface = this.figuresView;
+    } else if (state.contextId === "remarks") {
+      that.resourcesOutline.surface = this.remarksView;
+    } else if (state.contextId === "errors") {
+      that.resourcesOutline.surface = this.errorsView;
+    } else {
+      that.resourcesOutline.surface = this.infoView;
+    }
+
+    $(that.resourcesOutline.el).removeClass('hidden');
+
+    that.resourcesOutline.update({
+      context: state.contextId,
+      // selectedNode: state.node,
+      highlightedNodes: [state.resourceId]
+    });
+  };
+
+  this.getResourceReferenceContainers = function() {
+    var state = this.readerCtrl.state;
+
+    if (!state.resource) return [];
+
+    // A reference is an annotation node. We want to highlight
+    // all (top-level) nodes that contain a reference to the currently activated resource
+    // For that we take all references pointing to the resource
+    // and find the root of the node on which the annotation sticks on.
+    var references = this.resources.get(state.resource);
+    var container = this.readerCtrl.content.container;
+    var nodes = _.uniq(_.map(references, function(ref) {
+      var nodeId = container.getRoot(ref.path[0]);
+      return nodeId;
+    }));
+    return nodes;
+  };
+
+  // Rendering
+  // --------
+  //
+
+  this.render = function() {
+    var that = this;
+
+    this.el.appendChild(_render(this));
+
+    this.$('.document').append(that.outline.el);
+    this.resourcesEl = this.el.querySelector(".resources");
+    this.resourcesEl.appendChild(that.resourcesOutline.el);
+
+    // Update the outline whenever the window is resized
+    var lazyOutline = _.debounce(function() {
+      that.updateOutline();
+    }, 1);
+    $(window).resize(lazyOutline);
+
+    // Note: update outline can not be called here as this element has not been injected
+    // into the DOM yet, thus, no layout information is available.
+    // Calling that delayed does the trick.
+    _.delay(function() {
+      that.updateOutline();
+    }, 0);
+
+    return this;
+  };
+
+  // Free the memory.
+  // --------
+  //
+
+  this.dispose = function() {
+    this.contentView.dispose();
+    if (this.figuresView) this.figuresView.dispose();
+    if (this.citationsView) this.citationsView.dispose();
+    if (this.infoView) this.infoView.dispose();
+
+    // Dispose outlines
+    this.resourcesOutline.dispose();
+    this.outline.dispose();
+
+    // Dispose resources index
+    this.resources.dispose();
+
+    this.stopListening();
+  };
+
+  var _render = function(self) {
+    var frag = document.createDocumentFragment();
+
+    // Prepare doc view
+    // --------
+
+    var docView = $$('.document');
+    docView.appendChild(self.contentView.render().el);
+
+    // Prepare context toggles
+    // --------
+
+    var children = [];
+
+    //  && self.tocView.headings.length > 2
+    if (self.tocView) {
+      children.push($$('a.context-toggle.toc', {
+        'href': '#',
+        'sbs-click': 'switchContext(toc)',
+        'title': 'Text',
+        'html': '</i><i class="icon-align-left"></i><span> Text</span>'
+      }));
+    }
+
+    if (self.figuresView) {
+      children.push($$('a.context-toggle.figures', {
+        'href': '#',
+        'sbs-click': 'switchContext(figures)',
+        'title': 'Figures',
+        'html': '<i class="icon-picture"></i><span> Figures</span>'
+      }));
+    }
+
+    if (self.infoView) {
+      children.push($$('a.context-toggle.info', {
+        'href': '#',
+        'sbs-click': 'switchContext(info)',
+        'title': 'Article Info',
+        'html': '<i class="icon-info-sign"></i><span>Info</span>'
+      }));
+    }
+
+
+    var contextToggles = $$('.context-toggles', {
+      children: children
+    });
+
+
+    // Prepare resources view
+    // --------
+
+    var medialStrip = $$('.medial-strip');
+
+    if (self.options["back"]) {
+      var backEl = $$('a.back-nav', {
+        'href': '#',
+        // Don't know why... but this is sometimes not working... i.e., does not dispatch to the
+        // given method. I am loosing trust in this mechanism and will use bare-metal event handlers.
+        // 'sbs-click': 'back()',
+        'title': 'Go back',
+        'html': '<i class=" icon-chevron-up"></i>'
+      });
+      backEl.onclick = function(e) {
+        self.options.back();
+        e.preventDefault();
+      };
+      medialStrip.appendChild(backEl);
+    }
+
+    medialStrip.appendChild($$('.separator-line'));
+    medialStrip.appendChild(contextToggles);
+
+    // Wrap everything within resources view
+    var resourcesView = $$('.resources');
+    resourcesView.appendChild(medialStrip);
+
+    // Add TOC
+    // --------
+
+    resourcesView.appendChild(self.tocView.render().el);
+
+    if (self.figuresView) {
+      resourcesView.appendChild(self.figuresView.render().el);
+    }
+
+    if (self.infoView) {
+      resourcesView.appendChild(self.infoView.render().el);
+    }
+
+    frag.appendChild(docView);
+    frag.appendChild(resourcesView);
+
+    return frag;
+  };
+
+  var __findParentElement = function(el, selector) {
+    var current = el;
+    while(current !== undefined) {
+      if ($(current).is(selector)) {
+        return current;
+      }
+      current = current.parentElement;
+    }
+    return null;
+  };
+};
+
+ReaderView.Prototype.prototype = View.prototype;
+ReaderView.prototype = new ReaderView.Prototype();
+ReaderView.prototype.constructor = ReaderView;
+
+// Private helpers
+// --------
+__createRenderer = function(doc, viewName) {
+  return new doc.constructor.Renderer(doc, viewName);
+};
+
+__createSurface = function(self, doc, viewName) {
+  var docCtrl = self.readerCtrl[viewName + "Ctrl"];
+  var renderer = __createRenderer(doc, viewName);
+  var surface = new Surface(docCtrl, renderer);
+
+  // HACK: it turned out that the Container implementation
+  // depends rather strongly on the actual view.
+  // I.e., selections are very related to what has actually been rendered -- and how.
+  // To break a cycle of dependencies we inject that implementation at this point
+  // Note: currently it is important to rebuild the container after the renderer has been run
+  // otherwise all views would be null.
+  // Maybe we could make the renderer smarter here, by providing the views
+  // even if they are not yet integrated by surface.
+  // TODO: try to find a cleaner solution
+  var __render__ = renderer.render;
+  renderer.render = function() {
+    var result = __render__.apply(renderer, arguments);
+    docCtrl.session.container.rebuild();
+    return result;
+  };
+  docCtrl.session.container.renderer = renderer;
+
+  return surface;
+};
+
+__addResourcePanel = function(self, doc, name) {
+  var viewName = name+"View";
+
+  self[viewName] = __createSurface(self, doc, name);
+  var el = self[viewName].el;
+
+  el.classList.add(name);
+  el.classList.add('resource-view');
+  el.setAttribute("id", name);
+};
+
+module.exports = ReaderView;
+
+},{"lens-outline":2,"substance-application":4,"substance-data":28,"substance-surface":135,"substance-toc":138,"substance-util":140,"underscore":147}],150:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var Application = require("substance-application");
+var $$ = Application.$$;
+
+var ReaderController = require("./reader_controller");
+var Article = require("substance-article");
+var SubstanceRouter = require("./substance_router");
+var Keyboard = require("substance-commander").Keyboard;
+var util = require("substance-util");
+var html = util.html;
+
+
+// The Substance Application
+// ========
+//
+
+var Substance = function(opts) {
+  Application.call(this, opts);
+
+  this.doc = Article.fromSnapshot(opts.document);
+
+  this.controller = new ReaderController(this.doc, {});
+
+  // Set up router
+  var router = new SubstanceRouter(this);
+  this.setRouter(router);
+};
+
+Substance.Article = require("substance-article");
+Substance.Outline = require("lens-outline");
+
+Substance.Prototype = function() {
+
+  // Start listening to routes
+  // --------
+
+  this.render = function() {
+    var container = $$('#container');
+    var main  = $$('#main');
+
+    container.appendChild(main);
+    this.el.appendChild(container);
+  };
+
+  // Update State
+  // --------
+  //
+  // Since we just have one state this means we are ready to render
+  // the one and only ReaderView
+  // TODO: this is kind of a workaround: updateState is called from
+  // the SubstanceRouter which is really not the right place
+
+  this.afterTransition = function(newState, oldState) {
+    // Experimental: only add the view if the oldState was null
+    if (!oldState) {
+      this.$('#main').html(this.controller.view.el);
+      this.updateTitle(this.doc.title);
+    }
+  };
+};
+
+Substance.Prototype.prototype = Application.prototype;
+Substance.prototype = new Substance.Prototype();
+Substance.prototype.constructor = Substance;
+
+
+Substance.util = require("substance-util");
+Substance.Application = require("substance-application");
+Substance.Commander = require("substance-commander");
+Substance.Document = require("substance-document");
+Substance.Operator = require("substance-operator");
+Substance.Chronicle = require("substance-chronicle");
+Substance.Data = require("substance-data");
+Substance.RegExp = require("substance-regexp");
+Substance.Surface = require("substance-surface");
+
+module.exports = Substance;
+
+},{"./reader_controller":148,"./substance_router":151,"lens-outline":2,"substance-application":4,"substance-article":10,"substance-chronicle":15,"substance-commander":24,"substance-data":28,"substance-document":35,"substance-operator":126,"substance-regexp":133,"substance-surface":135,"substance-util":140,"underscore":147}],151:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var Router = require("substance-application").Router;
+
+var SubstanceRouter = function(app, routes) {
+  Router.call(this);
+
+  this.app = app;
+
+  _.each(SubstanceRouter.routes, function(route) {
+    if (!this[route.command]) {
+      console.error("Unknown route handler: ", route.command);
+    } else {
+      this.route(route.route, route.name, _.bind(this[route.command], this));
+    }
+  }, this);
+
+  this.route(/^state=.*$/, "state", _.bind(this.openState, this));
+};
+
+
+SubstanceRouter.Prototype = function() {
+
+  this.start = function() {
+    Router.history.start();
+  };
+
+  var DEFAULT_OPTIONS = {
+    updateRoute: false,
+    replace: false
+  };
+
+  this.openState = function() {
+    var fragment = Router.history.getFragment();
+    var state = this.app.stateFromFragment(fragment);
+    this.app.switchState(state, DEFAULT_OPTIONS);
+  };
+
+  this.openReader = function(context, node, resource, fullscreen) {
+    this.app.switchState({id: "main", contextId: "toc"}, DEFAULT_OPTIONS);
+  };
+
+  this.navigate = function(route, options) {
+    Router.history.navigate(route, options);
+  };
+};
+
+SubstanceRouter.Prototype.prototype = Router.prototype;
+SubstanceRouter.prototype = new SubstanceRouter.Prototype();
+
+SubstanceRouter.routes = [
+  {
+    "route": ":context/:node/:resource/:fullscreen",
+    "name": "document-resource",
+    "command": "openReader"
+  },
+  {
+    "route": ":context/:node/:resource",
+    "name": "document-resource",
+    "command": "openReader"
+  },
+  {
+    "route": ":context/:node/:resource",
+    "name": "document-resource",
+    "command": "openReader"
+  },
+  {
+    "route": ":context/:node",
+    "name": "document-node",
+    "command": "openReader"
+  },
+  {
+    "route": ":context",
+    "name": "document-context",
+    "command": "openReader"
+  },
+  {
+    "route": "",
+    "name": "document",
+    "command": "openReader"
+  }
+];
+
+module.exports = SubstanceRouter;
+},{"substance-application":4,"underscore":147}],152:[function(require,module,exports){
+// nothing to see here... no file methods for the browser
+
+},{}]},{},[1])
+;
