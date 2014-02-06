@@ -133,6 +133,7 @@
     "styles/font-awesome.css": "styles/font-awesome.css",
     "styles/fonts": "styles/fonts",
     "data": "data",
+    "config.json": "config/brackets-config.json",
     "LICENSE": "LICENSE"
   },
   "bundle": {
