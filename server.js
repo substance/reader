@@ -10,7 +10,7 @@ var commonJSServer = new CommonJSServer(__dirname);
 
 commonJSServer.boot({alias: "substance", source: "./src/substance.js"});
 
-var port = process.env.PORT || 4001;
+var port = process.env.PORT || 4002;
 app.use(express.cookieParser());
 app.use(express.bodyParser());
 app.use(express.methodOverride());

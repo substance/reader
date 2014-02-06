@@ -20,6 +20,10 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   height: 100%;
 }
 
+/* We should try to not display those in reading mode */
+.figure-image-file {
+  display: none;
+}
 
 /* Surface specific styles */
 .content-node {
@@ -660,7 +664,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 }
 
 
-/* Mobile (iPad Portrait, iPhone) */
+/* Mobile (iPad Portrait) */
 @media (max-width: 850px) {
 
 
@@ -677,6 +681,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
     height: auto;
     overflow: visible;
     position: relative;
+    font-size: 18px;
   }
 
   /* Hide fullscreen toggle for small screens */
@@ -706,7 +711,10 @@ out (on iOS 5.1), or flicker (on iOS 6). */
     height: auto;
     position: relative;
     z-index: 100;
-    padding-top: 80px;
+    /*padding-top: 80px;*/
+    padding: 80px 20px;
+    padding-bottom: 40px;
+
     border-right: none;
   }
 
@@ -741,7 +749,20 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   }
 
   #container .article .resources .surface {
-    padding-top: 80px;
+    /*padding-top: 80px;*/
+    padding: 80px 20px;
+  }
+
+  .resources .content-node .resource-body {
+    padding: 20px;
+    font-size: 17px;
+    /*border: none;*/
+  }
+
+  .resources .content-node.figure .label .content {
+    /*background: rgba(0,0,0,0.1);*/
+    /*background: none;*/
+    font-size: 18px;
   }
 
   #container .article .resources .nodes {
@@ -794,6 +815,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   .article .medial-strip .context-toggles {
     background: #151515;
     position: absolute;
+    padding-left: 20px;
     left: 0px;
     right: 0px;
     bottom: 0px;
@@ -842,4 +864,41 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   .article .lens-outline {
     display: none;
   }
+}
+
+/* iPhone */
+
+@media (max-width: 450px) {
+
+  html body.reader {
+    height: auto;
+    overflow: visible;
+    position: relative;
+    font-size: 15px;
+  }
+
+  .article .document {
+    padding: 0;
+    padding-top: 80px;
+  }
+
+  .article .medial-strip .context-toggles {
+    padding-left: 0px;
+  }
+
+  #container .article .resources .surface {
+    padding: 0;
+    padding-top: 80px;
+  }
+
+  .resources .content-node.figure .label .content {
+    font-size: 15px;
+  }
+
+  .resources .content-node .resource-body {
+    font-size: 15px;
+    /*border: none;*/
+  }
+
+
 }
