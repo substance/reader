@@ -200,42 +200,6 @@ body.loading .spinner-wrapper {
 .surface .content-node {
   position: relative;
 }
-
-.surface .nodes > .content-node {
-  /*margin: 0 60px;*/
-}
-
-
-/* Cursor
--------------------------------------------------------------------------------*/
-
-.surface .cursor {
-  position: absolute;
-  top: 0px;
-  height: 20px;
-  width: 2px;
-  background: #00ACEA;
-}
-
-/*
-  blinking from http://codepen.io/hofweber/pen/vbJHc
-  thanks patch!
-*/
-
-.surface .cursor {
-  -webkit-animation: blink 1.2s step-end infinite;
-     -moz-animation: blink 1.2s step-end infinite;
-      -ms-animation: blink 1.2s step-end infinite;
-       -o-animation: blink 1.2s step-end infinite;
-          animation: blink 1.2s step-end infinite;
-}
-
-@-webkit-keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
-   @-moz-keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
-    @-ms-keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
-     @-o-keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
-        @keyframes blink {0% {background: #00ACEA} 50% {background: transparent;}}
-
 /*
 Outline
 --------------------------------------- */
@@ -290,8 +254,8 @@ Outline
 }
 
 .lens-outline .node {
-  margin: 0px 0px;
-  width: 30px;
+  margin: 0px 4px;
+  width: 22px;
   background: rgba(0,0,0, 0.4);
   opacity: 0.15;
   cursor: pointer;
@@ -329,12 +293,17 @@ Outline
 
 .lens-outline.remarks .node.highlighted {
   opacity: 0.7;
-  background: rgba(46,199,161, 1);
+  /*background: rgba(46,199,161, 1);*/
+  background: white;
+  border: 3px solid rgba(11, 157, 217, 1);
+  /*background: rgba(11, 157, 217, 1);*/
 }
 
 .lens-outline.errors .node.highlighted {
   opacity: 0.7;
-  background: rgba(228, 67, 34, 1);  
+  background: white;
+  /*border: 1px solid rgba(228, 67, 34, 1);*/
+  border: 3px solid rgba(228, 34, 34, 1);
 }
 
 
@@ -613,14 +582,30 @@ Outline
 .substance-article .content-node.figure div.image-wrapper {
   text-align: center;
   padding-bottom: 20px;
+  position: relative;
 }
 
 .substance-article .content-node.figure div .image-wrapper img {
-  width: 100%;
+  /*width: 100%;*/
+  max-width: 100%;
 }
 
 .substance-article .content-node.figure .label {
   position: relative;
+}
+
+.figure-image-file {
+  position: absolute;
+  display: block;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  width: 100%;
+  opacity: 0;
+  
+  background: green;
+  cursor: pointer;
 }
 .substance-article .content-node.cover {
 }
@@ -656,6 +641,14 @@ Outline
   line-height: 20px;
   margin-right: 10px;
   margin-bottom: 8px;
+
+  border: 1px solid rgba(0,0,0,0.2);
+  color: rgba(0,0,0,0.7);
+
+}
+
+.substance-article .content-node.cover .content .authors .toggle-author:hover {
+  border: 1px solid rgba(0,0,0,0.4);
 }
 .content-node .code {
   font-family: Consolas, "Liberation Mono", Courier, monospace;
@@ -680,18 +673,11 @@ span.emphasis, em {
 }
 .content-node .figure_reference {
   padding: 1px 0px;
-  border-bottom: 1px solid rgba(145, 187, 4, 0.8);
-  /*border: 1px solid transparent;*/
+  border: 1px solid rgba(145, 187, 4, 0.8);
   color: rgba(145, 187, 4, 1);
 }
 
-
-
-
 .content-node .figure_reference:hover { 
-  /*border-style: solid;*/
-  /*border: 1px dotted rgba(145, 187, 4, 0.8);*/
-  /*background: rgba(145, 187, 4, 0.1);*/
   border-color: rgba(171, 217, 17, 1);
   color: rgba(171, 217, 17, 1);
 }
@@ -716,32 +702,27 @@ span.emphasis, em {
   background: rgba(150,190,15, 1);
 }
 
-
 .content-node .remark_reference {
-  background: rgba(46,199,161, 0.2);
-  color: #496F65;
+  border-bottom: 3px solid rgba(11, 157, 217, 0.2);
 }
 
 .content-node .remark_reference:hover {
-  background: rgba(46,199,161, 0.3); 
+  border-bottom: 3px solid rgba(11, 157, 217, 0.5);
 }
 
 .content-node .remark_reference.active { 
-  color: white;
-  background: rgba(46,199,161, 1);
+  border-bottom: 3px solid rgba(11, 157, 217, 1);
 }
 .content-node .error_reference {
-  color: #925346;
-  background: rgba(228, 67, 34, 0.17);
+  border-bottom: 3px solid rgba(228, 34, 34, 0.3);
 }
 
 .content-node .error_reference:hover {
-  background: rgba(228, 67, 34, 0.25); 
+  border-bottom: 3px solid rgba(228, 34, 34, 0.5);
 }
 
 .content-node .error_reference.active { 
-  color: white;
-  background: rgba(228, 67, 34, 1);
+  border-bottom: 3px solid rgba(228, 34, 34, 1);
 }
 /* Link annotation */
 .content-node .link { color: #1B6685; }
@@ -835,6 +816,10 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   height: 100%;
 }
 
+/* We should try to not display those in reading mode */
+.figure-image-file {
+  display: none;
+}
 
 /* Surface specific styles */
 .content-node {
@@ -1475,7 +1460,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 }
 
 
-/* Mobile (iPad Portrait, iPhone) */
+/* Mobile (iPad Portrait) */
 @media (max-width: 850px) {
 
 
@@ -1492,6 +1477,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
     height: auto;
     overflow: visible;
     position: relative;
+    font-size: 18px;
   }
 
   /* Hide fullscreen toggle for small screens */
@@ -1521,7 +1507,10 @@ out (on iOS 5.1), or flicker (on iOS 6). */
     height: auto;
     position: relative;
     z-index: 100;
-    padding-top: 80px;
+    /*padding-top: 80px;*/
+    padding: 80px 20px;
+    padding-bottom: 40px;
+
     border-right: none;
   }
 
@@ -1556,7 +1545,20 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   }
 
   #container .article .resources .surface {
-    padding-top: 80px;
+    /*padding-top: 80px;*/
+    padding: 80px 20px;
+  }
+
+  .resources .content-node .resource-body {
+    padding: 20px;
+    font-size: 17px;
+    /*border: none;*/
+  }
+
+  .resources .content-node.figure .label .content {
+    /*background: rgba(0,0,0,0.1);*/
+    /*background: none;*/
+    font-size: 18px;
   }
 
   #container .article .resources .nodes {
@@ -1609,6 +1611,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   .article .medial-strip .context-toggles {
     background: #151515;
     position: absolute;
+    padding-left: 20px;
     left: 0px;
     right: 0px;
     bottom: 0px;
@@ -1657,4 +1660,41 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   .article .lens-outline {
     display: none;
   }
+}
+
+/* iPhone */
+
+@media (max-width: 450px) {
+
+  html body.reader {
+    height: auto;
+    overflow: visible;
+    position: relative;
+    font-size: 15px;
+  }
+
+  .article .document {
+    padding: 0;
+    padding-top: 80px;
+  }
+
+  .article .medial-strip .context-toggles {
+    padding-left: 0px;
+  }
+
+  #container .article .resources .surface {
+    padding: 0;
+    padding-top: 80px;
+  }
+
+  .resources .content-node.figure .label .content {
+    font-size: 15px;
+  }
+
+  .resources .content-node .resource-body {
+    font-size: 15px;
+    /*border: none;*/
+  }
+
+
 }
