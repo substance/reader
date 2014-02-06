@@ -53,6 +53,9 @@
 
       $.get("data/content.json")
       .done(function(data) {
+          if (Object.prototype.toString.call(data) === "[object String]") {
+            data = JSON.parse(data);
+          }
           var app = new Substance({
             document: data
           });
@@ -73,7 +76,7 @@
               $('#container').addClass('iphone');
             }
           });
-          
+
       })
       .fail(function(err) {
         $('body').html(JSON.stringify(err));
@@ -82,6 +85,6 @@
     </script>
   </head>
   <body class="current-view reader">
-    
+
   </body>
 </html>
