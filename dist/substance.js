@@ -1,6 +1,6 @@
-;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 window.Substance = require("./src/substance");
-},{"./src/substance":150}],2:[function(require,module,exports){
+},{"./src/substance":154}],2:[function(require,module,exports){
 "use strict";
 
 var Outline = require('./outline');
@@ -206,7 +206,7 @@ Outline.prototype = new Outline.Prototype();
 
 module.exports = Outline;
 
-},{"substance-application":4,"underscore":147}],4:[function(require,module,exports){
+},{"substance-application":4,"underscore":151}],4:[function(require,module,exports){
 "use strict";
 
 var Application = require("./src/application");
@@ -411,7 +411,7 @@ Object.defineProperty(Application.prototype, "controller", {
 
 module.exports = Application;
 
-},{"./view":9,"substance-util":140,"underscore":147}],6:[function(require,module,exports){
+},{"./view":9,"substance-util":144,"underscore":151}],6:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -635,7 +635,7 @@ Object.defineProperty(Controller.prototype, "childController", {
 
 module.exports = Controller;
 
-},{"substance-util":140,"underscore":147}],7:[function(require,module,exports){
+},{"substance-util":144,"underscore":151}],7:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -746,7 +746,7 @@ ElementRenderer.Prototype.prototype = util.Events;
 ElementRenderer.prototype = new ElementRenderer.Prototype();
 
 module.exports = ElementRenderer;
-},{"substance-regexp":133,"substance-util":140}],8:[function(require,module,exports){
+},{"substance-regexp":132,"substance-util":144}],8:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -1066,7 +1066,7 @@ Router.history = new History;
 
 
 module.exports = Router;
-},{"substance-util":140,"underscore":147}],9:[function(require,module,exports){
+},{"substance-util":144,"underscore":151}],9:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -1154,7 +1154,7 @@ View.prototype = new View.Prototype();
 
 module.exports = View;
 
-},{"substance-util":140}],10:[function(require,module,exports){
+},{"substance-util":144}],10:[function(require,module,exports){
 "use strict";
 
 var Article = require("./src/article");
@@ -1178,7 +1178,7 @@ _.each(require("substance-nodes"), function(spec, name) {
 
 module.exports = nodes;
 
-},{"substance-nodes":43,"underscore":147}],12:[function(require,module,exports){
+},{"substance-nodes":43,"underscore":151}],12:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -1628,7 +1628,7 @@ Object.defineProperties(Article.prototype, {
 });
 
 module.exports = Article;
-},{"../nodes":11,"substance-document":35,"substance-util":140,"underscore":147}],13:[function(require,module,exports){
+},{"../nodes":11,"substance-document":35,"substance-util":144,"underscore":151}],13:[function(require,module,exports){
 "use strict";
 
 var ViewFactory = require("./view_factory");
@@ -1693,7 +1693,7 @@ ArticleRenderer.prototype = new ArticleRenderer.Prototype();
 
 module.exports = ArticleRenderer;
 
-},{"./view_factory":14,"underscore":147}],14:[function(require,module,exports){
+},{"./view_factory":14,"underscore":151}],14:[function(require,module,exports){
 "use strict";
 
 var ViewFactory = function(document) {
@@ -1796,7 +1796,7 @@ ArrayOperationAdapter.prototype = new ArrayOperationAdapter.Prototype();
 
 module.exports = ArrayOperationAdapter;
 
-},{"./chronicle":18,"substance-operator":126,"substance-util":140}],17:[function(require,module,exports){
+},{"./chronicle":18,"substance-operator":125,"substance-util":144}],17:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -2040,7 +2040,7 @@ IndexedDbBackend.prototype = new IndexedDbBackend.Prototype();
 
 module.exports = IndexedDbBackend;
 
-},{"../chronicle":18,"substance-util":140,"underscore":147}],18:[function(require,module,exports){
+},{"../chronicle":18,"substance-util":144,"underscore":151}],18:[function(require,module,exports){
 "use strict";
 
 /*jshint unused: false*/ // deactivating this, as we define abstract interfaces here
@@ -2753,7 +2753,7 @@ Chronicle.mergeConflict = function(a, b) {
 
 module.exports = Chronicle;
 
-},{"substance-util":140,"underscore":147}],19:[function(require,module,exports){
+},{"substance-util":144,"underscore":151}],19:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -3399,7 +3399,7 @@ ChronicleImpl.create = function(options) {
 
 module.exports = ChronicleImpl;
 
-},{"./chronicle":18,"substance-util":140,"underscore":147}],20:[function(require,module,exports){
+},{"./chronicle":18,"substance-util":144,"underscore":151}],20:[function(require,module,exports){
 var _ = require("underscore");
 var Chronicle = require("./chronicle");
 
@@ -3469,7 +3469,7 @@ DiffImpl.create = function(id, reverts, applies) {
 
 module.exports = DiffImpl;
 
-},{"./chronicle":18,"underscore":147}],21:[function(require,module,exports){
+},{"./chronicle":18,"underscore":151}],21:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -3808,7 +3808,7 @@ IndexImpl.create = function(options) {
 
 module.exports = IndexImpl;
 
-},{"./chronicle":18,"substance-util":140,"underscore":147}],22:[function(require,module,exports){
+},{"./chronicle":18,"substance-util":144,"underscore":151}],22:[function(require,module,exports){
 "use strict";
 
 var util = require('substance-util');
@@ -3848,7 +3848,7 @@ TextOperationAdapter.prototype = new TextOperationAdapter.Prototype();
 
 module.exports = TextOperationAdapter;
 
-},{"./chronicle":18,"substance-operator":126,"substance-util":140}],23:[function(require,module,exports){
+},{"./chronicle":18,"substance-operator":125,"substance-util":144}],23:[function(require,module,exports){
 var _ = require("underscore");
 var util = require("substance-util");
 var errors = util.errors;
@@ -3930,7 +3930,7 @@ TmpIndex.prototype = new TmpIndex.Prototype();
 
 module.exports = TmpIndex;
 
-},{"./index_impl":21,"substance-util":140,"underscore":147}],24:[function(require,module,exports){
+},{"./index_impl":21,"substance-util":144,"underscore":151}],24:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -6061,7 +6061,7 @@ Data.defineNodeProperties = function(prototype, properties, readonly) {
 
 module.exports = Data;
 
-},{"./src/graph":30,"underscore":147}],29:[function(require,module,exports){
+},{"./src/graph":30,"underscore":151}],29:[function(require,module,exports){
 "use strict";
 
 var Chronicle = require('substance-chronicle');
@@ -6108,7 +6108,7 @@ ChronicleAdapter.prototype = new ChronicleAdapter.Prototype();
 
 module.exports = ChronicleAdapter;
 
-},{"substance-chronicle":15,"substance-operator":126}],30:[function(require,module,exports){
+},{"substance-chronicle":15,"substance-operator":125}],30:[function(require,module,exports){
 "use strict";
 
 var _ = require('underscore');
@@ -6930,7 +6930,7 @@ Graph.Index = Index;
 
 module.exports = Graph;
 
-},{"./chronicle_adapter":29,"./graph_index":31,"./persistence_adapter":32,"./property":33,"./schema":34,"substance-chronicle":15,"substance-operator":126,"substance-util":140,"underscore":147}],31:[function(require,module,exports){
+},{"./chronicle_adapter":29,"./graph_index":31,"./persistence_adapter":32,"./property":33,"./schema":34,"substance-chronicle":15,"substance-operator":125,"substance-util":144,"underscore":151}],31:[function(require,module,exports){
 var _ = require("underscore");
 var util = require("substance-util");
 
@@ -7118,7 +7118,7 @@ Index.typeFilter = function(schema, types) {
 
 module.exports = Index;
 
-},{"substance-util":140,"underscore":147}],32:[function(require,module,exports){
+},{"substance-util":144,"underscore":151}],32:[function(require,module,exports){
 "use strict";
 
 var Operator = require('substance-operator');
@@ -7161,7 +7161,7 @@ PersistenceAdapter.prototype = new PersistenceAdapter.Prototype();
 
 module.exports = PersistenceAdapter;
 
-},{"substance-operator":126}],33:[function(require,module,exports){
+},{"substance-operator":125}],33:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7271,7 +7271,7 @@ Object.defineProperties(Property.prototype, {
 
 module.exports = Property;
 
-},{"underscore":147}],34:[function(require,module,exports){
+},{"underscore":151}],34:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7446,7 +7446,7 @@ Schema.prototype = new Schema.Prototype();
 
 module.exports = Schema;
 
-},{"substance-util":140,"underscore":147}],35:[function(require,module,exports){
+},{"substance-util":144,"underscore":151}],35:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7460,7 +7460,7 @@ Document.Session = require('./src/document_session');
 
 module.exports = Document;
 
-},{"./src/annotator":36,"./src/container":37,"./src/cursor":38,"./src/document":39,"./src/document_session":40,"./src/selection":42,"underscore":147}],36:[function(require,module,exports){
+},{"./src/annotator":36,"./src/container":37,"./src/cursor":38,"./src/document":39,"./src/document_session":40,"./src/selection":42,"underscore":151}],36:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7844,7 +7844,7 @@ _getConfig = function(doc) {
 
 module.exports = Annotator;
 
-},{"./document":39,"substance-operator":126,"substance-util":140,"underscore":147}],37:[function(require,module,exports){
+},{"./document":39,"substance-operator":125,"substance-util":144,"underscore":151}],37:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -8058,7 +8058,7 @@ Container.ContainerError = ContainerError;
 
 module.exports = Container;
 
-},{"./node_surface_provider":41,"substance-util":140,"underscore":147}],38:[function(require,module,exports){
+},{"./node_surface_provider":41,"substance-util":144,"underscore":151}],38:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -8264,7 +8264,7 @@ Cursor.prototype = new Cursor.Prototype();
 
 module.exports = Cursor;
 
-},{"substance-util":140,"underscore":147}],39:[function(require,module,exports){
+},{"substance-util":144,"underscore":151}],39:[function(require,module,exports){
 "use strict";
 
 // Substance.Document 0.5.0
@@ -8526,7 +8526,7 @@ Document.DocumentError = DocumentError;
 
 module.exports = Document;
 
-},{"substance-data":28,"substance-operator":126,"substance-util":140,"underscore":147}],40:[function(require,module,exports){
+},{"substance-data":28,"substance-operator":125,"substance-util":144,"underscore":151}],40:[function(require,module,exports){
 "use strict";
 
 var Annotator = require("./annotator");
@@ -8661,7 +8661,7 @@ NodeSurfaceProvider.EmptySurface = function(node) {
 
 module.exports = NodeSurfaceProvider;
 
-},{"underscore":147}],42:[function(require,module,exports){
+},{"underscore":151}],42:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -9223,7 +9223,7 @@ Selection.SelectionError = SelectionError;
 
 module.exports = Selection;
 
-},{"./cursor":38,"substance-util":140,"underscore":147}],43:[function(require,module,exports){
+},{"./cursor":38,"substance-util":144,"underscore":151}],43:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -9260,7 +9260,7 @@ module.exports = {
   "formula": require("./src/formula"),
 };
 
-},{"./src/annotation":45,"./src/citation":49,"./src/citation_reference":51,"./src/code":53,"./src/codeblock":56,"./src/contributor":60,"./src/cover":64,"./src/cross_reference":66,"./src/emphasis":68,"./src/error":71,"./src/error_reference":73,"./src/figure":77,"./src/figure_reference":79,"./src/formula":82,"./src/heading":85,"./src/image":88,"./src/issue":89,"./src/link":93,"./src/list":95,"./src/math":98,"./src/node":100,"./src/paragraph":105,"./src/remark":108,"./src/remark_reference":111,"./src/strong":113,"./src/subscript":115,"./src/superscript":117,"./src/table":119,"./src/text":122}],44:[function(require,module,exports){
+},{"./src/annotation":45,"./src/citation":49,"./src/citation_reference":51,"./src/code":53,"./src/codeblock":56,"./src/contributor":59,"./src/cover":63,"./src/cross_reference":65,"./src/emphasis":67,"./src/error":70,"./src/error_reference":72,"./src/figure":76,"./src/figure_reference":78,"./src/formula":81,"./src/heading":84,"./src/image":87,"./src/issue":88,"./src/link":92,"./src/list":94,"./src/math":97,"./src/node":99,"./src/paragraph":104,"./src/remark":107,"./src/remark_reference":110,"./src/strong":112,"./src/subscript":114,"./src/superscript":116,"./src/table":118,"./src/text":121}],44:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require('../node/node');
@@ -9331,7 +9331,7 @@ Annotation.prototype.defineProperties();
 
 module.exports = Annotation;
 
-},{"../node/node":101,"underscore":147}],45:[function(require,module,exports){
+},{"../node/node":100,"underscore":151}],45:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -9451,7 +9451,7 @@ Object.defineProperties(Citation.prototype, {
 
 module.exports = Citation;
 
-},{"../node/node":101}],47:[function(require,module,exports){
+},{"../node/node":100}],47:[function(require,module,exports){
 
 "use strict";
 
@@ -9532,7 +9532,7 @@ CitationSurface.prototype = new CitationSurface.Prototype();
 
 module.exports = CitationSurface;
 
-},{"../node/node_surface":102,"../text/text_surface":124}],48:[function(require,module,exports){
+},{"../node/node_surface":101,"../text/text_surface":123}],48:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node").View;
@@ -9661,7 +9661,7 @@ CitationView.prototype.constructor = CitationView;
 
 module.exports = CitationView;
 
-},{"../node":100,"../text":122,"substance-application":4}],49:[function(require,module,exports){
+},{"../node":99,"../text":121,"substance-application":4}],49:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -9865,7 +9865,7 @@ Codeblock.prototype.defineProperties();
 module.exports = Codeblock;
 
 
-},{"../text/text_node":123}],55:[function(require,module,exports){
+},{"../text/text_node":122}],55:[function(require,module,exports){
 "use strict";
 
 var TextView = require('../text/text_view');
@@ -9886,7 +9886,7 @@ CodeblockView.prototype = new CodeblockView.Prototype();
 
 module.exports = CodeblockView;
 
-},{"../text/text_view":125}],56:[function(require,module,exports){
+},{"../text/text_view":124}],56:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -9895,7 +9895,7 @@ module.exports = {
   Surface: require("../text/text_surface")
 };
 
-},{"../text/text_surface":124,"./codeblock":54,"./codeblock_view":55}],57:[function(require,module,exports){
+},{"../text/text_surface":123,"./codeblock":54,"./codeblock_view":55}],57:[function(require,module,exports){
 var _ = require('underscore');
 var DocumentNode = require('../node/node');
 
@@ -9981,38 +9981,7 @@ Object.defineProperties(Contributor.prototype, {
 
 module.exports = Contributor;
 
-},{"../node/node":101,"underscore":147}],58:[function(require,module,exports){
-"use strict";
-
-var NodeSurface = require("../node/node_surface");
-var TextSurface = require("../text/text_surface");
-var SurfaceComponents = require("../node/surface_components");
-
-var ContributorSurface = function(node, surfaceProvider) {
-  NodeSurface.call(this, node, surfaceProvider);
-
-  this.nameComponent = TextSurface.textProperty(this, "name");
-  this.components.push(this.nameComponent);
-
-  // TODO: Add components for organization, etc.
-};
-
-ContributorSurface.Prototype = function() {
-  var __super__ = NodeSurface.prototype;
-  this.attachView = function(view) {
-    __super__.attachView.call(this, view);
-
-
-    this.nameComponent.surface.attachView(this.view.childViews["name"]);
-    // this.captionComponent.surface.attachView(this.view.childViews["caption"]);
-  };
-};
-ContributorSurface.Prototype.prototype = NodeSurface.prototype;
-ContributorSurface.prototype = new ContributorSurface.Prototype();
-
-module.exports = ContributorSurface;
-
-},{"../node/node_surface":102,"../node/surface_components":104,"../text/text_surface":124}],59:[function(require,module,exports){
+},{"../node/node":100,"underscore":151}],58:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node").View;
@@ -10027,10 +9996,6 @@ var ContributorView = function(node) {
 
   this.$el.attr({id: node.id});
   this.$el.addClass("content-node contributor");
-
-  this.childViews = {
-    "name": null
-  };
 };
 
 ContributorView.Prototype = function() {
@@ -10042,17 +10007,18 @@ ContributorView.Prototype = function() {
   this.render = function() {
     NodeView.prototype.render.call(this);
 
+
     // Name element (used as a header for the resource card)
     // -------
 
-    var nameView = this.childViews["name"] = new TextView(this.node, this.viewFactory, {property: "name"});
+    var nameView = new TextView(this.node, this.viewFactory, {property: "name"});
     $(nameView.el).addClass('toggle-resource');
     this.content.appendChild(nameView.render().el);
 
     // Delete Button
     // --------
     // 
-    // TODO: This should be attached by the writer, since we don't want to have a
+    // This should be attached by the writer, since we don't want to have a
     // delete button in a reading scenario
 
     var deleteButton = $$('a.delete-resource', {
@@ -10132,16 +10098,15 @@ ContributorView.prototype = new ContributorView.Prototype();
 
 module.exports = ContributorView;
 
-},{"../node":100,"../text/text_view":125,"substance-application":4}],60:[function(require,module,exports){
+},{"../node":99,"../text/text_view":124,"substance-application":4}],59:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./contributor"),
-  View: require("./contributor_view"),
-  Surface: require("./contributor_surface")
+  View: require("./contributor_view")
 };
 
-},{"./contributor":57,"./contributor_surface":58,"./contributor_view":59}],61:[function(require,module,exports){
+},{"./contributor":57,"./contributor_view":58}],60:[function(require,module,exports){
 var _ = require('underscore');
 var DocumentNode = require('../node/node');
 
@@ -10216,7 +10181,7 @@ Object.defineProperties(Cover.prototype, {
 
 module.exports = Cover;
 
-},{"../node/node":101,"underscore":147}],62:[function(require,module,exports){
+},{"../node/node":100,"underscore":151}],61:[function(require,module,exports){
 "use strict";
 
 var NodeSurface = require("../node/node_surface");
@@ -10244,7 +10209,7 @@ CoverSurface.prototype = new CoverSurface.Prototype();
 
 module.exports = CoverSurface;
 
-},{"../node/node_surface":102,"../text/text_surface":124}],63:[function(require,module,exports){
+},{"../node/node_surface":101,"../text/text_surface":123}],62:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -10339,7 +10304,7 @@ CoverView.prototype = new CoverView.Prototype();
 
 module.exports = CoverView;
 
-},{"../node/node_view":103,"../text/text_view":125,"substance-application":4,"substance-document":35,"underscore":147}],64:[function(require,module,exports){
+},{"../node/node_view":102,"../text/text_view":124,"substance-application":4,"substance-document":35,"underscore":151}],63:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10348,7 +10313,7 @@ module.exports = {
   Surface: require("./cover_surface")
 };
 
-},{"./cover":61,"./cover_surface":62,"./cover_view":63}],65:[function(require,module,exports){
+},{"./cover":60,"./cover_surface":61,"./cover_view":62}],64:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -10411,14 +10376,14 @@ CrossReference.prototype.defineProperties();
 
 module.exports = CrossReference;
 
-},{"../annotation/annotation":44}],66:[function(require,module,exports){
+},{"../annotation/annotation":44}],65:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./cross_reference")
 };
 
-},{"./cross_reference":65}],67:[function(require,module,exports){
+},{"./cross_reference":64}],66:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -10478,14 +10443,14 @@ Emphasis.prototype.constructor = Emphasis;
 module.exports = Emphasis;
 
 
-},{"../annotation/annotation":44}],68:[function(require,module,exports){
+},{"../annotation/annotation":44}],67:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./emphasis")
 };
 
-},{"./emphasis":67}],69:[function(require,module,exports){
+},{"./emphasis":66}],68:[function(require,module,exports){
 "use strict";
 
 var Issue = require('../issue/issue');
@@ -10538,7 +10503,7 @@ ErrorNode.prototype.constructor = ErrorNode;
 
 module.exports = ErrorNode;
 
-},{"../issue/issue":90}],70:[function(require,module,exports){
+},{"../issue/issue":89}],69:[function(require,module,exports){
 "use strict";
 
 var IssueView = require("../issue/issue_view");
@@ -10556,7 +10521,7 @@ ErrorView.prototype = new ErrorView.Prototype();
 
 module.exports = ErrorView;
 
-},{"../issue/issue_view":92}],71:[function(require,module,exports){
+},{"../issue/issue_view":91}],70:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10565,7 +10530,7 @@ module.exports = {
   Surface: require("../issue/issue_surface")
 };
 
-},{"../issue/issue_surface":91,"./error":69,"./error_view":70}],72:[function(require,module,exports){
+},{"../issue/issue_surface":90,"./error":68,"./error_view":69}],71:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -10628,14 +10593,14 @@ ErrorReference.prototype.defineProperties();
 
 module.exports = ErrorReference;
 
-},{"../annotation/annotation":44}],73:[function(require,module,exports){
+},{"../annotation/annotation":44}],72:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./error_reference")
 };
 
-},{"./error_reference":72}],74:[function(require,module,exports){
+},{"./error_reference":71}],73:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require("../node/node");
@@ -10649,7 +10614,6 @@ Figure.type = {
   "parent": "content",
   "properties": {
     "url": "string",
-    "image_data": "string",
     "label": "string",
     "caption": "paragraph"
   }
@@ -10663,7 +10627,6 @@ Figure.description = {
   "properties": {
     "label": "Figure label (e.g. Figure 1)",
     "url": "Image url",
-    "image_data": "Base64 encoded image data",
     "caption": "A reference to a paragraph that describes the figure",
   }
 };
@@ -10676,7 +10639,6 @@ Figure.example = {
   "id": "figure_1",
   "label": "Figure 1",
   "url": "http://example.com/fig1.png",
-  "image_data": "",
   "caption": "paragraph_1"
 };
 
@@ -10746,7 +10708,7 @@ Figure.create = function(data) {
 
 module.exports = Figure;
 
-},{"../node/node":101}],75:[function(require,module,exports){
+},{"../node/node":100}],74:[function(require,module,exports){
 "use strict";
 
 var NodeSurface = require("../node/node_surface");
@@ -10783,7 +10745,7 @@ FigureSurface.prototype = new FigureSurface.Prototype();
 
 module.exports = FigureSurface;
 
-},{"../node/node_surface":102,"../node/surface_components":104,"../text/text_surface":124}],76:[function(require,module,exports){
+},{"../node/node_surface":101,"../node/surface_components":103,"../text/text_surface":123}],75:[function(require,module,exports){
 "use strict";
 
 var $$ = require ("substance-application").$$;
@@ -10801,31 +10763,6 @@ var FigureView = function(node, viewFactory) {
     "caption": null
   };
 };
-
-
-function b64toBlob(b64Data, contentType, sliceSize) {
-    contentType = contentType || '';
-    sliceSize = sliceSize || 512;
-
-    var byteCharacters = atob(b64Data);
-    var byteArrays = [];
-
-    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-        var slice = byteCharacters.slice(offset, offset + sliceSize);
-
-        var byteNumbers = new Array(slice.length);
-        for (var i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i);
-        }
-
-        var byteArray = new Uint8Array(byteNumbers);
-
-        byteArrays.push(byteArray);
-    }
-
-    var blob = new Blob(byteArrays, {type: contentType});
-    return blob;
-}
 
 FigureView.Prototype = function() {
 
@@ -10857,31 +10794,10 @@ FigureView.Prototype = function() {
     // Wraps all resource details
 
     var bodyEl = $$('.resource-body');
-    var url;
-
-
-    
-
-    if (this.node.image_data) {
-      // url = "data:image/png;base64,"+this.node.image_data;
-      // var dat = new Uint8Array(JSZip.base64.decode(this.node.image_data));
-      // var bb = new Blob([dat], {type: "image/png"});
-      var blob = b64toBlob(this.node.image_data);
-      url = window.URL.createObjectURL(blob);
-    } else {
-      url = this.node.url;
-    }
-
-
 
     // Add graphic (img element)
     var imgEl = $$('.image-wrapper', {
-      children: [$$("a", {
-        href: url,
-        title: "View image in full size",
-        target: "_blank",
-        children: [$$("img", { src: url})]
-      })]
+      children: [ $$("img", { src: this.node.url}) ]
     });
 
     bodyEl.appendChild(imgEl);
@@ -10916,7 +10832,7 @@ FigureView.prototype = new FigureView.Prototype();
 
 module.exports = FigureView;
 
-},{"../node/node_view":103,"../text/text_view":125,"substance-application":4}],77:[function(require,module,exports){
+},{"../node/node_view":102,"../text/text_view":124,"substance-application":4}],76:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10925,7 +10841,7 @@ module.exports = {
   Surface: require('./figure_surface')
 };
 
-},{"./figure":74,"./figure_surface":75,"./figure_view":76}],78:[function(require,module,exports){
+},{"./figure":73,"./figure_surface":74,"./figure_view":75}],77:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -10987,14 +10903,14 @@ FigureReference.prototype.defineProperties();
 
 module.exports = FigureReference;
 
-},{"../annotation/annotation":44}],79:[function(require,module,exports){
+},{"../annotation/annotation":44}],78:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./figure_reference")
 };
 
-},{"./figure_reference":78}],80:[function(require,module,exports){
+},{"./figure_reference":77}],79:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require('../node/node');
@@ -11065,7 +10981,7 @@ Formula.prototype.defineProperties();
 
 module.exports = Formula;
 
-},{"../node/node":101}],81:[function(require,module,exports){
+},{"../node/node":100}],80:[function(require,module,exports){
 "use strict";
 
 var NodeView = require('../node/node_view');
@@ -11131,7 +11047,7 @@ FormulaView.prototype = new FormulaView.Prototype();
 
 module.exports = FormulaView;
 
-},{"../node/node_view":103}],82:[function(require,module,exports){
+},{"../node/node_view":102}],81:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11139,7 +11055,7 @@ module.exports = {
   View: require('./formula_view')
 };
 
-},{"./formula":80,"./formula_view":81}],83:[function(require,module,exports){
+},{"./formula":79,"./formula_view":80}],82:[function(require,module,exports){
 "use strict";
 
 var Text = require("../text/text_node");
@@ -11201,7 +11117,7 @@ Heading.prototype.defineProperties();
 
 module.exports = Heading;
 
-},{"../text/text_node":123}],84:[function(require,module,exports){
+},{"../text/text_node":122}],83:[function(require,module,exports){
 "use strict";
 
 var TextView = require('../text/text_view');
@@ -11237,7 +11153,7 @@ HeadingView.prototype = new HeadingView.Prototype();
 
 module.exports = HeadingView;
 
-},{"../text/text_view":125}],85:[function(require,module,exports){
+},{"../text/text_view":124}],84:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11246,7 +11162,7 @@ module.exports = {
   Surface: require("../text/text_surface")
 };
 
-},{"../text/text_surface":124,"./heading":83,"./heading_view":84}],86:[function(require,module,exports){
+},{"../text/text_surface":123,"./heading":82,"./heading_view":83}],85:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require('../node/node');
@@ -11306,7 +11222,7 @@ ImageNode.prototype.defineProperties();
 
 module.exports = ImageNode;
 
-},{"../node/node":101}],87:[function(require,module,exports){
+},{"../node/node":100}],86:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node/node");
@@ -11362,7 +11278,7 @@ ImageView.prototype = new ImageView.Prototype();
 
 module.exports = ImageView;
 
-},{"../node/node":101,"substance-application":4}],88:[function(require,module,exports){
+},{"../node/node":100,"substance-application":4}],87:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11370,7 +11286,7 @@ module.exports = {
   View: require("./image_view")
 };
 
-},{"./image":86,"./image_view":87}],89:[function(require,module,exports){
+},{"./image":85,"./image_view":86}],88:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11379,7 +11295,7 @@ module.exports = {
   Surface: require("./issue_surface")
 };
 
-},{"./issue":90,"./issue_surface":91,"./issue_view":92}],90:[function(require,module,exports){
+},{"./issue":89,"./issue_surface":90,"./issue_view":91}],89:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require('../node/node');
@@ -11448,7 +11364,7 @@ Issue.prototype.defineProperties();
 
 module.exports = Issue;
 
-},{"../node/node":101}],91:[function(require,module,exports){
+},{"../node/node":100}],90:[function(require,module,exports){
 "use strict";
 
 var NodeSurface = require("../node/node_surface");
@@ -11475,7 +11391,7 @@ IssueSurface.prototype = new IssueSurface.Prototype();
 
 module.exports = IssueSurface;
 
-},{"../node/node_surface":102,"../text/text_surface":124}],92:[function(require,module,exports){
+},{"../node/node_surface":101,"../text/text_surface":123}],91:[function(require,module,exports){
 "use strict";
 
 var $$ = require ("substance-application").$$;
@@ -11554,14 +11470,14 @@ IssueView.prototype = new IssueView.Prototype();
 
 module.exports = IssueView;
 
-},{"../node/node_view":103,"../text/text_view":125,"substance-application":4}],93:[function(require,module,exports){
+},{"../node/node_view":102,"../text/text_view":124,"substance-application":4}],92:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./link")
 };
 
-},{"./link":94}],94:[function(require,module,exports){
+},{"./link":93}],93:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -11623,7 +11539,7 @@ Link.prototype.defineProperties();
 
 module.exports = Link;
 
-},{"../annotation/annotation":44}],95:[function(require,module,exports){
+},{"../annotation/annotation":44}],94:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11631,7 +11547,7 @@ module.exports = {
   View: require("./list_view")
 };
 
-},{"./list":96,"./list_view":97}],96:[function(require,module,exports){
+},{"./list":95,"./list_view":96}],95:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -11699,7 +11615,7 @@ List.prototype.defineProperties();
 
 module.exports = List;
 
-},{"../node/node":101,"underscore":147}],97:[function(require,module,exports){
+},{"../node/node":100,"underscore":151}],96:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node/node_view");
@@ -11752,14 +11668,14 @@ ListView.prototype = new ListView.Prototype();
 
 module.exports = ListView;
 
-},{"../node/node_view":103,"substance-application":4,"underscore":147}],98:[function(require,module,exports){
+},{"../node/node_view":102,"substance-application":4,"underscore":151}],97:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./math")
 };
 
-},{"./math":99}],99:[function(require,module,exports){
+},{"./math":98}],98:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -11818,7 +11734,7 @@ Math.prototype.constructor = Math;
 
 module.exports = Math;
 
-},{"../annotation/annotation":44}],100:[function(require,module,exports){
+},{"../annotation/annotation":44}],99:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11827,7 +11743,7 @@ module.exports = {
   Node: require("./node_surface")
 };
 
-},{"./node":101,"./node_surface":102,"./node_view":103}],101:[function(require,module,exports){
+},{"./node":100,"./node_surface":101,"./node_view":102}],100:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -11902,7 +11818,7 @@ DocumentNode.defineProperties(DocumentNode.prototype, ["id", "type"]);
 
 module.exports = DocumentNode;
 
-},{"underscore":147}],102:[function(require,module,exports){
+},{"underscore":151}],101:[function(require,module,exports){
 "use strict";
 
 var SurfaceComponents = require("./surface_components");
@@ -12062,7 +11978,7 @@ NodeSurface.prototype = new NodeSurface.Prototype();
 
 module.exports = NodeSurface;
 
-},{"./surface_components":104}],103:[function(require,module,exports){
+},{"./surface_components":103}],102:[function(require,module,exports){
 "use strict";
 
 var View = require("substance-application").View;
@@ -12135,7 +12051,7 @@ NodeView.prototype = new NodeView.Prototype();
 
 module.exports = NodeView;
 
-},{"substance-application":4,"underscore":147}],104:[function(require,module,exports){
+},{"substance-application":4,"underscore":151}],103:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -12237,7 +12153,7 @@ module.exports = {
   CustomComponent: CustomComponent
 };
 
-},{"underscore":147}],105:[function(require,module,exports){
+},{"underscore":151}],104:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12245,7 +12161,7 @@ module.exports = {
   View: require("./paragraph_view")
 };
 
-},{"./paragraph":106,"./paragraph_view":107}],106:[function(require,module,exports){
+},{"./paragraph":105,"./paragraph_view":106}],105:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -12310,7 +12226,7 @@ Paragraph.prototype.defineProperties();
 
 module.exports = Paragraph;
 
-},{"../node/node":101,"underscore":147}],107:[function(require,module,exports){
+},{"../node/node":100,"underscore":151}],106:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node/node_view");
@@ -12342,7 +12258,7 @@ ParagraphView.prototype = new ParagraphView.Prototype();
 
 module.exports = ParagraphView;
 
-},{"../node/node_view":103}],108:[function(require,module,exports){
+},{"../node/node_view":102}],107:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12351,7 +12267,7 @@ module.exports = {
   Surface: require("../issue/issue_surface")
 };
 
-},{"../issue/issue_surface":91,"./remark":109,"./remark_view":110}],109:[function(require,module,exports){
+},{"../issue/issue_surface":90,"./remark":108,"./remark_view":109}],108:[function(require,module,exports){
 "use strict";
 
 var Issue = require('../issue/issue');
@@ -12402,7 +12318,7 @@ Remark.prototype.constructor = Remark;
 
 module.exports = Remark;
 
-},{"../issue/issue":90}],110:[function(require,module,exports){
+},{"../issue/issue":89}],109:[function(require,module,exports){
 "use strict";
 
 var IssueView = require("../issue/issue_view");
@@ -12420,14 +12336,14 @@ RemarkView.prototype = new RemarkView.Prototype();
 
 module.exports = RemarkView;
 
-},{"../issue/issue_view":92}],111:[function(require,module,exports){
+},{"../issue/issue_view":91}],110:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./remark_reference")
 };
 
-},{"./remark_reference":112}],112:[function(require,module,exports){
+},{"./remark_reference":111}],111:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12489,14 +12405,14 @@ RemarkReference.prototype.defineProperties();
 
 module.exports = RemarkReference;
 
-},{"../annotation/annotation":44}],113:[function(require,module,exports){
+},{"../annotation/annotation":44}],112:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./strong")
 };
 
-},{"./strong":114}],114:[function(require,module,exports){
+},{"./strong":113}],113:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12555,14 +12471,14 @@ Strong.prototype.constructor = Strong;
 
 module.exports = Strong;
 
-},{"../annotation/annotation":44}],115:[function(require,module,exports){
+},{"../annotation/annotation":44}],114:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./subscript")
 };
 
-},{"./subscript":116}],116:[function(require,module,exports){
+},{"./subscript":115}],115:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12621,14 +12537,14 @@ Subscript.prototype.constructor = Subscript;
 
 module.exports = Subscript;
 
-},{"../annotation/annotation":44}],117:[function(require,module,exports){
+},{"../annotation/annotation":44}],116:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./superscript")
 };
 
-},{"./superscript":118}],118:[function(require,module,exports){
+},{"./superscript":117}],117:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12688,7 +12604,7 @@ Superscript.prototype.constructor = Superscript;
 
 module.exports = Superscript;
 
-},{"../annotation/annotation":44}],119:[function(require,module,exports){
+},{"../annotation/annotation":44}],118:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12696,7 +12612,7 @@ module.exports = {
   View: require("./table_view")
 };
 
-},{"./table":120,"./table_view":121}],120:[function(require,module,exports){
+},{"./table":119,"./table_view":120}],119:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -12859,7 +12775,7 @@ Table.create = function(data) {
 
 module.exports = Table;
 
-},{"../node/node":101,"underscore":147}],121:[function(require,module,exports){
+},{"../node/node":100,"underscore":151}],120:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node/node_view");
@@ -12950,7 +12866,7 @@ TableView.prototype.constructor = TableView;
 
 module.exports = TableView;
 
-},{"../node/node_view":103,"underscore":147}],122:[function(require,module,exports){
+},{"../node/node_view":102,"underscore":151}],121:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12959,7 +12875,7 @@ module.exports = {
   Surface: require("./text_surface")
 };
 
-},{"./text_node":123,"./text_surface":124,"./text_view":125}],123:[function(require,module,exports){
+},{"./text_node":122,"./text_surface":123,"./text_view":124}],122:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -13139,7 +13055,7 @@ Text.prototype.defineProperties();
 
 module.exports = Text;
 
-},{"../node/node":101,"substance-operator":126,"substance-regexp":133,"underscore":147}],124:[function(require,module,exports){
+},{"../node/node":100,"substance-operator":125,"substance-regexp":132,"underscore":151}],123:[function(require,module,exports){
 "use strict";
 
 var NodeSurface = require("../node/node_surface");
@@ -13244,7 +13160,7 @@ TextSurface.textProperty = function(nodeSurface, property, propertyPath) {
 
 module.exports = TextSurface;
 
-},{"../node/node_surface":102}],125:[function(require,module,exports){
+},{"../node/node_surface":101}],124:[function(require,module,exports){
 "use strict";
 
 var NodeView = require('../node/node_view');
@@ -13319,6 +13235,7 @@ TextView.Prototype = function() {
   };
 
   this.renderContent = function() {
+    console.log("Rerendering TextView...");
     this.content.innerHTML = "";
 
     this._annotations = this.node.document.getIndex("annotations").get([this.node.id, this.property]);
@@ -13568,7 +13485,7 @@ TextView.DefaultFragment.prototype = new TextView.DefaultFragment.Prototype();
 
 module.exports = TextView;
 
-},{"../node/node_view":103,"substance-application":4,"substance-document":35,"substance-util":140}],126:[function(require,module,exports){
+},{"../node/node_view":102,"substance-application":4,"substance-document":35,"substance-util":144}],125:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -13580,7 +13497,7 @@ module.exports = {
   Helpers: require('./src/operation_helpers')
 };
 
-},{"./src/array_operation":127,"./src/compound":128,"./src/object_operation":129,"./src/operation":130,"./src/operation_helpers":131,"./src/text_operation":132}],127:[function(require,module,exports){
+},{"./src/array_operation":126,"./src/compound":127,"./src/object_operation":128,"./src/operation":129,"./src/operation_helpers":130,"./src/text_operation":131}],126:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14256,7 +14173,7 @@ ArrayOperation.MOVE = MOV;
 
 module.exports = ArrayOperation;
 
-},{"./compound":128,"./operation":130,"substance-util":140,"underscore":147}],128:[function(require,module,exports){
+},{"./compound":127,"./operation":129,"substance-util":144,"underscore":151}],127:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14381,7 +14298,7 @@ Compound.createTransform = function(primitive_transform) {
 
 module.exports = Compound;
 
-},{"./operation":130,"substance-util":140,"underscore":147}],129:[function(require,module,exports){
+},{"./operation":129,"substance-util":144,"underscore":151}],128:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14939,7 +14856,7 @@ ObjectOperation.SET = SET;
 
 module.exports = ObjectOperation;
 
-},{"./array_operation":127,"./compound":128,"./operation":130,"./text_operation":132,"substance-util":140,"underscore":147}],130:[function(require,module,exports){
+},{"./array_operation":126,"./compound":127,"./operation":129,"./text_operation":131,"substance-util":144,"underscore":151}],129:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14990,7 +14907,7 @@ Operation.Conflict = Conflict;
 
 module.exports = Operation;
 
-},{"substance-util":140}],131:[function(require,module,exports){
+},{"substance-util":144}],130:[function(require,module,exports){
 "use strict";
 
 var TextOperation = require("./text_operation");
@@ -15051,7 +14968,7 @@ Helpers.invert = function(op, type) {
 
 module.exports = Helpers;
 
-},{"./array_operation":127,"./text_operation":132}],132:[function(require,module,exports){
+},{"./array_operation":126,"./text_operation":131}],131:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -15546,12 +15463,12 @@ TextOperation.DELETE = DEL;
 
 module.exports = TextOperation;
 
-},{"./compound":128,"./operation":130,"substance-util":140,"underscore":147}],133:[function(require,module,exports){
+},{"./compound":127,"./operation":129,"substance-util":144,"underscore":151}],132:[function(require,module,exports){
 "use strict";
 
 module.exports = require("./src/regexp");
 
-},{"./src/regexp":134}],134:[function(require,module,exports){
+},{"./src/regexp":133}],133:[function(require,module,exports){
 "use strict";
 
 // Substanc.RegExp.Match
@@ -15630,19 +15547,823 @@ RegExp.Match = Match;
 
 module.exports = RegExp;
 
-},{}],135:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 "use strict";
 
 var Surface = require("./src/surface");
+Surface.addEditingBehavior = require("./src/surface_editing");
+Surface.EditorController = require("./src/editor_controller");
 Surface.SurfaceController = require("./src/surface_controller");
 
 module.exports = Surface;
-},{"./src/surface":136,"./src/surface_controller":137}],136:[function(require,module,exports){
+
+},{"./src/editor_controller":137,"./src/surface":138,"./src/surface_controller":139,"./src/surface_editing":140}],135:[function(require,module,exports){
+var keymap = {
+
+  // Navigation
+  // --------
+  // add everything what changes the selection or the cursor
+  //
+
+  "selection": [
+    "up", "down", "left", "right",
+    "shift+up", "shift+down", "shift+left", "shift+right",
+    "ctrl+up", "ctrl+down", "ctrl+left", "ctrl+right",
+    "ctrl+shift+up", "ctrl+shift+down", "ctrl+shift+left", "ctrl+shift+right",
+    "alt+up", "alt+down", "alt+left", "alt+right",
+    "alt+shift+up", "alt+shift+down", "alt+shift+left", "alt+shift+right",
+    "command+up", "command+down", "command+left", "command+right",
+    "command+shift+up", "command+shift+down", "command+shift+left", "command+shift+right"
+  ],
+
+  // Editing
+  // --------
+
+  "backspace": ["backspace"],
+  "delete": ["del"],
+  "break": ["enter"],
+  "soft-break": ["shift+enter"],
+
+  // HACK: we have to overload the native whitespace input as it triggers
+  // a scroll under MacOSX
+  "blank": ["space", "shift+space"],
+
+  "indent": ["tab"],
+  "unindent": ["shift+tab"],
+  "undo": ["command+z"],
+  "redo": ["command+shift+z"],
+
+  "copy": ["command+c"],
+  "paste": ["command+v"],
+
+  // Annotations
+  // --------
+
+  "strong": ["ctrl+b"],
+  "emphasis": ["ctrl+i"],
+
+  // Content
+  // --------
+  "heading": ["ctrl+command+h"]
+};
+
+module.exports = keymap;
+
+},{}],136:[function(require,module,exports){
+var keymap = {
+
+  // Navigation
+  // --------
+  // add everything what changes the selection or the cursor
+  //
+
+  "selection": [
+    "up", "down", "left", "right",
+    "shift+up", "shift+down", "shift+left", "shift+right",
+    "ctrl+up", "ctrl+down", "ctrl+left", "ctrl+right",
+    "ctrl+shift+up", "ctrl+shift+down", "ctrl+shift+left", "ctrl+shift+right",
+  ],
+
+  // Editing
+  // --------
+
+  "backspace": ["backspace"],
+  "delete": ["del"],
+  "break": ["enter"],
+  "soft-break": ["shift+enter"],
+
+  // HACK: we have to overload the native whitespace input as it triggers
+  // a scroll under MacOSX
+  "blank": ["space", "shift+space"],
+
+  "indent": ["tab"],
+  "unindent": ["shift+tab"],
+  "undo": ["ctrl+z"],
+  "redo": ["ctrl+shift+z"],
+
+  "copy": ["ctrl+c"],
+  "paste": ["ctrl+v"],
+
+  // Annotations
+  // --------
+
+  "strong": ["ctrl+b"],
+  "emphasis": ["ctrl+i"],
+
+  // Content
+  // --------
+  "heading": ["ctrl+alt+h"]
+};
+
+module.exports = keymap;
+
+},{}],137:[function(require,module,exports){
 "use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+
+// A Controller that makes Nodes and a Document.Container editable
+// ========
+//
+// This editor is tailored to a very simple use-case: documents that consist only
+// of Text, Headings, and Lists. These nodes are presented in a flow and
+// editing is similar as it is known from GDocs or Microsoft Word,
+// and not structurally as in earlier Substance versions
+// or known from other Web-based editors (e.g. medium.com).
+// By providing a custom factory for Node editors it is possible
+// to control what and how the content is editable.
+
+// TODO: there is an ugliness now with the Container. Container is rather coupled to a Renderer.
+// Selections occur in the view domain and thus depend on the rendering.
+
+var EditorController = function(documentSession, editorFactory) {
+  this.session = documentSession;
+  this.editorFactory = editorFactory;
+  this.editors = {};
+};
+
+EditorController.Prototype = function() {
+
+  _.extend(this, util.Events);
+
+  // Delete current selection
+  // --------
+  //
+
+  this.delete = function(direction) {
+    var session = this.session.startSimulation();
+    // var doc = session.document;
+    var sel = session.selection;
+
+    if (sel.isNull()) return;
+
+    if (sel.isCollapsed()) {
+      sel.expand(direction, "char");
+    }
+
+    if (_deleteSelection(this, session)) {
+      session.save();
+      this.session.selection.set(sel);
+      _afterEdit(this);
+    }
+  };
+
+  // Copy the current selection
+  // --------
+  //
+
+  this.copy = function() {
+    console.log("I am sorry. Currently disabled.");
+  };
+
+  // Cut current selection from document
+  // --------
+  //
+  // Returns cutted content as a new Substance.Document
+
+  this.cut = function() {
+    console.log("I am sorry. Currently disabled.");
+  };
+
+  // Paste content from clipboard at current position
+  // --------
+  //
+
+  this.paste = function() {
+    console.log("I am sorry. Currently disabled.");
+  };
+
+  // Insert a break at the current position
+  // --------
+  // executed when pressing RETURN within a node.
+
+  this.breakNode = function() {
+    var selection = this.session.selection;
+    if (selection.isNull()) {
+      console.error("Can not break, as no position has been selected.");
+      return;
+    }
+    var session = this.session.startSimulation();
+
+    if (_breakNode(this, session)) {
+      session.save();
+      selection.set(session.selection);
+      _afterEdit(this);
+    }
+  };
+
+  // Create an annotation of given type for the current selection
+  // --------
+  //
+
+  this.annotate = function(type, data) {
+    var selection = this.session.selection;
+    if (selection.isNull()) {
+      throw new Error("Nothing selected.");
+    }
+    if (selection.hasMultipleNodes()) {
+      throw new Error("Can only annotate within a single node/component.");
+    }
+
+    var session = this.session.startSimulation();
+
+    // TODO: where would be define default values?
+    if (type === "link") {
+      data.url = "http://example.com";
+    }
+
+    // TODO: how could this be generalized
+    else if (type === "remark_reference" || type === "error_reference") {
+      data = data || {};
+      var issueId = _issue(this, session, type);
+      data.target = issueId;
+    }
+
+    _annotate(this, session, type, data);
+
+    session.save();
+
+    this.session.selection.set(session.selection);
+
+    _afterEdit(this);
+  };
+
+  // This deactivates an annotation
+  // ----
+  // To allow easy toggling back we will set the selection
+  // to the annotated range afterwards.
+  this.deleteAnnotation = function(nodeId) {
+    var doc = this.session.document;
+    var annotation = doc.get(nodeId);
+
+    var component = this.session.container.lookup(annotation.path);
+
+    doc.delete(nodeId);
+
+    this.session.selection.set({
+      start: [component.pos, annotation.range[0]],
+      end:   [component.pos, annotation.range[1]]
+    });
+  };
+
+  this.updateNode = function(nodeId, property, val) {
+    this.session.document.set([nodeId, property], val);
+    _afterEdit(this);
+  };
+
+  // Insert text at the current position
+  // --------
+  // Note: currently only works for text nodes.
+  // TODO: we need support for textish properties, too.
+
+  this.write = function(text) {
+    var selection = this.session.selection;
+    if (selection.isNull()) {
+      console.error("Can not write, as no position has been selected.");
+      return;
+    }
+
+    var session = this.session.startSimulation();
+
+    if (_write(this, session, text)) {
+      session.save();
+      selection.set(session.selection);
+      _afterEdit(this);
+    }
+  };
+
+  // Behaviors triggered by using `tab` and `shift+tab`.
+  // --------
+  //
+  // Headings and List items change the level. Text nodes insert a certain amount of spaces.
+  //
+  // Arguments:
+  ///  - `direction`: `right` or `left` (default: `right`)
+  this.indent = function(direction) {
+    var selection = this.session.selection;
+    if (selection.isNull()) {
+      console.error("Nothing is selected.");
+      return;
+    }
+
+    if (selection.hasMultipleNodes()) {
+      console.error("Indenting Multi-Node selection is not supported yet.");
+      return;
+    }
+
+    var session = this.session.startSimulation();
+    var sel = session.selection;
+
+    var cursor = sel.getCursor();
+    var pos = cursor.pos;
+
+    var node = session.container.getRootNodeFromPos(pos);
+    var component = session.container.getComponent(pos);
+    var editor = _getEditor(this, node);
+
+    if (!editor.canIndent(session, component, direction)) {
+      console.log("Can not indent at the given position.");
+      return;
+    }
+
+    editor.indent(session, component, direction);
+    session.save();
+    _afterEdit(this);
+  };
+
+  this.addReference = function(label, type, data) {
+    var selection = this.session.selection;
+    if (selection.isNull()) {
+      console.error("Nothing is selected.");
+      return;
+    }
+
+    var session = this.session.startSimulation();
+
+    if (_write(this, session, label)) {
+      var sel = session.selection;
+      var cursor = sel.getCursor();
+
+      sel.set({
+        start: [cursor.pos, cursor.charPos-label.length],
+        end: [cursor.pos, cursor.charPos]
+      });
+      _annotate(this, session, type, data);
+
+      // Note: it feels better when the selection is collapsed after setting the
+      // annotation style
+      sel.collapse("right");
+
+      session.save();
+      selection.set(session.selection);
+      _afterEdit(this);
+    }
+  };
+
+  this.changeType = function(newType, data) {
+    var selection = this.session.selection;
+
+    console.log("EditorController.changeType()", newType, data);
+    if (selection.isNull()) {
+      console.error("Nothing selected.");
+      return;
+    }
+    if (selection.hasMultipleNodes()) {
+      console.error("Can not switch type of multiple nodes.");
+      return;
+    }
+
+    var session = this.session.startSimulation();
+    var pos = session.selection.start[0];
+    var node = session.container.getRootNodeFromPos(pos);
+    var editor = _getEditor(this, node);
+
+    if (!editor.canChangeType(session, node, newType)) {
+      return;
+    }
+
+    editor.changeType(session, node, pos, newType, data);
+    session.save();
+    _afterEdit(this);
+  };
+
+  // TODO: there is a canInsertNode+insertNode API provided by the ViewEditor which should be used here.
+  this.canInsertNode = function() {
+    var selection = this.session.selection;
+    var container = this.session.container;
+
+    if (selection.isNull()) {
+      return false;
+    }
+
+    var cursorPos = selection.range().start;
+    var pos = cursorPos[0];
+    var charPos = cursorPos[1];
+
+    var component = container.getComponent(pos);
+    var node = component.node;
+    var editor = _getEditor(this, node);
+
+    return editor.canBreak(this.session, component, charPos);
+  };
+
+  // TODO: there is a canInsertNode+insertNode API provided by the ViewEditor which should be used here.
+  this.insertNode = function(type, data) {
+    var selection = this.session.selection;
+    if (selection.isNull()) {
+      throw new Error("Selection is null!");
+    }
+
+    var session = this.session.startSimulation();
+    var sel = session.selection;
+
+    if (_breakNode(this, session)) {
+      var cursorPos = sel.range().start;
+      var nodePos = session.container.getNodePos(cursorPos[0]);
+
+      // TODO: create a node with default values
+      var newNode = {
+        id: type + "_" +util.uuid(),
+        type: type
+      };
+      if (data) {
+        _.extend(newNode, data);
+      }
+      session.document.create(newNode);
+      session.document.show(session.view, newNode.id, nodePos);
+
+      //EXPERIMENTAL: Set the cursor into the node
+      // TODO: evaluate if it is a good approach to set the cursor into
+      // the first component at position 0.
+      var components = session.container.getNodeComponents(newNode.id);
+      if (components.length > 0) {
+        sel.set([components[0].pos, 0]);
+      }
+
+      session.save();
+      this.session.selection.set(session.selection);
+
+      _afterEdit(this);
+    }
+  };
+
+  // HACK: this should be created dynamically...
+  var _allowedActions = [
+    {
+      action: "createNode",
+      type: "heading",
+      data: {
+        level: 1
+      }
+    }
+  ];
+  util.freeze(_allowedActions);
+
+  this.getAllowedActions = function() {
+    if (this.canInsertNode()) {
+      return _allowedActions;
+    } else {
+      return [];
+    }
+  };
+
+  this.undo = function() {
+    if (!this.session.document.chronicle) return;
+    this.session.document.chronicle.rewind();
+  };
+
+  this.redo = function() {
+    if (!this.session.document.chronicle) return;
+    this.session.document.chronicle.forward();
+  };
+
+  this.dispose = function() {
+    this.session.dispose();
+  };
+
+  this.isEditor = function() {
+    return true;
+  };
+
+  this.createComment = function(comment) {
+    this.session.document.comment(comment);
+  };
+
+  // Private functions
+  // ........
+
+  var _annotate = function(self, session, type, data) {
+    var selRange = session.selection.range();
+    var pos = selRange.start[0];
+    var range = [selRange.start[1], selRange.end[1]];
+
+    var node = session.container.getRootNodeFromPos(pos);
+    var component = session.container.getComponent(pos);
+    var editor = _getEditor(self, node);
+
+    if (!editor.canAnnotate(session, component, type, range)) {
+      console.log("Can not annotate component", component);
+      return;
+    }
+    editor.annotate(session, component, type, range, data);
+
+    session.selection.set(selRange);
+  };
+
+  var _afterEdit = function(self) {
+    // setting a 'master' reference to the current state
+    self.session.document.chronicle.mark("master");
+    self.trigger("document:edited");
+  };
+
+  var _getEditor = function(self, node) {
+    if (!self.editors[node.id]) {
+      self.editors[node.id] = self.editorFactory.createEditor(node);
+    }
+    return self.editors[node.id];
+  };
+
+  var _write = function(self, session, text) {
+    var sel = session.selection;
+
+    var cursor = sel.getCursor();
+    var pos = cursor.pos;
+    var charPos = cursor.charPos;
+
+    var node = session.container.getRootNodeFromPos(pos);
+    var component = session.container.getComponent(pos);
+    var editor = _getEditor(self, node);
+
+    if (!editor.canInsertContent(session, component, charPos)) {
+      console.log("Can not insert at the given position.");
+      return false;
+    }
+
+    // if the selection is expanded then delete first
+    // Note: this.__deleteSelection collapses the session cursor.
+    if (!sel.isCollapsed()) {
+      if (!_deleteSelection(self, session)) {
+        console.log("Could not delete the selected content");
+        return false;
+      }
+    }
+
+    // Note: need to update the charPos as the deletion may have changed the cursor
+    charPos = sel.getCursor().charPos;
+
+    // Ask for an operation and abort if no operation is given.
+    editor.insertContent(session, component, charPos, text);
+
+    // update the cursor
+    sel.set([pos, charPos + text.length]);
+
+    return true;
+  };
+
+  var _breakNode = function(self, session) {
+    var sel = session.selection;
+    var cursorPos = sel.range().start;
+    var pos = cursorPos[0];
+    var charPos = cursorPos[1];
+
+    var component = session.container.getComponent(pos);
+    var node = session.container.getRootNodeFromPos(pos);
+
+    // Get the editor and ask for permission to break the node at the given position
+    var editor = _getEditor(self, node);
+    if (!editor.canBreak(session, component, charPos)) {
+      return false;
+    }
+
+    // if the selection is expanded then delete first
+    // Note: this.__deleteSelection collapses the session cursor.
+    if (!sel.isCollapsed()) {
+      if (!_deleteSelection(self, session)) {
+        console.log("Could not delete the selected content");
+        return false;
+      }
+    }
+
+    // Note: need to update the charPos as the deletion may have changed the cursor
+    charPos = sel.getCursor().charPos;
+
+    // Let the editor apply operations to break the node
+    editor.breakNode(session, component, charPos);
+
+    return true;
+  };
+
+  var _deleteSelection = function(self, session) {
+    var sel = session.selection;
+
+    // after deleting the cursor shall be
+    // at the left bound of the selection
+    var newPos = sel.range().start;
+
+    var success;
+    if (sel.hasMultipleNodes()) {
+      success = _deleteMulti(self, session);
+    } else {
+      var pos = sel.start[0];
+      var component = session.container.getComponent(pos);
+      success = _deleteSingle(self, session, component);
+    }
+
+    sel.set(newPos);
+
+    return success;
+  };
+
+  var _deleteSingle = function(self, session, component) {
+    var sel = session.selection;
+    var node = component.node;
+    var startChar = sel.startChar();
+    var endChar = sel.endChar();
+    var editor = _getEditor(self, node);
+
+    // Check if the editor allows to delete
+    if (!editor.canDeleteContent(session, component, startChar, endChar)) {
+      console.log("Can not delete content", node.type, startChar, endChar);
+      return false;
+    }
+
+    editor.deleteContent(session, component, startChar, endChar);
+    return true;
+  };
+
+  // Note: with the new `component` concept we have to address this in a different way.
+  // I.e., a node might be represented by multiple components and not all of them are selected.
+  // If a node is fully selected then we can try to delete it from the view,
+  // otherwise the node must support partial deletion.
+  // TODO: try to stream-line this implementation.
+  var _deleteMulti = function(self, session) {
+    var ranges = session.selection.getRanges();
+    var container = session.container;
+
+    var i, r, node;
+    // collect information about deletions during the check
+    var cmds = [];
+    var viewEditor = _getEditor(self, {type: "view", id: container.name});
+
+    // Preparation: check that all deletions can be applied and
+    // prepare commands for an easy deletion
+    for (i = 0; i < ranges.length; i++) {
+      r = ranges[i];
+      node = r.component.node;
+      var canDelete;
+      var editor;
+
+      // Note: this checks if a node is fully selected via a simple heuristic:
+      // if the selection has enough components to cover the full node and the first and last components
+      // are fully selected, then the node is considered as fully selected.
+      var nodeComponents = container.getNodeComponents(node.id);
+      var firstIdx = i;
+      var lastIdx = firstIdx + nodeComponents.length - 1;
+      if (lastIdx < ranges.length && r.isFull() && ranges[lastIdx].isFull()) {
+        editor = viewEditor;
+        canDelete = editor.canDeleteNode(session, node, r.component.nodePos);
+        cmds.push({type: "node", editor: editor, range: r});
+      } else {
+        editor = _getEditor(self, node);
+        for (var j=firstIdx; j<=lastIdx; j++) {
+          r = ranges[j];
+          canDelete = editor.canDeleteContent(session, r.component, r.start, r.end);
+          cmds.push({type: "content", editor: editor, range: r});
+        }
+      }
+
+      i = lastIdx;
+
+      if (!canDelete) {
+        console.log("Can't delete component:", r.component);
+        return false;
+      }
+    }
+
+    // If the first and the last selected node have been partially selected
+    // then we will try to join these nodes
+    var doJoin = (ranges.length > 0 && ranges[0].isPartial() && ranges[ranges.length-1].isPartial());
+
+    // Perform the deletions
+    // ........
+    // Note: we have to perform the deletions in inverse order
+    // so that the node positions remain valid
+    for (i = cmds.length - 1; i >= 0; i--) {
+      var c = cmds[i];
+      r = c.range;
+
+      if (c.type === "content") {
+        c.editor.deleteContent(session, r.component, r.start, r.end);
+      } else {
+        node = r.component.node;
+        c.editor.deleteNode(session, node, r.component.nodePos);
+        // TODO: in theory it might be possible that nodes are referenced somewhere else
+        // however, we do not yet consider such situations and delete the node instantly
+        session.document.delete(node.id);
+      }
+    }
+
+    // Perform a join
+    if (doJoin) {
+      _join(self, session, ranges[0], ranges[ranges.length-1]);
+    }
+
+    return true;
+  };
+
+  var _join = function(self, session, r1, r2) {
+
+    var first = r1.component.node;
+    var second = r2.component.node;
+    // var pos = r1.pos + 1;
+
+    var nodeEditor = _getEditor(self, first);
+    var viewEditor = _getEditor(self, {type: "view", id: session.container.name});
+
+    if (!nodeEditor.canJoin(session, first, second)) {
+      return false;
+    }
+
+    if (!viewEditor.canDeleteNode(session, second, r2.component.nodePos)) {
+      return false;
+    }
+
+    nodeEditor.join(session, first, second);
+    viewEditor.deleteNode(session, second, r2.component.nodePos);
+    session.document.delete(second.id);
+
+    return true;
+  };
+
+  // TODO: this should be done via the node classes
+  var _issueType = {
+    "error_reference": "error",
+    "remark_reference": "remark"
+  };
+  var _issueContainer = {
+    "error": "errors",
+    "remark": "remarks"
+  };
+  var _issue = function(self, session, annoType) {
+    var type = _issueType[annoType];
+    var container = _issueContainer[type];
+
+    if (!type) {
+      throw new Error("Unsupported issue type:" + annoType);
+    }
+
+    var doc = session.document;
+    var issue = {
+      id: type+"_" + util.uuid(),
+      type: type,
+      created_at: new Date(),
+      // TODO: Use full username from operating system
+      creator: Math.random()>0.5 ? "Michael Aufreiter" : "Oliver Buchtala"
+    };
+    doc.create(issue);
+    doc.show(container, [issue.id]);
+    return issue.id;
+  };
+};
+
+EditorController.prototype = new EditorController.Prototype();
+
+Object.defineProperties(EditorController.prototype, {
+  "selection": {
+    get: function() {
+      return this.session.selection;
+    },
+    set: function() {
+      throw new Error("Immutable.");
+    }
+  },
+  "annotator": {
+    get: function() {
+      return this.session.annotator;
+    },
+    set: function() {
+      throw new Error("Immutable.");
+    }
+  },
+  "container": {
+    get: function() {
+      return this.session.container;
+    },
+    set: function() {
+      throw new Error("Immutable.");
+    }
+  },
+  "document": {
+    get: function() {
+      return this.session.document;
+    },
+    set: function() {
+      throw new Error("Immutable.");
+    }
+  },
+  "view": {
+    get: function() {
+      // TODO: 'view' is not very accurate as it is actually the name of a view node
+      // Beyond that 'view' as a node type is also confusing considering the Views.
+      console.error("TODO: rename this property.");
+      return this.session.container.name;
+    },
+    set: function() {
+      throw new Error("Immutable.");
+    }
+  }
+});
+
+module.exports = EditorController;
+
+},{"substance-util":144,"underscore":151}],138:[function(require,module,exports){
+(function (global){"use strict";
 
 var _ = require("underscore");
 var View = require("substance-application").View;
 var util = require("substance-util");
+var Keyboard = require("./surface_keyboard");
 
 // Substance.Surface
 // ==========================================================================
@@ -15666,6 +16387,10 @@ var Surface = function(docCtrl, renderer, options) {
   this.listenTo(this.document, "property:updated", this.onUpdateView);
   this.listenTo(this.document, "graph:reset", this.reset);
 
+  if (docCtrl.isEditor()) {
+    var keymap = options.keymap || Surface._getDefaultKeyMap();
+    Surface.addEditingBehavior(this, new Keyboard(docCtrl, keymap));
+  }
 };
 
 
@@ -15915,7 +16640,6 @@ Surface.Prototype = function() {
     _.each(this.nodeViews, function(n) {
       n.dispose();
     }, this);
-    if (this.keyboard) this.keyboard.disconnect(this.el);
   };
 
   // HACK: used by outline
@@ -15985,9 +16709,24 @@ _.extend(Surface.Prototype, util.Events.Listener);
 Surface.Prototype.prototype = View.prototype;
 Surface.prototype = new Surface.Prototype();
 
+Surface._getDefaultKeyMap = function() {
+  var keymap = require("./default_keymap_osx");
+  if (global.navigator !== undefined) {
+    var platform = global.navigator.platform;
+    if (platform.toLowerCase().search("linux") >= 0) {
+      keymap = require("./default_keymap_unix");
+    }
+    else if (platform.toLowerCase().search("win32") >= 0) {
+      // currently we use the same keymap for linux and win
+      keymap = require("./default_keymap_unix");
+    }
+  }
+  return keymap;
+};
 
 module.exports = Surface;
-},{"substance-application":4,"substance-util":140,"underscore":147}],137:[function(require,module,exports){
+}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./default_keymap_osx":135,"./default_keymap_unix":136,"./surface_keyboard":141,"substance-application":4,"substance-util":144,"underscore":151}],139:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -16061,13 +16800,268 @@ Object.defineProperties(SurfaceController.prototype, {
 });
 
 module.exports = SurfaceController;
-},{"substance-util":140,"underscore":147}],138:[function(require,module,exports){
+},{"substance-util":144,"underscore":151}],140:[function(require,module,exports){
+"use strict";
+
+// Makes a Surface editable
+// --------
+// We extracted all the ugly code dealing with keyboard and mouse events
+// which is in first place ugly and secondly too. Thirdly, it is still rather experimental.
+
+var addEditingBehavior = function(surface, keyboard) {
+
+  var el = surface.el;
+  var $el = surface.$el;
+  var editorCtrl = surface.docCtrl;
+
+  el.setAttribute("contenteditable", "true");
+  el.spellcheck = false;
+
+
+  // Support for Multi-Char inputs
+  // --------
+
+  // this array will be filled by the mutation observer
+  // with tuples {el, val} which represent the old state
+  // before the DOM mutation.
+  // In some cases, e.g. multi-chars, the DOM gets manipulated several times
+  // but only the last time a textinput event is triggered.
+  // Before applying delivering the textinput to the editor controller
+  // we reset the content of the element.
+  // Otherwise the editing change would be applied to the DOM a second time.
+  var _domChanges = [];
+  var _recordMutations = false;
+
+  // We ignore selection updates whenever the selection was triggered by the UI
+  // For example, when moving the cursor, the selection gets updated by the contenteditable,
+  // so it is not necessary to update it again.
+  // NOTE: this is optimization and prevents that the model overrules the selection,
+  // e.g., if a certain position is not valid w.r.t. to model coordinates.
+  // In many cases however, the window selection is resetted unnecessarily.
+
+  // NOTE: I disabled this as it seems premature optimization.
+  // TODO: We should find a different way to optimize this. E.g. it could be possible
+  // to store the last mapped model coordinates. When the update returns we could check
+  // if the model coordinates are still the same.
+  // var _ignoreNextSelection = false;
+
+  var _onMouseup = function(e) {
+    // _ignoreNextSelection = true;
+    surface.updateSelection(e);
+  };
+
+  var _onKeyDown = function() {
+    // TODO: we should enable this mechanism more specifically
+    // I.e. by adding keycodes for possible multi-char keys
+    _recordMutations = true;
+  };
+
+
+  // The textinput event is fired after typing and pasting.
+  // This approach is rather questionable, as there are browser incompatibilities.
+  // The benefit of it is an easier way to interpret keyevents.
+
+  var _onTextInput = function(e) {
+    // console.log("Surface.Editing._onTextInput", e.data, _domChanges);
+
+    if (_recordMutations && _domChanges.length > 0) {
+      var change = _domChanges[0];
+      change.el.textContent = change.val;
+    }
+    _recordMutations = false;
+
+    if (!e.data) {
+      console.error("It happened that the textinput event had no data. Investigate!");
+    } else {
+      editorCtrl.write(e.data);
+      e.preventDefault();
+    }
+  };
+
+  var _mutationObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      // console.log("MutationObserver:", mutation.target, mutation.oldValue);
+      if (_recordMutations) {
+        _domChanges.push({mutation: mutation, el: mutation.target, val: mutation.oldValue});
+      }
+    });
+  });
+  // configuration of the observer:
+  var _mutationObserverConfig = { subtree: true, characterData: true, characterDataOldValue: true };
+
+  // Updates the window selection whenever the model selection changes
+  // --------
+  // TODO: we should think about how this could be optimized.
+  // ATM, a window selection change, e.g., when moving the cursor,
+  // triggers a model selection update, which in turn triggers a window selection update.
+  // The latter would not be necessary in most cases.
+  var onSelectionChanged = function() {
+    // if (_ignoreNextSelection === true) {
+    //   _ignoreNextSelection = false;
+    //   return;
+    // }
+    return surface.renderSelection.apply(surface, arguments);
+  };
+
+  // HACK: even if we do not implement copy'n'paste here, we need to disable
+  // the DOM Mutation observer stuff temporarily
+  keyboard.bind("paste", function(e) {
+    _recordMutations = false;
+  }, "keypress");
+
+  // Override the dispose method to bind extra disposing stuff
+  // --------
+  // TODO: we should really consider to make this an independet class instead of a mix-in
+  // and let the surface call the dispose explicitely
+
+  var __dispose__ = surface.dispose;
+  surface.dispose = function() {
+    __dispose__.call(surface);
+    el.removeEventListener("keydown", _onKeyDown);
+    el.removeEventListener("textInput", _onTextInput, true);
+    el.removeEventListener("input", _onTextInput, true);
+    $el.off("mouseup", _onMouseup);
+    _mutationObserver.disconnect();
+    keyboard.disconnect();
+  };
+
+  // API for handling keyboard input
+  // --------
+  // Note: it is necessary to react in a delayed fashion using setTimeout
+  // as the ContentEditable updates its content after the handler has been invoked
+
+  surface.onCursorMoved = function() {
+    // call this after the movement has been done by the contenteditable
+    setTimeout(function() {
+      // _ignoreNextSelection = true;
+      surface.updateSelection();
+    }, 0);
+  };
+
+  // HACK: up to now this is the only way I figured out to recognize if an observed DOM manipulation
+  // originated from a Substance.Document update or from an multi-char input.
+  surface.manipulate = function(f, propagate) {
+    return function(e) {
+      _recordMutations = false;
+      setTimeout(f, 0);
+      if(!propagate) e.preventDefault();
+    };
+  };
+
+  // Initialization
+  // --------
+
+  var _initialize = function() {
+    surface.listenTo(editorCtrl.session.selection,  "selection:changed", onSelectionChanged);
+    el.addEventListener("keydown", _onKeyDown);
+    el.addEventListener("textInput", _onTextInput, true);
+    el.addEventListener("input", _onTextInput, true);
+    $el.mouseup(_onMouseup);
+    _mutationObserver.observe(el, _mutationObserverConfig);
+    keyboard.connect(surface);
+  };
+
+  _initialize();
+};
+
+module.exports = addEditingBehavior;
+
+},{}],141:[function(require,module,exports){
+var Commander = require("substance-commander");
+
+// TODO: make this configurable.
+var SurfaceKeyboard = function(editor, keymap) {
+  var keyboard = new Commander.Mousetrap();
+
+  this.keymap = keymap;
+
+  // Connects this keyboard to a Surface
+  // --------
+  // Note: the argument `surface` is a Surface.Editing instance
+
+  this.connect = function(surface) {
+
+    keyboard.bind(keymap["selection"], function() {
+      surface.onCursorMoved();
+    }, "keydown");
+
+    // Note: these stupid 'surface.manipulate' stuff is currently necessary
+    // as I could not find another way to distinguish the cases for regular text input
+    // and multi-char input. It would not be necessary, if we had a robust way
+    // to recognize native key events for that complex chars...
+    // However, for now that dirt... we can this streamline in future - for sure...
+
+    keyboard.bind(keymap["backspace"], surface.manipulate(function() {
+      editor.delete("left");
+    }), "keydown");
+
+    keyboard.bind(keymap["delete"], surface.manipulate(function() {
+      editor.delete("right");
+    }), "keydown");
+
+    keyboard.bind(keymap["break"], surface.manipulate(function() {
+      editor.breakNode();
+    }), "keydown");
+
+    keyboard.bind(keymap["soft-break"], surface.manipulate(function() {
+      editor.write("\n");
+    }), "keydown");
+
+    keyboard.bind(keymap["blank"], surface.manipulate(function() {
+      editor.write(" ");
+    }), "keydown");
+
+    keyboard.bind(keymap["indent"], surface.manipulate(function() {
+      editor.indent("right");
+    }), "keydown");
+
+    keyboard.bind(keymap["unindent"], surface.manipulate(function() {
+      editor.indent("left");
+    }), "keydown");
+
+    keyboard.bind(keymap["undo"], surface.manipulate(function() {
+      editor.undo();
+    }), "keydown");
+
+    keyboard.bind(keymap["redo"], surface.manipulate(function() {
+      editor.redo();
+    }), "keydown");
+
+    keyboard.bind(keymap["strong"], surface.manipulate(function() {
+      editor.annotate("strong");
+    }), "keydown");
+
+    keyboard.bind(keymap["emphasis"], surface.manipulate(function() {
+      editor.annotate("emphasis");
+    }), "keydown");
+
+    // EXPERIMENTAL hooks for creating new node and annotation types
+
+    keyboard.bind(keymap["heading"], surface.manipulate(function() {
+      editor.insertNode("heading", {"level": 1});
+    }), "keydown");
+
+    keyboard.connect(surface.el);
+  };
+
+  this.disconnect = function() {
+    keyboard.disconnect();
+  };
+
+  this.bind = function(cmd, handler, eType) {
+    keyboard.bind(keymap[cmd], handler, eType);
+  };
+};
+
+module.exports = SurfaceKeyboard;
+
+},{"substance-commander":24}],142:[function(require,module,exports){
 "use strict";
 
 var TOC = require("./toc_view");
 
 module.exports = TOC;
-},{"./toc_view":139}],139:[function(require,module,exports){
+},{"./toc_view":143}],143:[function(require,module,exports){
 "use strict";
 
 var View = require("substance-application").View;
@@ -16127,7 +17121,7 @@ TOCView.prototype = new TOCView.Prototype();
 
 module.exports = TOCView;
 
-},{"substance-application":4,"substance-data":28,"underscore":147}],140:[function(require,module,exports){
+},{"substance-application":4,"substance-data":28,"underscore":151}],144:[function(require,module,exports){
 "use strict";
 
 var util = require("./src/util");
@@ -16140,7 +17134,7 @@ util.Fragmenter = require("./src/fragmenter");
 
 module.exports = util;
 
-},{"./src/async":141,"./src/dom":142,"./src/errors":143,"./src/fragmenter":144,"./src/html":145,"./src/util":146}],141:[function(require,module,exports){
+},{"./src/async":145,"./src/dom":146,"./src/errors":147,"./src/fragmenter":148,"./src/html":149,"./src/util":150}],145:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -16337,7 +17331,7 @@ async.each = function(options, cb) {
 
 module.exports = async;
 
-},{"./util.js":146,"underscore":147}],142:[function(require,module,exports){
+},{"./util.js":150,"underscore":151}],146:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -16401,7 +17395,7 @@ dom.getNodeType = function(el) {
 
 module.exports = dom;
 
-},{"underscore":147}],143:[function(require,module,exports){
+},{"underscore":151}],147:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -16472,7 +17466,7 @@ errors.define = function(className, code) {
 
 module.exports = errors;
 
-},{"./util":146,"underscore":147}],144:[function(require,module,exports){
+},{"./util":150,"underscore":151}],148:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -16675,7 +17669,7 @@ Fragmenter.prototype = new Fragmenter.Prototype();
 
 module.exports = Fragmenter;
 
-},{"underscore":147}],145:[function(require,module,exports){
+},{"underscore":151}],149:[function(require,module,exports){
 "use strict";
 
 var html = {};
@@ -16721,7 +17715,7 @@ html.tpl = function (tpl, ctx) {
 
 module.exports = html;
 
-},{"underscore":147}],146:[function(require,module,exports){
+},{"underscore":151}],150:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -17251,7 +18245,7 @@ util.isEmpty = function(str) {
 
 module.exports = util;
 
-},{"fs":152,"underscore":147}],147:[function(require,module,exports){
+},{"fs":156,"underscore":151}],151:[function(require,module,exports){
 //     Underscore.js 1.5.2
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -18529,7 +19523,7 @@ module.exports = util;
 
 }).call(this);
 
-},{}],148:[function(require,module,exports){
+},{}],152:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -18660,7 +19654,7 @@ ReaderController.prototype = new ReaderController.Prototype();
 
 module.exports = ReaderController;
 
-},{"./reader_view":149,"substance-application":4,"substance-document":35,"substance-surface":135,"substance-util":140,"underscore":147}],149:[function(require,module,exports){
+},{"./reader_view":153,"substance-application":4,"substance-document":35,"substance-surface":134,"substance-util":144,"underscore":151}],153:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -19460,7 +20454,7 @@ __addResourcePanel = function(self, doc, name) {
 
 module.exports = ReaderView;
 
-},{"lens-outline":2,"substance-application":4,"substance-data":28,"substance-surface":135,"substance-toc":138,"substance-util":140,"underscore":147}],150:[function(require,module,exports){
+},{"lens-outline":2,"substance-application":4,"substance-data":28,"substance-surface":134,"substance-toc":142,"substance-util":144,"underscore":151}],154:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -19541,7 +20535,7 @@ Substance.Surface = require("substance-surface");
 
 module.exports = Substance;
 
-},{"./reader_controller":148,"./substance_router":151,"lens-outline":2,"substance-application":4,"substance-article":10,"substance-chronicle":15,"substance-commander":24,"substance-data":28,"substance-document":35,"substance-operator":126,"substance-regexp":133,"substance-surface":135,"substance-util":140,"underscore":147}],151:[function(require,module,exports){
+},{"./reader_controller":152,"./substance_router":155,"lens-outline":2,"substance-application":4,"substance-article":10,"substance-chronicle":15,"substance-commander":24,"substance-data":28,"substance-document":35,"substance-operator":125,"substance-regexp":132,"substance-surface":134,"substance-util":144,"underscore":151}],155:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -19627,8 +20621,6 @@ SubstanceRouter.routes = [
 ];
 
 module.exports = SubstanceRouter;
-},{"substance-application":4,"underscore":147}],152:[function(require,module,exports){
-// nothing to see here... no file methods for the browser
+},{"substance-application":4,"underscore":151}],156:[function(require,module,exports){
 
 },{}]},{},[1])
-;
