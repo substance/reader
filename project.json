@@ -23,27 +23,27 @@
     {
       "repository": "https://github.com/substance/document.git",
       "folder": "node_modules/substance-document",
-      "branch": "refactor"
+      "branch": "prototype"
     },
     {
       "repository": "https://github.com/substance/article.git",
       "folder": "node_modules/substance-article",
-      "branch": "refactor"
+      "branch": "prototype"
     },
     {
       "repository": "https://github.com/substance/nodes.git",
       "folder": "node_modules/substance-nodes",
-      "branch": "refactor"
+      "branch": "prototype"
     },
     {
-      "repository": "https://github.com/elifesciences/lens-outline.git",
+      "repository": "https://github.com/substance/lens-outline.git",
       "folder": "node_modules/lens-outline",
-      "branch": "refactor"
+      "branch": "prototype"
     },
     {
       "repository": "https://github.com/substance/toc.git",
       "folder": "node_modules/substance-toc",
-      "branch": "refactor"
+      "branch": "prototype"
     },
     {
       "repository": "https://github.com/substance/converter.git",
@@ -64,11 +64,6 @@
       "repository": "https://github.com/substance/surface.git",
       "folder": "node_modules/substance-surface",
       "branch": "0.4.x"
-    },
-    {
-      "repository": "https://github.com/substance/test.git",
-      "folder": "node_modules/substance-test",
-      "branch": "0.3.x"
     },
     {
       "repository": "https://github.com/substance/util.git",

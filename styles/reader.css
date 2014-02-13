@@ -205,9 +205,6 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 /* Resources Panel 
 ======================================================================= */
 
-.article .delete-resource {
-  display: none;
-}
 
 .article .resources {
   float: right;
@@ -218,12 +215,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   padding-left: 50px;
   padding-right: 50px;
   position: relative;
-  /*overflow: auto;*/
 }
-
-/*.article .resources .surface {
-  padding-top: 80px;
-}*/
 
 .article .nodes {
   padding-left: 50px;
