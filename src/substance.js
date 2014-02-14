@@ -33,13 +33,51 @@ Substance.Outline = require("lens-outline");
 
 Substance.Prototype = function() {
 
+
+  this.isIOSDevice = function() {
+    var iPadAgent = navigator.userAgent.match(/iPad/i) != null;
+    var iPodAgent = navigator.userAgent.match(/iPhone/i) != null;
+    return iPadAgent || iPodAgent;
+  };
+
+  this.isIphone = function() {
+    var iPhoneAgent = navigator.userAgent.match(/iPhone/i) != null;
+    return iPhoneAgent;
+  };
+
+  this.isMobile = function() {
+    var iPadAgent = navigator.userAgent.match(/iPad/i) != null;
+    var iPodAgent = navigator.userAgent.match(/iPhone/i) != null;
+    var AndroidAgent = navigator.userAgent.match(/Android/i) != null;
+    var webOSAgent = navigator.userAgent.match(/webOS/i) != null;
+
+    return iPadAgent || iPodAgent || AndroidAgent || webOSAgent;
+  };
+
+  this.isTouchDevice = function() {
+    return 'ontouchstart' in document.documentElement;
+  };
+
+
   // Start listening to routes
   // --------
 
   this.render = function() {
     var container = $$('#container');
-    var main  = $$('#main');
+    
+    if (this.isTouchDevice()) {
+      $(container).addClass('touchable');
+    }
 
+    if (this.isIOSDevice()) {
+      $(container).addClass('ios');
+    }
+
+    if (this.isIphone()) {
+      $(container).addClass('iphone');
+    }
+
+    var main  = $$('#main');
     container.appendChild(main);
     this.el.appendChild(container);
   };
