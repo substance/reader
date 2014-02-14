@@ -132,7 +132,7 @@
     "LICENSE": "LICENSE"
   },
   "bundle": {
-    "name": "substance",
+    "name": "substance-reader-0.5.x",
     "folder": "./dist",
     "source": "./boot.js",
     "index": "./index.html"
