@@ -9,40 +9,16 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <link href='substance.css' rel='stylesheet' type='text/css'/>
+    <link href='substance-reader-0.5.0.css' rel='stylesheet' type='text/css'/>
 
     <script src="lib/jquery-2.0.3.min.js"></script>
 
-    <script src='substance.js'></script>
+    <script src='substance-reader-0.5.0.js'></script>
 
     <script>
 
       if (window.Substance === undefined) {
         window.Substance = require("/src/substance.js");
-      }
-
-      function isIOSDevice() {
-        var iPadAgent = navigator.userAgent.match(/iPad/i) != null;
-        var iPodAgent = navigator.userAgent.match(/iPhone/i) != null;
-        return iPadAgent || iPodAgent;
-      }
-
-      function isIphone() {
-        var iPhoneAgent = navigator.userAgent.match(/iPhone/i) != null;
-        return iPhoneAgent;
-      }
-
-      function isMobile() {
-        var iPadAgent = navigator.userAgent.match(/iPad/i) != null;
-        var iPodAgent = navigator.userAgent.match(/iPhone/i) != null;
-        var AndroidAgent = navigator.userAgent.match(/Android/i) != null;
-        var webOSAgent = navigator.userAgent.match(/webOS/i) != null;
-
-        return iPadAgent || iPodAgent || AndroidAgent || webOSAgent;
-      }
-
-      function isTouchDevice() {
-        return 'ontouchstart' in document.documentElement;
       }
 
       // Create a new Lens app instance
@@ -55,27 +31,13 @@
           if (Object.prototype.toString.call(data) === "[object String]") {
             data = JSON.parse(data);
           }
-          var app = new Substance({
+          var app = new Substance.Reader({
             document: data
           });
 
           $(function() {
-
             app.start();
-
-            if (isTouchDevice()) {
-              $('#container').addClass('touchable');
-            }
-
-            if (isIOSDevice()) {
-              $('#container').addClass('ios');
-            }
-
-            if (isIphone()) {
-              $('#container').addClass('iphone');
-            }
           });
-
       })
       .fail(function(err) {
         $('body').html(JSON.stringify(err));

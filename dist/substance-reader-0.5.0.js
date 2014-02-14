@@ -1,6 +1,6 @@
 ;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 window.Substance = require("./src/substance");
-},{"./src/substance":150}],2:[function(require,module,exports){
+},{"./src/substance":143}],2:[function(require,module,exports){
 "use strict";
 
 var Outline = require('./outline');
@@ -206,7 +206,7 @@ Outline.prototype = new Outline.Prototype();
 
 module.exports = Outline;
 
-},{"substance-application":4,"underscore":147}],4:[function(require,module,exports){
+},{"substance-application":4,"underscore":139}],4:[function(require,module,exports){
 "use strict";
 
 var Application = require("./src/application");
@@ -286,7 +286,7 @@ Application.Prototype = function() {
     // keep the old state for afterTransition-handler
     var oldAppState = this.getState();
 
-    this.controller.__switchState__(appState, function(error) {
+    this.controller.__switchState__(appState, options, function(error) {
       if (error) {
         if (cb) {
           cb(error);
@@ -383,7 +383,7 @@ Application.Prototype = function() {
       stateIds.push(s.id);
       for (var key in s) {
         var val = s[key];
-        if (key === "id" || key === "__id__") {
+        if (key === "id" || key === "__id__" || key === "options") {
           continue;
         }
         // Note: currently only String variables are allowed as state variables
@@ -421,7 +421,7 @@ Object.defineProperty(Application.prototype, "controller", {
 
 module.exports = Application;
 
-},{"./view":9,"substance-util":140,"underscore":147}],6:[function(require,module,exports){
+},{"./view":9,"substance-util":132,"underscore":139}],6:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -460,11 +460,31 @@ Controller.Prototype = function() {
     this.state = null;
   };
 
+  // State transition
+  // ----
+  // A typical transition implementation consists of 3 blocks:
+  //
+  // 1. Reflexive transitions (idem-potent checks):
+  //    You have to check if a transition is actually necessary.
+  //    If not call `cb(null, skipTransition=true)`
+  //
+  // 2. Disposal
+  //    Clean up anything left from the old state
+  //
+  // 3. New state
+  //    Create anything necessary for the new state
+  //
+  // Note: to provide additional run-time information you can access
+  //       the options with `newState.options`
+  //       However, when the state is loaded e.g. from the URL
+  //       this information is not available.
+
   this.transition = function(newState, cb) {
     cb(null);
   };
 
   this.switchState = function(state, options, cb) {
+    if (!cb && _.isFunction(options)) cb = options;
     var self = this;
 
     if (arguments.length === 1 && _.isFunction(options)) {
@@ -483,14 +503,14 @@ Controller.Prototype = function() {
     };
 
     var oldState = this.state;
-    this.__switchState__(state, function(error) {
+    this.__switchState__(state, options, function(error) {
       if (error) return cb(error);
       if (self.changeListener) self.changeListener.stateChanged(this, oldState, options);
       cb(null);
     });
   };
 
-  this.__switchState__ = function(state, cb) {
+  this.__switchState__ = function(appState, options, cb) {
     // console.log("Controller.switchState", JSON.stringify(state));
     var self = this;
 
@@ -498,11 +518,18 @@ Controller.Prototype = function() {
       if (err) throw new Error(err);
     };
 
-    if (!_.isArray(state)) {
-      state = [state];
+    if (!_.isArray(appState)) {
+      appState = [appState];
     }
 
-    var _state = state.shift();
+    var _state = appState.shift();
+
+    // Note: adding the options here to allow to provide custom dynamic data.
+    //       However, you should use that rarely, as dynamic state information
+    //       is not serialized. E.g., when loading the state from URL this information
+    //       will not be available.
+    _state.options = options;
+
     var _skipped;
 
     var _afterTransition = function() {
@@ -528,8 +555,8 @@ Controller.Prototype = function() {
           // After that the controller gets triggered about the finished transition.
 
           if (self.childController) {
-            if (state.length > 0) {
-              self.childController.__switchState__(state, function(error) {
+            if (appState.length > 0) {
+              self.childController.__switchState__(appState, options, function(error) {
                 if (error) return cb(error);
                 _afterTransition();
               });
@@ -645,7 +672,7 @@ Object.defineProperty(Controller.prototype, "childController", {
 
 module.exports = Controller;
 
-},{"substance-util":140,"underscore":147}],7:[function(require,module,exports){
+},{"substance-util":132,"underscore":139}],7:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -756,7 +783,7 @@ ElementRenderer.Prototype.prototype = util.Events;
 ElementRenderer.prototype = new ElementRenderer.Prototype();
 
 module.exports = ElementRenderer;
-},{"substance-regexp":133,"substance-util":140}],8:[function(require,module,exports){
+},{"substance-regexp":125,"substance-util":132}],8:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -1076,7 +1103,7 @@ Router.history = new History;
 
 
 module.exports = Router;
-},{"substance-util":140,"underscore":147}],9:[function(require,module,exports){
+},{"substance-util":132,"underscore":139}],9:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -1164,7 +1191,7 @@ View.prototype = new View.Prototype();
 
 module.exports = View;
 
-},{"substance-util":140}],10:[function(require,module,exports){
+},{"substance-util":132}],10:[function(require,module,exports){
 "use strict";
 
 var Article = require("./src/article");
@@ -1188,7 +1215,7 @@ _.each(require("substance-nodes"), function(spec, name) {
 
 module.exports = nodes;
 
-},{"substance-nodes":43,"underscore":147}],12:[function(require,module,exports){
+},{"substance-nodes":43,"underscore":139}],12:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -1212,27 +1239,31 @@ var Article = function(options) {
   options.schema.version = "0.3.0";
 
   // Merge in custom types
-  _.each(Article.types, function(type, key) {
+  var types = options.types || Article.types;
+  _.each(types, function(type, key) {
     options.schema.types[key] = type;
   });
 
   // Merge in node types
-  _.each(Article.nodeTypes, function(node, key) {
+  var nodeTypes = options.nodeTypes || Article.nodeTypes;
+  _.each(nodeTypes, function(node, key) {
     options.schema.types[key] = node.Model.type;
   });
 
   // Merge in custom indexes
-  _.each(Article.indexes, function(index, key) {
+  var indexes = options.indexes || Article.indexes;
+  _.each(indexes, function(index, key) {
     options.schema.indexes[key] = index;
   });
 
+  var views = options.views || Article.views;
 
   // Call parent constructor
   // --------
 
   Document.call(this, options);
 
-  this.nodeTypes = Article.nodeTypes;
+  this.nodeTypes = nodeTypes;
 
   // Seed the doc
   // --------
@@ -1250,7 +1281,7 @@ var Article = function(options) {
     });
 
     // Create views on the doc
-    _.each(Article.views, function(view) {
+    _.each(views, function(view) {
       this.create({
         id: view,
         "type": "view",
@@ -1280,7 +1311,7 @@ Article.Prototype = function() {
 
   // Set publication date
   // --------
-  // 
+  //
 
   this.setPublishedOn = function(dat) {
     this.set(["document", "published_on"], dat);
@@ -1288,7 +1319,7 @@ Article.Prototype = function() {
 
   // Set document id (stored on document node)
   // --------
-  // 
+  //
 
   this.setId = function(docId) {
     this.set(["document", "guid"], docId);
@@ -1296,7 +1327,7 @@ Article.Prototype = function() {
 
   // Set document title (stored on document node)
   // --------
-  // 
+  //
 
   this.setTitle = function(title) {
     this.set(["document", "title"], title);
@@ -1304,11 +1335,19 @@ Article.Prototype = function() {
 
   // Set authors (stored on document node)
   // --------
-  // 
+  //
 
   this.setAuthors = function(authors) {
     this.set(["document", "authors"], authors);
   };
+
+  this.createRenderer = function(viewName) {
+    return new Article.Renderer(this, viewName);
+  };
+
+  this.getAnnotationBehavior = function() {
+    return Article.annotationBehavior;
+  }
 };
 
 // Factory method
@@ -1638,7 +1677,8 @@ Object.defineProperties(Article.prototype, {
 });
 
 module.exports = Article;
-},{"../nodes":11,"substance-document":35,"substance-util":140,"underscore":147}],13:[function(require,module,exports){
+
+},{"../nodes":11,"substance-document":35,"substance-util":132,"underscore":139}],13:[function(require,module,exports){
 "use strict";
 
 var ViewFactory = require("./view_factory");
@@ -1703,12 +1743,12 @@ ArticleRenderer.prototype = new ArticleRenderer.Prototype();
 
 module.exports = ArticleRenderer;
 
-},{"./view_factory":14,"underscore":147}],14:[function(require,module,exports){
+},{"./view_factory":14,"underscore":139}],14:[function(require,module,exports){
 "use strict";
 
 var ViewFactory = function(document) {
   this.document = document;
-  this.nodeTypes = document.constructor.nodeTypes;
+  this.nodeTypes = document.nodeTypes;
 };
 
 ViewFactory.Prototype = function() {
@@ -1806,7 +1846,7 @@ ArrayOperationAdapter.prototype = new ArrayOperationAdapter.Prototype();
 
 module.exports = ArrayOperationAdapter;
 
-},{"./chronicle":18,"substance-operator":126,"substance-util":140}],17:[function(require,module,exports){
+},{"./chronicle":18,"substance-operator":118,"substance-util":132}],17:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -2050,7 +2090,7 @@ IndexedDbBackend.prototype = new IndexedDbBackend.Prototype();
 
 module.exports = IndexedDbBackend;
 
-},{"../chronicle":18,"substance-util":140,"underscore":147}],18:[function(require,module,exports){
+},{"../chronicle":18,"substance-util":132,"underscore":139}],18:[function(require,module,exports){
 "use strict";
 
 /*jshint unused: false*/ // deactivating this, as we define abstract interfaces here
@@ -2763,7 +2803,7 @@ Chronicle.mergeConflict = function(a, b) {
 
 module.exports = Chronicle;
 
-},{"substance-util":140,"underscore":147}],19:[function(require,module,exports){
+},{"substance-util":132,"underscore":139}],19:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -3409,7 +3449,7 @@ ChronicleImpl.create = function(options) {
 
 module.exports = ChronicleImpl;
 
-},{"./chronicle":18,"substance-util":140,"underscore":147}],20:[function(require,module,exports){
+},{"./chronicle":18,"substance-util":132,"underscore":139}],20:[function(require,module,exports){
 var _ = require("underscore");
 var Chronicle = require("./chronicle");
 
@@ -3479,7 +3519,7 @@ DiffImpl.create = function(id, reverts, applies) {
 
 module.exports = DiffImpl;
 
-},{"./chronicle":18,"underscore":147}],21:[function(require,module,exports){
+},{"./chronicle":18,"underscore":139}],21:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -3818,7 +3858,7 @@ IndexImpl.create = function(options) {
 
 module.exports = IndexImpl;
 
-},{"./chronicle":18,"substance-util":140,"underscore":147}],22:[function(require,module,exports){
+},{"./chronicle":18,"substance-util":132,"underscore":139}],22:[function(require,module,exports){
 "use strict";
 
 var util = require('substance-util');
@@ -3858,7 +3898,7 @@ TextOperationAdapter.prototype = new TextOperationAdapter.Prototype();
 
 module.exports = TextOperationAdapter;
 
-},{"./chronicle":18,"substance-operator":126,"substance-util":140}],23:[function(require,module,exports){
+},{"./chronicle":18,"substance-operator":118,"substance-util":132}],23:[function(require,module,exports){
 var _ = require("underscore");
 var util = require("substance-util");
 var errors = util.errors;
@@ -3940,7 +3980,7 @@ TmpIndex.prototype = new TmpIndex.Prototype();
 
 module.exports = TmpIndex;
 
-},{"./index_impl":21,"substance-util":140,"underscore":147}],24:[function(require,module,exports){
+},{"./index_impl":21,"substance-util":132,"underscore":139}],24:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -6071,7 +6111,7 @@ Data.defineNodeProperties = function(prototype, properties, readonly) {
 
 module.exports = Data;
 
-},{"./src/graph":30,"underscore":147}],29:[function(require,module,exports){
+},{"./src/graph":30,"underscore":139}],29:[function(require,module,exports){
 "use strict";
 
 var Chronicle = require('substance-chronicle');
@@ -6118,7 +6158,7 @@ ChronicleAdapter.prototype = new ChronicleAdapter.Prototype();
 
 module.exports = ChronicleAdapter;
 
-},{"substance-chronicle":15,"substance-operator":126}],30:[function(require,module,exports){
+},{"substance-chronicle":15,"substance-operator":118}],30:[function(require,module,exports){
 "use strict";
 
 var _ = require('underscore');
@@ -6362,6 +6402,7 @@ Graph.Prototype = function() {
       throw new GraphError("Could not resolve property with path "+JSON.stringify(path));
     }
     var oldValue = prop.get();
+    // Note: Operator.ObjectOperation.Set will clone the values
     var op = Operator.ObjectOperation.Set(path, oldValue, newValue);
     return this.apply(op);
   };
@@ -6940,7 +6981,7 @@ Graph.Index = Index;
 
 module.exports = Graph;
 
-},{"./chronicle_adapter":29,"./graph_index":31,"./persistence_adapter":32,"./property":33,"./schema":34,"substance-chronicle":15,"substance-operator":126,"substance-util":140,"underscore":147}],31:[function(require,module,exports){
+},{"./chronicle_adapter":29,"./graph_index":31,"./persistence_adapter":32,"./property":33,"./schema":34,"substance-chronicle":15,"substance-operator":118,"substance-util":132,"underscore":139}],31:[function(require,module,exports){
 var _ = require("underscore");
 var util = require("substance-util");
 
@@ -7128,7 +7169,7 @@ Index.typeFilter = function(schema, types) {
 
 module.exports = Index;
 
-},{"substance-util":140,"underscore":147}],32:[function(require,module,exports){
+},{"substance-util":132,"underscore":139}],32:[function(require,module,exports){
 "use strict";
 
 var Operator = require('substance-operator');
@@ -7171,7 +7212,7 @@ PersistenceAdapter.prototype = new PersistenceAdapter.Prototype();
 
 module.exports = PersistenceAdapter;
 
-},{"substance-operator":126}],33:[function(require,module,exports){
+},{"substance-operator":118}],33:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7281,7 +7322,7 @@ Object.defineProperties(Property.prototype, {
 
 module.exports = Property;
 
-},{"underscore":147}],34:[function(require,module,exports){
+},{"underscore":139}],34:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7456,7 +7497,7 @@ Schema.prototype = new Schema.Prototype();
 
 module.exports = Schema;
 
-},{"substance-util":140,"underscore":147}],35:[function(require,module,exports){
+},{"substance-util":132,"underscore":139}],35:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7470,7 +7511,7 @@ Document.Session = require('./src/document_session');
 
 module.exports = Document;
 
-},{"./src/annotator":36,"./src/container":37,"./src/cursor":38,"./src/document":39,"./src/document_session":40,"./src/selection":42,"underscore":147}],36:[function(require,module,exports){
+},{"./src/annotator":36,"./src/container":37,"./src/cursor":38,"./src/document":39,"./src/document_session":40,"./src/selection":42,"underscore":139}],36:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7595,6 +7636,7 @@ Annotator.Prototype = function() {
           var splitAnnotation = util.clone(annotation);
           splitAnnotation.range = [offset, offset + annotation.range[1] - charPos];
           splitAnnotation.id = util.uuid();
+          splitAnnotation.path[0] = newNode.id;
           this.document.create(splitAnnotation);
         }
         // in either cases truncate the first part
@@ -7845,16 +7887,16 @@ _getConfig = function(doc) {
   // - the `constructor` property set on the class
   // - a static property `annotationBehavior` specifying the behavior
   //   according to `Annotator.defaultBehavior`
-  if (doc.constructor && doc.constructor.annotationBehavior) {
-    return doc.constructor.annotationBehavior;
-  } else {
+  var annotationBehavior = doc.getAnnotationBehavior();
+  if (!annotationBehavior) {
     throw new Error("No Annotation behavior specified.");
   }
+  return annotationBehavior;
 };
 
 module.exports = Annotator;
 
-},{"./document":39,"substance-operator":126,"substance-util":140,"underscore":147}],37:[function(require,module,exports){
+},{"./document":39,"substance-operator":118,"substance-util":132,"underscore":139}],37:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -8068,7 +8110,7 @@ Container.ContainerError = ContainerError;
 
 module.exports = Container;
 
-},{"./node_surface_provider":41,"substance-util":140,"underscore":147}],38:[function(require,module,exports){
+},{"./node_surface_provider":41,"substance-util":132,"underscore":139}],38:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -8099,6 +8141,10 @@ var Cursor = function(container, pos, charPos, view) {
 
 
 Cursor.Prototype = function() {
+
+  this.toJSON = function() {
+    return [this.pos, this.charPos];
+  };
 
   this.copy = function() {
     return new Cursor(this.container, this.pos, this.charPos, this.view);
@@ -8274,7 +8320,7 @@ Cursor.prototype = new Cursor.Prototype();
 
 module.exports = Cursor;
 
-},{"substance-util":140,"underscore":147}],39:[function(require,module,exports){
+},{"substance-util":132,"underscore":139}],39:[function(require,module,exports){
 "use strict";
 
 // Substance.Document 0.5.0
@@ -8358,9 +8404,18 @@ Document.Prototype = function() {
     return this.blobs[id] = new Blob([data], options);
   };
 
+  // Create a blob based on an ArrayBuffer
+  // --------
+  //
+  // Currently assumes image/png as a mime type, this needs to be changed
+
+  this.deleteBlob = function(id) {
+    delete this.blobs[id];
+  };
+
   // Returns a blob based on the blob id
   // --------
-  // 
+  //
 
   this.getBlob = function(id) {
     return this.blobs[id];
@@ -8505,7 +8560,7 @@ Document.Prototype = function() {
       return op;
     };
 
-    simulation.save = function() {
+    simulation.save = function(data) {
       var _ops = [];
       for (var i = 0; i < ops.length; i++) {
         if (ops[i].type !== "compound") {
@@ -8514,13 +8569,12 @@ Document.Prototype = function() {
           _ops = _ops.concat(ops[i].ops);
         }
       }
-
       if (_ops.length === 0) {
         // nothing has been recorded
         return;
       }
-
       var compound = Operator.ObjectOperation.Compound(_ops);
+      if (data) compound.data = _.clone(data);
       self.apply(compound);
     };
 
@@ -8553,7 +8607,7 @@ Document.DocumentError = DocumentError;
 
 module.exports = Document;
 
-},{"substance-data":28,"substance-operator":126,"substance-util":140,"underscore":147}],40:[function(require,module,exports){
+},{"substance-data":28,"substance-operator":118,"substance-util":132,"underscore":139}],40:[function(require,module,exports){
 "use strict";
 
 var Annotator = require("./annotator");
@@ -8586,6 +8640,12 @@ DocumentSession.Prototype = function() {
     var annotator = new Annotator(doc);
     var container = this.container.createContainer(doc);
     var sel = new Selection(container, this.selection);
+    // Note: we save the old and new selection along with
+    // the operation created by the simulation
+    var data = {};
+    if (!sel.isNull()) {
+      data["selBefore"] = sel.toJSON();
+    }
     return {
       document: doc,
       view: container.name,
@@ -8596,7 +8656,8 @@ DocumentSession.Prototype = function() {
         container.dispose();
       },
       save: function() {
-        doc.save();
+        data["selAfter"] = sel.toJSON();
+        doc.save(data);
         this.dispose();
       }
     };
@@ -8629,7 +8690,7 @@ var _ = require("underscore");
 
 var NodeSurfaceProvider = function(doc) {
   this.document = doc;
-  this.nodeTypes = this.document.constructor.nodeTypes;
+  this.nodeTypes = this.document.nodeTypes;
   this.nodeSurfaces = {};
 };
 
@@ -8688,7 +8749,7 @@ NodeSurfaceProvider.EmptySurface = function(node) {
 
 module.exports = NodeSurfaceProvider;
 
-},{"underscore":147}],42:[function(require,module,exports){
+},{"underscore":139}],42:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -8992,7 +9053,20 @@ Selection.Prototype = function() {
   //
 
   this.toJSON = function() {
-    return this.range();
+    var data = null;
+
+    if (!this.isNull()) {
+      if (this.isCollapsed()) {
+        data = this.__cursor.toJSON();
+      } else {
+        data = {
+          start: _.clone(this.start),
+          end: this.__cursor.toJSON()
+        }
+      }
+    }
+
+    return data;
   };
 
   // For a given document return the selected nodes
@@ -9013,8 +9087,9 @@ Selection.Prototype = function() {
   //
 
   this.getRanges = function() {
-    var ranges = [];
+    if (this.isNull()) return [];
 
+    var ranges = [];
     var sel = this.range();
 
     for (var i = sel.start[0]; i <= sel.end[0]; i++) {
@@ -9250,7 +9325,7 @@ Selection.SelectionError = SelectionError;
 
 module.exports = Selection;
 
-},{"./cursor":38,"substance-util":140,"underscore":147}],43:[function(require,module,exports){
+},{"./cursor":38,"substance-util":132,"underscore":139}],43:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -9287,7 +9362,7 @@ module.exports = {
   "formula": require("./src/formula"),
 };
 
-},{"./src/annotation":45,"./src/citation":49,"./src/citation_reference":51,"./src/code":53,"./src/codeblock":56,"./src/contributor":60,"./src/cover":64,"./src/cross_reference":66,"./src/emphasis":68,"./src/error":71,"./src/error_reference":73,"./src/figure":77,"./src/figure_reference":79,"./src/formula":82,"./src/heading":85,"./src/image":88,"./src/issue":89,"./src/link":93,"./src/list":95,"./src/math":98,"./src/node":100,"./src/paragraph":105,"./src/remark":108,"./src/remark_reference":111,"./src/strong":113,"./src/subscript":115,"./src/superscript":117,"./src/table":119,"./src/text":122}],44:[function(require,module,exports){
+},{"./src/annotation":45,"./src/citation":48,"./src/citation_reference":50,"./src/code":52,"./src/codeblock":55,"./src/contributor":58,"./src/cover":61,"./src/cross_reference":63,"./src/emphasis":65,"./src/error":68,"./src/error_reference":70,"./src/figure":73,"./src/figure_reference":75,"./src/formula":78,"./src/heading":81,"./src/image":84,"./src/issue":85,"./src/link":88,"./src/list":90,"./src/math":93,"./src/node":95,"./src/paragraph":98,"./src/remark":101,"./src/remark_reference":104,"./src/strong":106,"./src/subscript":108,"./src/superscript":110,"./src/table":112,"./src/text":115}],44:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require('../node/node');
@@ -9345,8 +9420,13 @@ Annotation.example = {
 Annotation.Prototype = function() {
   this.getContent = function() {
     var content = this.document.get(this.path);
-    var range = this.range;
-    return content.substring(range[0], range[1]);
+    if (content) {
+      var range = this.range;
+      return content.substring(range[0], range[1]);
+    } else {
+      console.error("FIXME: this annotation references a deleted node", this, this.path);
+      return "N/A"
+    }
   };
 };
 
@@ -9358,7 +9438,7 @@ Annotation.prototype.defineProperties();
 
 module.exports = Annotation;
 
-},{"../node/node":101,"underscore":147}],45:[function(require,module,exports){
+},{"../node/node":96,"underscore":139}],45:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -9478,88 +9558,7 @@ Object.defineProperties(Citation.prototype, {
 
 module.exports = Citation;
 
-},{"../node/node":101}],47:[function(require,module,exports){
-
-"use strict";
-
-var NodeSurface = require("../node/node_surface");
-var TextSurface = require("../text/text_surface");
-
-// NOTE: this is just *experimental* and will change for sure.
-
-var CitationSurface = function(node, surfaceProvider) {
-  NodeSurface.call(this, node, surfaceProvider);
-
-  this.components.push(this.titleComponent());
-  for (var i = 0; i < node.authors.length; i++) {
-    this.components.push(this.authorComponent(i));
-  }
-  this.components.push(this.sourceComponent());
-};
-CitationSurface.Prototype = function() {
-
-  this.titleComponent = function() {
-    var self = this;
-
-    // TODO: it is not very convenient to create a Text sub-surface for a textish property:
-    var titleSurface = new TextSurface(this.node, this.surfaceProvider, { property: "title" });
-    var titleComponent = titleSurface.components[0];
-    titleComponent.element(function() {
-        return self.view.childViews["title"].el;
-      })
-      .length(function() {
-        // HACK: somehow we need a plus one here... dunno
-        return self.node.title.length + 1;
-      });
-    titleComponent.name = "title";
-    return titleComponent;
-  };
-
-  this.authorComponent = function(i) {
-    var self = this;
-
-    // TODO: it is not very convenient to create a Text sub-surface for a textish property:
-    var authorComponent = this.customComponent([this.node.id, "author"+i], {name: "author"})
-      .element(function() {
-        return self.view.authorEls[i];
-      })
-      .length(function() {
-        // HACK: somehow we need a plus one here... dunno
-        return self.node.authors[i].length;
-      })
-      .mapping(function(charPos) {
-        var range = document.createRange();
-        range.setStart(this.el.childNodes[0], charPos);
-        return range;
-      });
-    return authorComponent;
-  };
-
-  this.sourceComponent = function() {
-    var self = this;
-
-    var sourceComponent = this.customComponent([this.node.id, "source"], {name: "source"});
-    sourceComponent.element(function() {
-        return self.view.sourceEl;
-      })
-      .length(function() {
-        // HACK: somehow we need a plus one here... dunno
-        return self.node.source.length + 1;
-      })
-      .mapping(function(charPos) {
-        var range = document.createRange();
-        range.setStart(this.el.childNodes[0], charPos);
-        return range;
-      });
-    return sourceComponent;
-  };
-};
-CitationSurface.Prototype.prototype = NodeSurface.prototype;
-CitationSurface.prototype = new CitationSurface.Prototype();
-
-module.exports = CitationSurface;
-
-},{"../node/node_surface":102,"../text/text_surface":124}],48:[function(require,module,exports){
+},{"../node/node":96}],47:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node").View;
@@ -9576,10 +9575,6 @@ var CitationView = function(node) {
 
   this.$el.attr({id: node.id});
   this.$el.addClass('citation');
-
-  this.childViews = {
-    "title": null
-  };
 };
 
 
@@ -9591,26 +9586,13 @@ CitationView.Prototype = function() {
     var frag = document.createDocumentFragment(),
         node = this.node;
 
-    // TODO: rename this to title*
-    var titleView = this.childViews["title"] = new TextView(this.node, this.viewFactory, {property: "title"});
-    frag.appendChild(titleView.render().el);
-
-
-    // Delete Button
-    // --------
-
-    var deleteButton = $$('a.delete-resource', {
-      href: '#',
-      text: "Delete",
-      contenteditable: false // Make sure this is not editable!
-    });
-
-    titleView.el.appendChild(deleteButton);
-
+    // Note: delegating to TextView to inherit annotation support
+    this.titleView = new TextView(this.node, this.viewFactory, {property: "title"});
+    frag.appendChild(this.titleView.render().el);
 
     // Resource body
     // --------
-    // 
+    //
     // Wraps all resource details
 
     var bodyEl = $$('.resource-body');
@@ -9623,8 +9605,7 @@ CitationView.Prototype = function() {
     for (var i = 0; i < node.authors.length; i++) {
       var author = node.authors[i];
       this.authorEls.push($$('span.author', {
-        text: author,
-        "data-path": "author"+i
+        text: author
       }));
       authorsEl.appendChild(this.authorEls[i]);
       authorsEl.appendChild(document.createTextNode(" "));
@@ -9653,7 +9634,6 @@ CitationView.Prototype = function() {
 
     this.sourceEl = $$('.source', {
       html: source.join(''),
-      // "data-path": "source"
     });
     bodyEl.appendChild(this.sourceEl);
 
@@ -9680,6 +9660,11 @@ CitationView.Prototype = function() {
 
     return this;
   };
+
+  this.dispose = function() {
+    NodeView.dispose.call(this);
+    this.titleView.dispose();
+  };
 };
 
 CitationView.Prototype.prototype = NodeView.prototype;
@@ -9688,16 +9673,15 @@ CitationView.prototype.constructor = CitationView;
 
 module.exports = CitationView;
 
-},{"../node":100,"../text":122,"substance-application":4}],49:[function(require,module,exports){
+},{"../node":95,"../text":115,"substance-application":4}],48:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require('./citation'),
-  View: require('./citation_view'),
-  Surface: require("./citation_surface")
+  View: require('./citation_view')
 };
 
-},{"./citation":46,"./citation_surface":47,"./citation_view":48}],50:[function(require,module,exports){
+},{"./citation":46,"./citation_view":47}],49:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -9758,14 +9742,14 @@ CitationReference.prototype.defineProperties();
 
 module.exports = CitationReference;
 
-},{"../annotation/annotation":44}],51:[function(require,module,exports){
+},{"../annotation/annotation":44}],50:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./citation_reference")
 };
 
-},{"./citation_reference":50}],52:[function(require,module,exports){
+},{"./citation_reference":49}],51:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -9824,14 +9808,14 @@ Code.prototype.constructor = Code;
 
 module.exports = Code;
 
-},{"../annotation/annotation":44}],53:[function(require,module,exports){
+},{"../annotation/annotation":44}],52:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./code")
 };
 
-},{"./code":52}],54:[function(require,module,exports){
+},{"./code":51}],53:[function(require,module,exports){
 "use strict";
 
 var Text = require("../text/text_node");
@@ -9892,7 +9876,7 @@ Codeblock.prototype.defineProperties();
 module.exports = Codeblock;
 
 
-},{"../text/text_node":123}],55:[function(require,module,exports){
+},{"../text/text_node":116}],54:[function(require,module,exports){
 "use strict";
 
 var TextView = require('../text/text_view');
@@ -9913,16 +9897,15 @@ CodeblockView.prototype = new CodeblockView.Prototype();
 
 module.exports = CodeblockView;
 
-},{"../text/text_view":125}],56:[function(require,module,exports){
+},{"../text/text_view":117}],55:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./codeblock"),
-  View: require("./codeblock_view"),
-  Surface: require("../text/text_surface")
+  View: require("./codeblock_view")
 };
 
-},{"../text/text_surface":124,"./codeblock":54,"./codeblock_view":55}],57:[function(require,module,exports){
+},{"./codeblock":53,"./codeblock_view":54}],56:[function(require,module,exports){
 var _ = require('underscore');
 var DocumentNode = require('../node/node');
 
@@ -9947,7 +9930,8 @@ Contributor.type = {
     "name": "string", // full author name
     "role": "string",
     "organization": "string",
-    "image": "string", // optional
+    "image": "blob", // optional
+    "image_url": "string",
     "email": "string",
     "contribution": "string"
   }
@@ -9976,7 +9960,6 @@ Contributor.example = {
   "type": "contributor",
   "role": "author",
   "name": "John Doe",
-  "image": "http://john.com/doe.png",
   "email": "a@b.com",
   "contribution": "Revising the article, data cleanup"
 };
@@ -9987,6 +9970,23 @@ Contributor.Prototype = function() {
     return _.map(this.properties.affiliations, function(affId) {
       return this.document.get(affId);
     }, this);
+  };
+
+  this.getBlob = function() {
+    return this.document.getBlob(this.properties.image);
+  };
+
+  // Depending on wheter there is a blob it returns either the blob url or a regular image url
+  // --------
+  // 
+
+  this.getUrl = function() {
+    var blob = this.getBlob();
+    if (blob) {
+      return window.URL.createObjectURL(blob);
+    } else {
+      return this.properties.image_url;
+    }
   };
 };
 
@@ -10008,38 +10008,7 @@ Object.defineProperties(Contributor.prototype, {
 
 module.exports = Contributor;
 
-},{"../node/node":101,"underscore":147}],58:[function(require,module,exports){
-"use strict";
-
-var NodeSurface = require("../node/node_surface");
-var TextSurface = require("../text/text_surface");
-var SurfaceComponents = require("../node/surface_components");
-
-var ContributorSurface = function(node, surfaceProvider) {
-  NodeSurface.call(this, node, surfaceProvider);
-
-  this.nameComponent = TextSurface.textProperty(this, "name");
-  this.components.push(this.nameComponent);
-
-  // TODO: Add components for organization, etc.
-};
-
-ContributorSurface.Prototype = function() {
-  var __super__ = NodeSurface.prototype;
-  this.attachView = function(view) {
-    __super__.attachView.call(this, view);
-
-
-    this.nameComponent.surface.attachView(this.view.childViews["name"]);
-    // this.captionComponent.surface.attachView(this.view.childViews["caption"]);
-  };
-};
-ContributorSurface.Prototype.prototype = NodeSurface.prototype;
-ContributorSurface.prototype = new ContributorSurface.Prototype();
-
-module.exports = ContributorSurface;
-
-},{"../node/node_surface":102,"../node/surface_components":104,"../text/text_surface":124}],59:[function(require,module,exports){
+},{"../node/node":96,"underscore":139}],57:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node").View;
@@ -10054,10 +10023,6 @@ var ContributorView = function(node) {
 
   this.$el.attr({id: node.id});
   this.$el.addClass("content-node contributor");
-
-  this.childViews = {
-    "name": null
-  };
 };
 
 ContributorView.Prototype = function() {
@@ -10072,27 +10037,13 @@ ContributorView.Prototype = function() {
     // Name element (used as a header for the resource card)
     // -------
 
-    var nameView = this.childViews["name"] = new TextView(this.node, this.viewFactory, {property: "name"});
-    $(nameView.el).addClass('toggle-resource');
-    this.content.appendChild(nameView.render().el);
-
-    // Delete Button
-    // --------
-    // 
-    // TODO: This should be attached by the writer, since we don't want to have a
-    // delete button in a reading scenario
-
-    var deleteButton = $$('a.delete-resource', {
-      href: '#',
-      text: "Delete",
-      contenteditable: false
-    });
-
-    nameView.el.appendChild(deleteButton);
+    this.nameView = new TextView(this.node, this.viewFactory, {property: "name"});
+    $(this.nameView.el).addClass('toggle-resource');
+    this.content.appendChild(this.nameView.render().el);
 
     // Resource Body
     // -------
-    // 
+    //
     // Wraps all the contents of the resource card
 
     var body = $$('.resource-body');
@@ -10100,10 +10051,9 @@ ContributorView.Prototype = function() {
     // Image
     // -------
 
-    if (this.node.image) {
+    if (this.node.image_url) {
       this.imageEl = $$('.image', {
-        contenteditable: false,
-        children: [$$('img', {src: this.node.image})]
+        children: [$$('img', {src: this.node.image_url})]
       });
       body.appendChild(this.imageEl);
     }
@@ -10111,11 +10061,8 @@ ContributorView.Prototype = function() {
     // Organization
     // -------
 
-    // this.content.appendChild($$('.label', {text: 'Organization'}));
-    if (this.node.organization) {
-      this.orgEl = $$('.organization.node-property',{text: this.node.organization, "data-path": "organization"});
-      body.appendChild(this.orgEl);
-    }
+    this.organizationView = new TextView(this.node, this.viewFactory, {property: "organization"});
+    body.appendChild(this.organizationView.render().el);
 
 
     // Contribution
@@ -10127,31 +10074,40 @@ ContributorView.Prototype = function() {
       body.appendChild(this.contribEl);
     }
 
-
     // Email
     // -------
 
-    if (this.node.email) {
-      body.appendChild($$('.label', {text: 'Email'}));
-      this.emailEl = $$('.email.node-property', {
-        children: [$$('a', {href: "mailto:"+ this.node.email, text: this.node.email})],
-        "data-path": "email"
-      });
-      body.appendChild(this.emailEl);
-    }
+    body.appendChild($$('.label', {text: 'Email', contenteditable: false}));
+    this.emailView = new TextView(this.node, this.viewFactory, {property: "email"});
+    body.appendChild(this.emailView.render().el);
 
     this.content.appendChild(body);
 
     return this;
   };
 
-  this.describeStructure = function() {
-    var structure = [];
-    structure.push(this.propertyComponent("organization", this.orgEl));
-    structure.push(this.propertyComponent("contribution", this.contribEl));
-    structure.push(this.propertyComponent("email", this.emailEl));
-    return structure;
+  this.dispose = function() {
+    NodeView.dispose.call(this);
+    this.nameView.dispose();
+    this.organization.dispose();
+    this.emailView.dispose();
   };
+
+  this.onNodeUpdate = function(op) {
+    if (op.path[1] === "name") {
+      this.childViews["name"].onNodeUpdate(op);
+      return true;
+    } else if (op.path[1] === "organization") {
+      this.childViews["organization"].onNodeUpdate(op);
+      return true;
+    } else if (op.path[1] === "email") {
+      this.childViews["email"].onNodeUpdate(op);
+      return true;
+    } else {
+      return false;
+    }
+  };
+
 };
 
 ContributorView.Prototype.prototype = NodeView.prototype;
@@ -10159,16 +10115,15 @@ ContributorView.prototype = new ContributorView.Prototype();
 
 module.exports = ContributorView;
 
-},{"../node":100,"../text/text_view":125,"substance-application":4}],60:[function(require,module,exports){
+},{"../node":95,"../text/text_view":117,"substance-application":4}],58:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./contributor"),
-  View: require("./contributor_view"),
-  Surface: require("./contributor_surface")
+  View: require("./contributor_view")
 };
 
-},{"./contributor":57,"./contributor_surface":58,"./contributor_view":59}],61:[function(require,module,exports){
+},{"./contributor":56,"./contributor_view":57}],59:[function(require,module,exports){
 var _ = require('underscore');
 var DocumentNode = require('../node/node');
 
@@ -10243,35 +10198,7 @@ Object.defineProperties(Cover.prototype, {
 
 module.exports = Cover;
 
-},{"../node/node":101,"underscore":147}],62:[function(require,module,exports){
-"use strict";
-
-var NodeSurface = require("../node/node_surface");
-var TextSurface = require("../text/text_surface");
-
-var __titleComponent;
-var __authorRefComponent;
-
-var CoverSurface = function(node, surfaceProvider) {
-  NodeSurface.call(this, node, surfaceProvider);
-
-  this.titleComponent = TextSurface.textProperty(this, "title", ["document", "title"]);
-  this.components.push(this.titleComponent);
-};
-
-CoverSurface.Prototype = function() {
-  var __super__ = NodeSurface.prototype;
-  this.attachView = function(view) {
-    __super__.attachView.call(this, view);
-    this.titleComponent.surface.attachView(this.view.childViews["title"]);
-  };
-};
-CoverSurface.Prototype.prototype = NodeSurface.prototype;
-CoverSurface.prototype = new CoverSurface.Prototype();
-
-module.exports = CoverSurface;
-
-},{"../node/node_surface":102,"../text/text_surface":124}],63:[function(require,module,exports){
+},{"../node/node":96,"underscore":139}],60:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -10288,10 +10215,6 @@ var CoverView = function(node, viewFactory) {
 
   this.$el.attr({id: node.id});
   this.$el.addClass("content-node cover");
-
-  this.childViews = {
-    "title": null
-  };
 };
 
 CoverView.Prototype = function() {
@@ -10306,19 +10229,21 @@ CoverView.Prototype = function() {
       }));
     }
 
-    var titleView = this.childViews["title"] = new TextView(this.node, this.viewFactory, {property: "title"});
-    this.content.appendChild(titleView.render().el);
-    titleView.el.classList.add("title");
+    this.titleView =  new TextView(this.node, this.viewFactory, {property: "title"});
+    this.content.appendChild(this.titleView.render().el);
+    this.titleView.el.classList.add("title");
 
-    this.authorsEl = $$('.authors', {
-      contenteditable: false
-    });
+    this.authorsEl = $$('.authors');
 
     this.renderAuthors();
     this.content.appendChild(this.authorsEl);
-    
 
     return this;
+  };
+
+  this.dispose = function() {
+    NodeView.dispose.call(this);
+    this.titleView.dispose();
   };
 
   this.renderAuthors = function() {
@@ -10344,7 +10269,7 @@ CoverView.Prototype = function() {
     }
 
     if (_.isEqual(op.path, ["document","title"])) {
-      this.childViews["title"].renderContent();
+      this.titleView.renderContent();
       return true;
     } else if (_.isEqual(op.path, ["document", "authors"])) {
       this.renderAuthors();
@@ -10355,7 +10280,7 @@ CoverView.Prototype = function() {
     // as it seems strange to annotate a property which is used in such an indirect way
     if (Annotator.changesAnnotations(this.node.document, op, ["cover", "title"])) {
       //console.log("Rerendering TextView due to annotation update", op);
-      this.childViews["title"].renderContent();
+      this.titleView.renderContent();
       return true;
     }
   };
@@ -10366,16 +10291,15 @@ CoverView.prototype = new CoverView.Prototype();
 
 module.exports = CoverView;
 
-},{"../node/node_view":103,"../text/text_view":125,"substance-application":4,"substance-document":35,"underscore":147}],64:[function(require,module,exports){
+},{"../node/node_view":97,"../text/text_view":117,"substance-application":4,"substance-document":35,"underscore":139}],61:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require('./cover'),
-  View: require('./cover_view'),
-  Surface: require("./cover_surface")
+  View: require('./cover_view')
 };
 
-},{"./cover":61,"./cover_surface":62,"./cover_view":63}],65:[function(require,module,exports){
+},{"./cover":59,"./cover_view":60}],62:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -10438,14 +10362,14 @@ CrossReference.prototype.defineProperties();
 
 module.exports = CrossReference;
 
-},{"../annotation/annotation":44}],66:[function(require,module,exports){
+},{"../annotation/annotation":44}],63:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./cross_reference")
 };
 
-},{"./cross_reference":65}],67:[function(require,module,exports){
+},{"./cross_reference":62}],64:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -10505,14 +10429,14 @@ Emphasis.prototype.constructor = Emphasis;
 module.exports = Emphasis;
 
 
-},{"../annotation/annotation":44}],68:[function(require,module,exports){
+},{"../annotation/annotation":44}],65:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./emphasis")
 };
 
-},{"./emphasis":67}],69:[function(require,module,exports){
+},{"./emphasis":64}],66:[function(require,module,exports){
 "use strict";
 
 var Issue = require('../issue/issue');
@@ -10565,7 +10489,7 @@ ErrorNode.prototype.constructor = ErrorNode;
 
 module.exports = ErrorNode;
 
-},{"../issue/issue":90}],70:[function(require,module,exports){
+},{"../issue/issue":86}],67:[function(require,module,exports){
 "use strict";
 
 var IssueView = require("../issue/issue_view");
@@ -10583,16 +10507,15 @@ ErrorView.prototype = new ErrorView.Prototype();
 
 module.exports = ErrorView;
 
-},{"../issue/issue_view":92}],71:[function(require,module,exports){
+},{"../issue/issue_view":87}],68:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./error"),
-  View: require("./error_view"),
-  Surface: require("../issue/issue_surface")
+  View: require("./error_view")
 };
 
-},{"../issue/issue_surface":91,"./error":69,"./error_view":70}],72:[function(require,module,exports){
+},{"./error":66,"./error_view":67}],69:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -10655,14 +10578,14 @@ ErrorReference.prototype.defineProperties();
 
 module.exports = ErrorReference;
 
-},{"../annotation/annotation":44}],73:[function(require,module,exports){
+},{"../annotation/annotation":44}],70:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./error_reference")
 };
 
-},{"./error_reference":72}],74:[function(require,module,exports){
+},{"./error_reference":69}],71:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require("../node/node");
@@ -10675,8 +10598,8 @@ Figure.type = {
   "id": "figure",
   "parent": "content",
   "properties": {
-    "url": "string",
     "image": "blob",
+    "image_url": "string",
     "label": "string",
     "caption": "paragraph"
   }
@@ -10689,8 +10612,8 @@ Figure.description = {
   ],
   "properties": {
     "label": "Figure label (e.g. Figure 1)",
-    "url": "Image url",
     "image": "Blob id that has the image data",
+    "image_url": "Image url",
     "caption": "A reference to a paragraph that describes the figure",
   }
 };
@@ -10734,7 +10657,7 @@ Figure.Prototype = function() {
     if (blob) {
       return window.URL.createObjectURL(blob);
     } else {
-      return this.properties.url || "styles/image-placeholder.png";
+      return this.properties.image_url;
     }
   };
 };
@@ -10770,7 +10693,7 @@ Figure.create = function(data) {
     id: figId,
     type: "figure",
     label: data.label,
-    url: data.url
+    image_url: data.image_url
   };
 
   if (data.caption) {
@@ -10790,44 +10713,7 @@ Figure.create = function(data) {
 
 module.exports = Figure;
 
-},{"../node/node":101}],75:[function(require,module,exports){
-"use strict";
-
-var NodeSurface = require("../node/node_surface");
-var TextSurface = require("../text/text_surface");
-var SurfaceComponents = require("../node/surface_components");
-
-var __labelComponent;
-
-var FigureSurface = function(node, surfaceProvider) {
-  NodeSurface.call(this, node, surfaceProvider);
-
-  this.labelComponent = TextSurface.textProperty(this, "label");
-  this.components.push(this.labelComponent);
-
-  // TODO: it is not clear right now how to create a full-fledged node surface
-  // which is registered with appropriate path (e.g., ["figure_1", "caption"])
-  // we want to create a full node component, but need to adjust the path property
-  if (this.node.caption) {
-    var caption = this.node.getCaption();
-    this.captionComponent = this.surfaceProvider.getNodeSurface(caption);
-    this.addSubSurface("caption", this.captionComponent);
-  }
-};
-FigureSurface.Prototype = function() {
-  var __super__ = NodeSurface.prototype;
-  this.attachView = function(view) {
-    __super__.attachView.call(this, view);
-    this.labelComponent.surface.attachView(this.view.childViews["label"]);
-    this.captionComponent.surface.attachView(this.view.childViews["caption"]);
-  };
-};
-FigureSurface.Prototype.prototype = NodeSurface.prototype;
-FigureSurface.prototype = new FigureSurface.Prototype();
-
-module.exports = FigureSurface;
-
-},{"../node/node_surface":102,"../node/surface_components":104,"../text/text_surface":124}],76:[function(require,module,exports){
+},{"../node/node":96}],72:[function(require,module,exports){
 "use strict";
 
 var $$ = require ("substance-application").$$;
@@ -10839,37 +10725,8 @@ var TextView = require("../text/text_view");
 
 var FigureView = function(node, viewFactory) {
   NodeView.call(this, node, viewFactory);
-
-  this.childViews = {
-    "label": null,
-    "caption": null
-  };
 };
 
-
-function b64toBlob(b64Data, contentType, sliceSize) {
-    contentType = contentType || '';
-    sliceSize = sliceSize || 512;
-
-    var byteCharacters = atob(b64Data);
-    var byteArrays = [];
-
-    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-        var slice = byteCharacters.slice(offset, offset + sliceSize);
-
-        var byteNumbers = new Array(slice.length);
-        for (var i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i);
-        }
-
-        var byteArray = new Uint8Array(byteNumbers);
-
-        byteArrays.push(byteArray);
-    }
-
-    var blob = new Blob(byteArrays, {type: contentType});
-    return blob;
-}
 
 FigureView.Prototype = function() {
 
@@ -10880,20 +10737,9 @@ FigureView.Prototype = function() {
   this.render = function() {
     NodeView.prototype.render.call(this);
 
-    var labelView = this.childViews["label"] = new TextView(this.node, this.viewFactory, {property: "label"});
-    $(labelView.el).addClass('toggle-resource');
-    this.content.appendChild(labelView.render().el);
-
-    // Delete Button
-    // --------
-
-    var deleteButton = $$('a.delete-resource', {
-      href: '#',
-      text: "Delete",
-      contenteditable: false // Make sure this is not editable!
-    });
-
-    labelView.el.appendChild(deleteButton);
+    this.labelView = new TextView(this.node, this.viewFactory, {property: "label"});
+    $(this.labelView.el).addClass('toggle-resource');
+    this.content.appendChild(this.labelView.render().el);
 
     // Resource body
     // --------
@@ -10902,15 +10748,13 @@ FigureView.Prototype = function() {
 
     var bodyEl = $$('.resource-body');
 
-    this.imgEl = $$("img", {href: "#"});
+    this.imgEl = $$("img");
 
     // Prepares blobs etc. for the image
-    
+
     // Add graphic (img element)
     this.imgWrapper = $$('.image-wrapper', {
-      contenteditable: false,
       children: [
-        $$("input.figure-image-file", {type: "file", name: "files", "data-id": this.node.id }),
         $$("a", {
           href: "#",
           title: "View image in full size",
@@ -10926,14 +10770,20 @@ FigureView.Prototype = function() {
 
     var caption = this.node.getCaption();
     if (caption) {
-      var captionView = this.childViews["caption"] = this.viewFactory.createView(caption);
-      var captionEl = captionView.render().el;
+      this.captionView = this.viewFactory.createView(caption);
+      var captionEl = this.captionView.render().el;
       captionEl.classList.add('caption');
       bodyEl.appendChild(captionEl);
     }
 
     this.content.appendChild(bodyEl);
     return this;
+  };
+
+  this.dispose = function() {
+    NodeView.dispose.call(this);
+    this.labelView.dispose();
+    if (this.captionView) this.captionView.dispose();
   };
 
   this.updateImage = function() {
@@ -10951,7 +10801,7 @@ FigureView.Prototype = function() {
 
   this.onNodeUpdate = function(op) {
     this.updateImage();
-    this.childViews["label"].onNodeUpdate(op);
+    this.labelView.onNodeUpdate(op);
   };
 
 };
@@ -10961,16 +10811,15 @@ FigureView.prototype = new FigureView.Prototype();
 
 module.exports = FigureView;
 
-},{"../node/node_view":103,"../text/text_view":125,"substance-application":4}],77:[function(require,module,exports){
+},{"../node/node_view":97,"../text/text_view":117,"substance-application":4}],73:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require('./figure'),
-  View: require('./figure_view'),
-  Surface: require('./figure_surface')
+  View: require('./figure_view')
 };
 
-},{"./figure":74,"./figure_surface":75,"./figure_view":76}],78:[function(require,module,exports){
+},{"./figure":71,"./figure_view":72}],74:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -11032,14 +10881,14 @@ FigureReference.prototype.defineProperties();
 
 module.exports = FigureReference;
 
-},{"../annotation/annotation":44}],79:[function(require,module,exports){
+},{"../annotation/annotation":44}],75:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./figure_reference")
 };
 
-},{"./figure_reference":78}],80:[function(require,module,exports){
+},{"./figure_reference":74}],76:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require('../node/node');
@@ -11110,7 +10959,7 @@ Formula.prototype.defineProperties();
 
 module.exports = Formula;
 
-},{"../node/node":101}],81:[function(require,module,exports){
+},{"../node/node":96}],77:[function(require,module,exports){
 "use strict";
 
 var NodeView = require('../node/node_view');
@@ -11176,7 +11025,7 @@ FormulaView.prototype = new FormulaView.Prototype();
 
 module.exports = FormulaView;
 
-},{"../node/node_view":103}],82:[function(require,module,exports){
+},{"../node/node_view":97}],78:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11184,7 +11033,7 @@ module.exports = {
   View: require('./formula_view')
 };
 
-},{"./formula":80,"./formula_view":81}],83:[function(require,module,exports){
+},{"./formula":76,"./formula_view":77}],79:[function(require,module,exports){
 "use strict";
 
 var Text = require("../text/text_node");
@@ -11246,7 +11095,7 @@ Heading.prototype.defineProperties();
 
 module.exports = Heading;
 
-},{"../text/text_node":123}],84:[function(require,module,exports){
+},{"../text/text_node":116}],80:[function(require,module,exports){
 "use strict";
 
 var TextView = require('../text/text_view');
@@ -11282,16 +11131,15 @@ HeadingView.prototype = new HeadingView.Prototype();
 
 module.exports = HeadingView;
 
-},{"../text/text_view":125}],85:[function(require,module,exports){
+},{"../text/text_view":117}],81:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./heading"),
-  View: require("./heading_view"),
-  Surface: require("../text/text_surface")
+  View: require("./heading_view")
 };
 
-},{"../text/text_surface":124,"./heading":83,"./heading_view":84}],86:[function(require,module,exports){
+},{"./heading":79,"./heading_view":80}],82:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require('../node/node');
@@ -11351,7 +11199,7 @@ ImageNode.prototype.defineProperties();
 
 module.exports = ImageNode;
 
-},{"../node/node":101}],87:[function(require,module,exports){
+},{"../node/node":96}],83:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node/node");
@@ -11407,7 +11255,7 @@ ImageView.prototype = new ImageView.Prototype();
 
 module.exports = ImageView;
 
-},{"../node/node":101,"substance-application":4}],88:[function(require,module,exports){
+},{"../node/node":96,"substance-application":4}],84:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11415,16 +11263,15 @@ module.exports = {
   View: require("./image_view")
 };
 
-},{"./image":86,"./image_view":87}],89:[function(require,module,exports){
+},{"./image":82,"./image_view":83}],85:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./issue"),
-  View: require("./issue_view"),
-  Surface: require("./issue_surface")
+  View: require("./issue_view")
 };
 
-},{"./issue":90,"./issue_surface":91,"./issue_view":92}],90:[function(require,module,exports){
+},{"./issue":86,"./issue_view":87}],86:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require('../node/node');
@@ -11483,6 +11330,16 @@ Issue.Prototype = function() {
     if (this.properties.description) return this.document.get(this.properties.description);
   };
 
+  this.getReferences = function() {
+    var references = this.document.indexes['references'];
+    if (references) {
+      return references.get(this.properties.id);
+    } else {
+      console.error("No index for references.")
+      return [];
+    }
+  };
+
 };
 
 Issue.Prototype.prototype = DocumentNode.prototype;
@@ -11493,34 +11350,7 @@ Issue.prototype.defineProperties();
 
 module.exports = Issue;
 
-},{"../node/node":101}],91:[function(require,module,exports){
-"use strict";
-
-var NodeSurface = require("../node/node_surface");
-var TextSurface = require("../text/text_surface");
-
-var IssueSurface = function(node, surfaceProvider) {
-  NodeSurface.call(this, node, surfaceProvider);
-
-  this.components.push(TextSurface.textProperty(this, "title"));
-  this.components.push(TextSurface.textProperty(this, "description"));
-};
-
-IssueSurface.Prototype = function() {
-  var __super__ = NodeSurface.prototype;
-  this.attachView = function(view) {
-    __super__.attachView.call(this, view);
-    this.labelComponent.surface.attachView(this.view.childViews["title"]);
-    this.captionComponent.surface.attachView(this.view.childViews["description"]);
-  };
-};
-
-IssueSurface.Prototype.prototype = NodeSurface.prototype;
-IssueSurface.prototype = new IssueSurface.Prototype();
-
-module.exports = IssueSurface;
-
-},{"../node/node_surface":102,"../text/text_surface":124}],92:[function(require,module,exports){
+},{"../node/node":96}],87:[function(require,module,exports){
 "use strict";
 
 var $$ = require ("substance-application").$$;
@@ -11536,14 +11366,19 @@ var IssueView = function(node, viewFactory) {
 
   // This class is shared among all issue subtypes (errors, remarks)
   this.$el.addClass('issue');
-
-  this.childViews = {
-    "title": null,
-    "description": null
-  };
 };
 
 IssueView.Prototype = function() {
+
+  var __super__ = NodeView.prototype;
+
+  this._updateTitle = function() {
+    if (this.ref) {
+      this.titleTextEl.innerHTML = this.ref.getContent();
+    } else {
+      this.titleTextEl.innerHTML = "";
+    }
+  };
 
   // Rendering
   // =============================
@@ -11552,20 +11387,12 @@ IssueView.Prototype = function() {
   this.render = function() {
     NodeView.prototype.render.call(this);
 
-    var labelView = this.childViews["title"] = new TextView(this.node, this.viewFactory, {property: "title"});
-
-    this.content.appendChild(labelView.render().el);
-
-    // Delete Button
-    // --------
-
-    var deleteButton = $$('a.delete-resource', {
-      href: '#',
-      text: "Delete",
-      contenteditable: false // Make sure this is not editable!
-    });
-
-    labelView.el.appendChild(deleteButton);
+    //Note: we decided to render the text of the reference instead of
+    //the title property
+    var titleViewEl = $$('div.issue-title-wrapper')
+    this.titleTextEl = $$('.text.title')
+    titleViewEl.appendChild(this.titleTextEl);
+    this.content.appendChild(titleViewEl);
 
     // Creator and date
     // --------
@@ -11577,17 +11404,55 @@ IssueView.Prototype = function() {
 
     // labelView.el.appendChild(creator);
 
-    var descriptionView = this.childViews["description"] = new TextView(this.node, this.viewFactory, {property: "description"});
-    this.content.appendChild(descriptionView.render().el);
+    this.descriptionView = new TextView(this.node, this.viewFactory, {property: "description"});
+    this.content.appendChild(this.descriptionView.render().el);
+
+    var refs = this.node.getReferences();
+    var refIds = Object.keys(refs);
+    if (refIds.length > 0) {
+      this.ref = refs[refIds[0]];
+      this._updateTitle()
+    }
 
     return this;
   };
 
+  this.dispose = function() {
+    NodeView.dispose.call(this);
+    this.descriptionView.dispose();
+  };
+
   this.onNodeUpdate = function(op) {
-    if (op.path[1] === "title") {
-      this.childViews["title"].onNodeUpdate(op);
-    } else if (op.path[1] === "description") {
-      this.childViews["description"].onNodeUpdate(op);
+    if (op.path[1] === "description") {
+      this.descriptionView.onNodeUpdate(op);
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  this.onGraphUpdate = function(op) {
+    if (__super__.onGraphUpdate.call(this, op)) {
+      return true;
+    }
+    // Hack: lazily detecting references to this issue
+    // by *only* checking 'create' ops with an object having this node as target
+    else if (op.type === "create" && op.val["target"] === this.node.id) {
+      this.ref = this.node.document.get(op.val.id);
+      this._updateTitle();
+      return true;
+    }
+    // ... the same in inverse direction...
+    else if (op.type === "delete" && op.val["target"] === this.node.id) {
+      this.ref = null;
+      this._updateTitle();
+      return true;
+    }
+    else if (this.ref && op.path[0] === this.ref.id) {
+      this._updateTitle();
+      return true;
+    } else {
+      return false;
     }
   };
 
@@ -11599,14 +11464,14 @@ IssueView.prototype = new IssueView.Prototype();
 
 module.exports = IssueView;
 
-},{"../node/node_view":103,"../text/text_view":125,"substance-application":4}],93:[function(require,module,exports){
+},{"../node/node_view":97,"../text/text_view":117,"substance-application":4}],88:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./link")
 };
 
-},{"./link":94}],94:[function(require,module,exports){
+},{"./link":89}],89:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -11668,7 +11533,7 @@ Link.prototype.defineProperties();
 
 module.exports = Link;
 
-},{"../annotation/annotation":44}],95:[function(require,module,exports){
+},{"../annotation/annotation":44}],90:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11676,7 +11541,7 @@ module.exports = {
   View: require("./list_view")
 };
 
-},{"./list":96,"./list_view":97}],96:[function(require,module,exports){
+},{"./list":91,"./list_view":92}],91:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -11744,7 +11609,7 @@ List.prototype.defineProperties();
 
 module.exports = List;
 
-},{"../node/node":101,"underscore":147}],97:[function(require,module,exports){
+},{"../node/node":96,"underscore":139}],92:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node/node_view");
@@ -11797,14 +11662,14 @@ ListView.prototype = new ListView.Prototype();
 
 module.exports = ListView;
 
-},{"../node/node_view":103,"substance-application":4,"underscore":147}],98:[function(require,module,exports){
+},{"../node/node_view":97,"substance-application":4,"underscore":139}],93:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./math")
 };
 
-},{"./math":99}],99:[function(require,module,exports){
+},{"./math":94}],94:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -11863,16 +11728,15 @@ Math.prototype.constructor = Math;
 
 module.exports = Math;
 
-},{"../annotation/annotation":44}],100:[function(require,module,exports){
+},{"../annotation/annotation":44}],95:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./node"),
-  View: require("./node_view"),
-  Node: require("./node_surface")
+  View: require("./node_view")
 };
 
-},{"./node":101,"./node_surface":102,"./node_view":103}],101:[function(require,module,exports){
+},{"./node":96,"./node_view":97}],96:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -11947,167 +11811,7 @@ DocumentNode.defineProperties(DocumentNode.prototype, ["id", "type"]);
 
 module.exports = DocumentNode;
 
-},{"underscore":147}],102:[function(require,module,exports){
-"use strict";
-
-var SurfaceComponents = require("./surface_components");
-
-// Node.Surface
-// ========
-//
-// A NodeSurface describes the structure of a node view and takes care of
-// selection mapping.
-// It is an adapter to Substance.Surface. Particularly, Substance.Surface.Container needs
-// this to establish the Model coordinate system.
-//
-// A Model coordinate is a tuple `(nodePos, charPos)` which describes a position in
-// a document's view.
-// As nodes can be rendered very arbitrarily and also hierarchically, the Container creates
-// a flattened sequence of components.
-//
-// For instance, consider a Figure node which basicallly consists of three components: label, image, and caption.
-// In the `content` view the Figure node is registered e.g., as `figure_1`.
-// The container would expand this (roughly) to [ [`figure1`, `label`], [`figure1`, `image`], [`caption1`] ].
-// I.e., it expands the single node into a flat representation of its sub-components.
-// We call this representation the surface of a node.
-//
-// There are several kinds of components: nodes, properties, and others.
-// If a node does not have any sub-components it has a node-component as its surface.
-// If a component that represents a node's property is provided by the property-component.
-// For all other cases we introduced a custom component type.
-//
-// The Container uses the Node surfaces for building a Document coordinate domain.
-// The main Surface uses Node surfaces to compute mappings between DOM coordinates to Document coordinates, and vice versa.
-
-var NodeSurface = function(node, surfaceProvider) {
-  this.node = node;
-  this.surfaceProvider = surfaceProvider;
-
-  // To be able to use the surface for selection mapping a view instance
-  // must be attached
-  this.view = null;
-
-  this.components = [];
-};
-
-NodeSurface.Prototype = function() {
-
-  this.hasView = function() {
-    return (this.view !== null);
-  };
-
-  this.attachView = function(view) {
-    this.view = view;
-  };
-
-  // Retrieves the corresponding character position for the given DOM position.
-  // --------
-  //
-
-  this.getCharPosition = function(el, offset) {
-    if (!this.view) {
-      throw new Error("No view attached.");
-    }
-
-    var charPos = this.__getCharPosition__(el, offset);
-    // console.log("Cover.View: getCharPosition()", charPos);
-    return charPos;
-  };
-
-  // Retrieves the corresponding DOM position for a given character.
-  // --------
-  //
-
-  this.getDOMPosition = function(charPos) {
-    if (!this.view) {
-      throw new Error("No view attached.");
-    }
-
-    var range = this.__getDOMPosition__(charPos);
-    // console.log("Cover.View: getDOMPosition()", range);
-    return range;
-  };
-
-  this.propertyComponent = function(name, propertyPath) {
-    return new SurfaceComponents.PropertyComponent(this, name, propertyPath);
-  };
-
-  this.customComponent = function(path, data) {
-    return new SurfaceComponents.CustomComponent(this, path, data);
-  };
-
-  this.__getCharPosition__ = function(el, offset) {
-    var range = document.createRange();
-    range.setStart(el, offset);
-
-    var charPos = 0;
-
-    for (var i = 0; i < this.components.length; i++) {
-      var component = this.components[i];
-
-      var cmpStart = range.compareBoundaryPoints(0, component.getRange());
-
-      // console.log("Comparing boundaries for", component.label, "START", cmpStart);
-      if (cmpStart < 0) {
-        break;
-      }
-
-      var cmpEnd = range.compareBoundaryPoints(3, component.getRange());
-      // console.log("Comparing boundaries for", component.label, "END", cmpEnd);
-
-      // the cursor is within this component
-      if (cmpEnd < 0) {
-        charPos = offset;
-      } else {
-        charPos = component.getLength();
-      }
-    }
-
-    return charPos;
-  };
-
-  this.__getDOMPosition__ = function(charPos) {
-    var l, component;
-    for (var i = 0; i < this.components.length; i++) {
-      component = this.components[i];
-
-      if (!component.getLength) {
-        throw new Error("The provided component can not be used with the generic mapper implementation. getLength() missing.");
-      }
-      if (!component.mapCharPos) {
-        throw new Error("The provided component can not be used with the generic mapper implementation. getRange() missing.");
-      }
-
-      l = component.getLength();
-
-      if (charPos<l) {
-        return component.mapCharPos(charPos);
-      } else {
-        charPos -= l;
-      }
-    }
-    return component.mapCharPos(l);
-  };
-
-  this.__createRange__ = function(el) {
-    var range = document.createRange();
-    range.selectNode(el);
-    return range;
-  };
-
-  this.addSubSurface = function(name, childSurface) {
-    for (var i = 0; i < childSurface.components.length; i++) {
-      var c = childSurface.components[i];
-      c.name = name;
-      this.components.push(c);
-    };
-  };
-};
-NodeSurface.prototype = new NodeSurface.Prototype();
-
-module.exports = NodeSurface;
-
-},{"./surface_components":104}],103:[function(require,module,exports){
+},{"underscore":139}],97:[function(require,module,exports){
 "use strict";
 
 var View = require("substance-application").View;
@@ -12141,7 +11845,6 @@ NodeView.Prototype = function() {
 
   this.dispose = function() {
     this.stopListening();
-    this.disposeChildViews();
   };
 
   this.disposeChildViews = function() {
@@ -12180,109 +11883,7 @@ NodeView.prototype = new NodeView.Prototype();
 
 module.exports = NodeView;
 
-},{"substance-application":4,"underscore":147}],104:[function(require,module,exports){
-"use strict";
-
-var _ = require("underscore");
-
-var __createRange__ = function(el) {
-  var range = document.createRange();
-  range.selectNode(el);
-  return range;
-};
-
-var AbstractComponent = function(surface) {
-  this.surface = surface;
-  this.node = surface.node;
-  this.path = null;
-  this.__range__ = null;
-};
-
-AbstractComponent.Prototype = function() {
-  this.getRange = function() {
-    if (!this.__range__) {
-      this.__range__ = __createRange__(this.getElement());
-    }
-    return this.__range__;
-  };
-
-  this.element = function(f) {
-    this.__getElement__ = f;
-    return this;
-  };
-
-  this.length = function(f) {
-    this.__getLength__ = f;
-    return this;
-  };
-
-  this.mapping = function(f) {
-    this.__mapCharPos__ = f;
-    return this;
-  };
-
-  this.getElement = function() {
-    if (!this.el) {
-      this.el = this.__getElement__.call(this);
-      if (!this.el) {
-        throw new Error("You tried to access a component which has not been rendered!");
-      }
-    }
-    return this.el;
-  };
-
-  this.__getElement__ = function() {
-    throw new Error("This method is abstract and must be overridden");
-  };
-
-  this.getLength = function() {
-    return this.__getLength__.call(this);
-  };
-
-  this.__getLength__ = function() {
-    throw new Error("This is abstract and must be overridden");
-  };
-
-  this.mapCharPos = function(charPos) {
-    return this.__mapCharPos__.call(this, charPos);
-  };
-
-  this.__mapCharPos__ = function() {
-    throw new Error("This method is abstract and must be overridden");
-  };
-
-};
-AbstractComponent.prototype = new AbstractComponent.Prototype();
-
-var PropertyComponent = function(surface, property, propertyPath) {
-  AbstractComponent.call(this, surface);
-  this.type = "property";
-  this.path = [surface.node.id, property];
-  this.propertyPath = propertyPath || this.path;
-};
-PropertyComponent.Prototype = function() {};
-PropertyComponent.Prototype.prototype = AbstractComponent.prototype;
-PropertyComponent.prototype = new PropertyComponent.Prototype();
-
-var CustomComponent = function(surface, path, data) {
-  AbstractComponent.call(this, surface);
-  this.type = "custom";
-  if (_.isString(path)) {
-    path = [surface.node.id, path];
-  }
-  this.path = path;
-  _.extend(this, data);
-};
-CustomComponent.Prototype = function() {};
-CustomComponent.Prototype.prototype = AbstractComponent.prototype;
-CustomComponent.prototype = new CustomComponent.Prototype();
-
-module.exports = {
-  PropertyComponent: PropertyComponent,
-  CustomComponent: CustomComponent
-};
-
-},{"underscore":147}],105:[function(require,module,exports){
+},{"substance-application":4,"underscore":139}],98:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12290,7 +11891,7 @@ module.exports = {
   View: require("./paragraph_view")
 };
 
-},{"./paragraph":106,"./paragraph_view":107}],106:[function(require,module,exports){
+},{"./paragraph":99,"./paragraph_view":100}],99:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -12355,7 +11956,7 @@ Paragraph.prototype.defineProperties();
 
 module.exports = Paragraph;
 
-},{"../node/node":101,"underscore":147}],107:[function(require,module,exports){
+},{"../node/node":96,"underscore":139}],100:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node/node_view");
@@ -12387,16 +11988,15 @@ ParagraphView.prototype = new ParagraphView.Prototype();
 
 module.exports = ParagraphView;
 
-},{"../node/node_view":103}],108:[function(require,module,exports){
+},{"../node/node_view":97}],101:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./remark"),
-  View: require("./remark_view"),
-  Surface: require("../issue/issue_surface")
+  View: require("./remark_view")
 };
 
-},{"../issue/issue_surface":91,"./remark":109,"./remark_view":110}],109:[function(require,module,exports){
+},{"./remark":102,"./remark_view":103}],102:[function(require,module,exports){
 "use strict";
 
 var Issue = require('../issue/issue');
@@ -12447,7 +12047,7 @@ Remark.prototype.constructor = Remark;
 
 module.exports = Remark;
 
-},{"../issue/issue":90}],110:[function(require,module,exports){
+},{"../issue/issue":86}],103:[function(require,module,exports){
 "use strict";
 
 var IssueView = require("../issue/issue_view");
@@ -12465,14 +12065,14 @@ RemarkView.prototype = new RemarkView.Prototype();
 
 module.exports = RemarkView;
 
-},{"../issue/issue_view":92}],111:[function(require,module,exports){
+},{"../issue/issue_view":87}],104:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./remark_reference")
 };
 
-},{"./remark_reference":112}],112:[function(require,module,exports){
+},{"./remark_reference":105}],105:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12534,14 +12134,14 @@ RemarkReference.prototype.defineProperties();
 
 module.exports = RemarkReference;
 
-},{"../annotation/annotation":44}],113:[function(require,module,exports){
+},{"../annotation/annotation":44}],106:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./strong")
 };
 
-},{"./strong":114}],114:[function(require,module,exports){
+},{"./strong":107}],107:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12600,14 +12200,14 @@ Strong.prototype.constructor = Strong;
 
 module.exports = Strong;
 
-},{"../annotation/annotation":44}],115:[function(require,module,exports){
+},{"../annotation/annotation":44}],108:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./subscript")
 };
 
-},{"./subscript":116}],116:[function(require,module,exports){
+},{"./subscript":109}],109:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12666,14 +12266,14 @@ Subscript.prototype.constructor = Subscript;
 
 module.exports = Subscript;
 
-},{"../annotation/annotation":44}],117:[function(require,module,exports){
+},{"../annotation/annotation":44}],110:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./superscript")
 };
 
-},{"./superscript":118}],118:[function(require,module,exports){
+},{"./superscript":111}],111:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12733,7 +12333,7 @@ Superscript.prototype.constructor = Superscript;
 
 module.exports = Superscript;
 
-},{"../annotation/annotation":44}],119:[function(require,module,exports){
+},{"../annotation/annotation":44}],112:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12741,7 +12341,7 @@ module.exports = {
   View: require("./table_view")
 };
 
-},{"./table":120,"./table_view":121}],120:[function(require,module,exports){
+},{"./table":113,"./table_view":114}],113:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -12904,7 +12504,7 @@ Table.create = function(data) {
 
 module.exports = Table;
 
-},{"../node/node":101,"underscore":147}],121:[function(require,module,exports){
+},{"../node/node":96,"underscore":139}],114:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node/node_view");
@@ -12995,16 +12595,15 @@ TableView.prototype.constructor = TableView;
 
 module.exports = TableView;
 
-},{"../node/node_view":103,"underscore":147}],122:[function(require,module,exports){
+},{"../node/node_view":97,"underscore":139}],115:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./text_node"),
-  View: require("./text_view"),
-  Surface: require("./text_surface")
+  View: require("./text_view")
 };
 
-},{"./text_node":123,"./text_surface":124,"./text_view":125}],123:[function(require,module,exports){
+},{"./text_node":116,"./text_view":117}],116:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -13184,112 +12783,7 @@ Text.prototype.defineProperties();
 
 module.exports = Text;
 
-},{"../node/node":101,"substance-operator":126,"substance-regexp":133,"underscore":147}],124:[function(require,module,exports){
-"use strict";
-
-var NodeSurface = require("../node/node_surface");
-
-var TextSurface = function(node, surfaceProvider, options) {
-  NodeSurface.call(this, node, surfaceProvider);
-  options = options || {};
-  this.property = options.property || "content";
-
-  var self = this;
-
-  if (options.property) {
-    this.components.push(this.propertyComponent(options.property, options.propertyPath));
-  } else {
-    this.components.push(this.propertyComponent(self.property)
-      .length(function() {
-        return self.node[self.property].length;
-      })
-    );
-  }
-};
-
-// This surface has not been refactored. We simply override the default implementation
-// and use the existing implementation.
-TextSurface.Prototype = function() {
-
-  this.getCharPosition = function(el, offset) {
-    if (!this.view) {
-      throw new Error("No view attached.");
-    }
-
-    // Bootstrapping: cases that happened with empty text node.
-    // In these cases we return charPos = 0
-    if (this.view._fragments.length === 0 || el === this.view._fragments[0].el.parentElement) {
-      return 0;
-    }
-
-    // Otherwise find the correct TEXT element
-    var frag;
-    for (var i = 0; i < this.view._fragments.length; i++) {
-      var f = this.view._fragments[i];
-      if (f.el === el) {
-        frag = f;
-        break;
-      }
-    }
-
-    if (!frag) {
-      console.error("AAAAArg", el);
-      throw new Error("Could not lookup text element.");
-    }
-
-    var charPos = frag.charPos + offset;
-    return charPos;
-  };
-
-  // Returns the corresponding DOM element position for the given character
-  // --------
-  //
-  // A DOM position is specified by a tuple of element and offset.
-  // In the case of text nodes it is a TEXT element.
-
-  this.getDOMPosition = function(charPos) {
-    if (!this.view) {
-      throw new Error("No view attached.");
-    }
-    var result = this.view._lookupPostion(charPos);
-    var frag = result[0];
-    var offset = result[1];
-
-    var range = document.createRange();
-    range.setStart(frag.el, offset);
-    return range;
-  };
-
-  this.getComponent = function() {
-    return this.components[0];
-  };
-};
-TextSurface.Prototype.prototype = NodeSurface.prototype;
-TextSurface.prototype = new TextSurface.Prototype();
-
-// A helper which turned out to be useful for editable textish properties
-// --------
-// The node view must provide a corresponding view under `childViews[property]`
-TextSurface.textProperty = function(nodeSurface, property, propertyPath) {
-  // TODO: it is not very convenient to create a Text sub-surface for a textish property:
-  var options = { property: property };
-  if (propertyPath) options[propertyPath] = propertyPath;
-  var propertySurface = new TextSurface(nodeSurface.node, nodeSurface.surfaceProvider, options);
-  var propertyComponent = propertySurface.components[0];
-  propertyComponent.element(function() {
-      return nodeSurface.view.childViews[property].el;
-    })
-    .length(function() {
-      // HACK: somehow we need a plus one here... dunno
-      return nodeSurface.node[property].length + 1;
-    });
-  propertyComponent.name = property;
-  return propertyComponent;
-};
-
-module.exports = TextSurface;
-
-},{"../node/node_surface":102}],125:[function(require,module,exports){
+},{"../node/node":96,"substance-operator":118,"substance-regexp":125,"underscore":139}],117:[function(require,module,exports){
 "use strict";
 
 var NodeView = require('../node/node_view');
@@ -13304,11 +12798,11 @@ var Annotator = require("substance-document").Annotator;
 // This behavior can overriden by the concrete node types
 
 function _getAnnotationBehavior(doc) {
-  if (doc.constructor && doc.constructor.annotationBehavior) {
-    return doc.constructor.annotationBehavior;
-  } else {
+  var annotationBehavior = doc.getAnnotationBehavior();
+  if (!annotationBehavior) {
     throw new Error("Missing AnnotationBehavior.");
   }
+  return annotationBehavior;
 }
 
 var TextView = function(node, renderer, options) {
@@ -13371,7 +12865,6 @@ TextView.Prototype = function() {
   };
 
   this.insert = function(pos, str) {
-    console.log("Trying incremental insert....");
     var result = this._lookupPostion(pos);
     var frag = result[0];
     var textNode = frag.el;
@@ -13388,7 +12881,7 @@ TextView.Prototype = function() {
   };
 
   this.delete = function(pos, length) {
-    var result = this._lookupPostion(pos);
+    var result = this._lookupPostion(pos, "delete");
     var frag = result[0];
     var textNode = frag.el;
     var offset = result[1];
@@ -13396,7 +12889,7 @@ TextView.Prototype = function() {
     var text = textNode.textContent;
 
     // can not do this incrementally if it is a greater delete
-    if (length >= text.length) {
+    if (offset+length >= text.length) {
       this.renderContent();
       return;
     }
@@ -13410,7 +12903,13 @@ TextView.Prototype = function() {
     }
   };
 
-  this._lookupPostion = function(pos) {
+  // Lookup a fragment for the given position.
+  // ----
+  // For insertions, the annotation level is considered on annotation boundaries,
+  // i.e., if the annotation is exclusive, then the outer element/fragment is returned.
+  // For deletions the annotation exclusivity is not important
+  // i.e., the position belongs to the next fragment
+  this._lookupPostion = function(pos, is_delete) {
     var frag, l;
     for (var i = 0; i < this._fragments.length; i++) {
       frag = this._fragments[i];
@@ -13428,7 +12927,7 @@ TextView.Prototype = function() {
       else {
         var next = this._fragments[i+1];
         // if the element level of the next fragment is lower then we put the cursor there
-        if (next && next.level < frag.level) {
+        if (next && next.level < frag.level || is_delete) {
           return [next, 0];
         }
         // otherwise we leave the cursor in the current fragment
@@ -13613,7 +13112,7 @@ TextView.DefaultFragment.prototype = new TextView.DefaultFragment.Prototype();
 
 module.exports = TextView;
 
-},{"../node/node_view":103,"substance-application":4,"substance-document":35,"substance-util":140}],126:[function(require,module,exports){
+},{"../node/node_view":97,"substance-application":4,"substance-document":35,"substance-util":132}],118:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -13625,7 +13124,7 @@ module.exports = {
   Helpers: require('./src/operation_helpers')
 };
 
-},{"./src/array_operation":127,"./src/compound":128,"./src/object_operation":129,"./src/operation":130,"./src/operation_helpers":131,"./src/text_operation":132}],127:[function(require,module,exports){
+},{"./src/array_operation":119,"./src/compound":120,"./src/object_operation":121,"./src/operation":122,"./src/operation_helpers":123,"./src/text_operation":124}],119:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -13729,7 +13228,7 @@ ArrayOperation.fromJSON = function(data) {
     for (var idx = 0; idx < data.ops.length; idx ++) {
       ops.push(ArrayOperation.fromJSON(data.ops[idx]));
     }
-    return ArrayOperation.Compound(ops);
+    return ArrayOperation.Compound(ops, data.data);
   }
   else  {
     return new ArrayOperation(data);
@@ -14095,7 +13594,7 @@ var lcss = function(arr1, arr2) {
 
 // Factory methods
 // -------
-// 
+//
 // Note: you should use these methods instead of manually define
 // an operation. This is allows us to change the underlying implementation
 // without breaking your code.
@@ -14108,7 +13607,7 @@ ArrayOperation.Insert = function(pos, val) {
 
 // Factory methods
 // -------
-// 
+//
 // Deletes an element from an array
 // When array is provided value is looked up
 // When pos is given, element at that position gets removed
@@ -14174,10 +13673,10 @@ ArrayOperation.Update = function(oldArray, newArray) {
   return ArrayOperation.Sequence(seq);
 };
 
-ArrayOperation.Compound = function(ops) {
+ArrayOperation.Compound = function(ops, data) {
   // do not create a Compound if not necessary
-  if (ops.length === 1) return ops[0];
-  else return new Compound(ops);
+  if (ops.length === 1 && !data) return ops[0];
+  else return new Compound(ops, data);
 };
 
 // Convenience factory method to create an operation that clears the given array.
@@ -14301,7 +13800,7 @@ ArrayOperation.MOVE = MOV;
 
 module.exports = ArrayOperation;
 
-},{"./compound":128,"./operation":130,"substance-util":140,"underscore":147}],128:[function(require,module,exports){
+},{"./compound":120,"./operation":122,"substance-util":132,"underscore":139}],120:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14316,10 +13815,11 @@ var Operation = require('./operation');
 
 var COMPOUND = "compound";
 
-var Compound = function(ops) {
+var Compound = function(ops, data) {
   this.type = COMPOUND;
   this.ops = ops;
   this.alias = undefined;
+  this.data = data;
 
   if (!ops || ops.length === 0) {
     throw new Operation.OperationError("No operations given.");
@@ -14333,7 +13833,7 @@ Compound.Prototype = function() {
     for (var idx = 0; idx < this.ops.length; idx++) {
       ops.push(util.clone(this.ops[idx]));
     }
-    return new Compound(ops);
+    return new Compound(ops, util.clone(this.data));
   };
 
   this.apply = function(obj) {
@@ -14349,8 +13849,7 @@ Compound.Prototype = function() {
       // reverse the order of the inverted atomic commands
       ops.unshift(this.ops[idx].invert());
     }
-
-    return new Compound(ops);
+    return new Compound(ops, this.data);
   };
 
   this.toJSON = function() {
@@ -14359,6 +13858,7 @@ Compound.Prototype = function() {
       ops: this.ops,
     };
     if (this.alias) result.alias = this.alias;
+    if (this.data) result.data = this.data;
     return result;
   };
 
@@ -14426,7 +13926,7 @@ Compound.createTransform = function(primitive_transform) {
 
 module.exports = Compound;
 
-},{"./operation":130,"substance-util":140,"underscore":147}],129:[function(require,module,exports){
+},{"./operation":122,"substance-util":132,"underscore":139}],121:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14477,7 +13977,7 @@ ObjectOperation.fromJSON = function(data) {
     for (var idx = 0; idx < data.ops.length; idx++) {
       ops.push(ObjectOperation.fromJSON(data.ops[idx]));
     }
-    return ObjectOperation.Compound(ops);
+    return ObjectOperation.Compound(ops, data.data);
 
   } else {
     var op = new ObjectOperation(data);
@@ -14581,7 +14081,8 @@ ObjectOperation.Prototype = function() {
       var invertedDiff;
       if (this.propertyType === 'string') {
         invertedDiff = TextOperation.fromJSON(this.diff).invert();
-      } else if (this.propertyType === 'array') {
+      }
+      else if (this.propertyType === 'array') {
         invertedDiff = ArrayOperation.fromJSON(this.diff).invert();
       }
       result.diff = invertedDiff;
@@ -14922,14 +14423,14 @@ ObjectOperation.Set = function(path, oldVal, newVal) {
   return new ObjectOperation({
     type: SET,
     path: path,
-    val: newVal,
-    original: oldVal
+    val: _.clone(newVal),
+    original: _.clone(oldVal)
   });
 };
 
-ObjectOperation.Compound = function(ops) {
+ObjectOperation.Compound = function(ops, data) {
   if (ops.length === 0) return null;
-  else return new Compound(ops);
+  else return new Compound(ops, data);
 };
 
 // TODO: this can not deal with cyclic references
@@ -14984,7 +14485,7 @@ ObjectOperation.SET = SET;
 
 module.exports = ObjectOperation;
 
-},{"./array_operation":127,"./compound":128,"./operation":130,"./text_operation":132,"substance-util":140,"underscore":147}],130:[function(require,module,exports){
+},{"./array_operation":119,"./compound":120,"./operation":122,"./text_operation":124,"substance-util":132,"underscore":139}],122:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -15035,7 +14536,7 @@ Operation.Conflict = Conflict;
 
 module.exports = Operation;
 
-},{"substance-util":140}],131:[function(require,module,exports){
+},{"substance-util":132}],123:[function(require,module,exports){
 "use strict";
 
 var TextOperation = require("./text_operation");
@@ -15096,7 +14597,7 @@ Helpers.invert = function(op, type) {
 
 module.exports = Helpers;
 
-},{"./array_operation":127,"./text_operation":132}],132:[function(require,module,exports){
+},{"./array_operation":119,"./text_operation":124}],124:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -15155,7 +14656,7 @@ TextOperation.fromJSON = function(data) {
     for (var idx = 0; idx < data.ops.length; idx++) {
       ops.push(TextOperation.fromJSON(data.ops[idx]));
     }
-    return TextOperation.Compound(ops);
+    return TextOperation.Compound(ops,data.data);
 
   } else {
     return new TextOperation(data);
@@ -15419,10 +14920,10 @@ TextOperation.Delete = function(pos, str) {
   return new TextOperation(["-", pos, str]);
 };
 
-TextOperation.Compound = function(ops) {
+TextOperation.Compound = function(ops, data) {
   // do not create a Compound if not necessary
-  if (ops.length === 1) return ops[0];
-  else return new Compound(ops);
+  if (ops.length === 1 && !data) return ops[0];
+  else return new Compound(ops, data);
 };
 
 // Converts from a given a sequence in the format of Tim's lib
@@ -15591,12 +15092,12 @@ TextOperation.DELETE = DEL;
 
 module.exports = TextOperation;
 
-},{"./compound":128,"./operation":130,"substance-util":140,"underscore":147}],133:[function(require,module,exports){
+},{"./compound":120,"./operation":122,"substance-util":132,"underscore":139}],125:[function(require,module,exports){
 "use strict";
 
 module.exports = require("./src/regexp");
 
-},{"./src/regexp":134}],134:[function(require,module,exports){
+},{"./src/regexp":126}],126:[function(require,module,exports){
 "use strict";
 
 // Substanc.RegExp.Match
@@ -15675,14 +15176,14 @@ RegExp.Match = Match;
 
 module.exports = RegExp;
 
-},{}],135:[function(require,module,exports){
+},{}],127:[function(require,module,exports){
 "use strict";
 
 var Surface = require("./src/surface");
 Surface.SurfaceController = require("./src/surface_controller");
 
 module.exports = Surface;
-},{"./src/surface":136,"./src/surface_controller":137}],136:[function(require,module,exports){
+},{"./src/surface":128,"./src/surface_controller":129}],128:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -15719,10 +15220,16 @@ Surface.Prototype = function() {
   var _extractPath = function(el) {
     var path = [];
     var current = el;
-    while(current !== undefined) {
+
+    while(current) {
 
       // if available extract a path fragment
       if (current.getAttribute) {
+        // Stop when we find an element which has been made read-only
+        if (current.getAttribute("contenteditable") === "false") {
+          return null;
+        }
+
         // if there is a path attibute we collect it
         var p = current.getAttribute("data-path");
         if (p) path.unshift(p);
@@ -15755,7 +15262,7 @@ Surface.Prototype = function() {
     var elementPath = _extractPath(el);
 
     if (!elementPath) {
-      throw new Error("Could not find node.");
+      return null;
     }
 
     // get the position from the container
@@ -16029,7 +15536,7 @@ Surface.prototype = new Surface.Prototype();
 
 
 module.exports = Surface;
-},{"substance-application":4,"substance-util":140,"underscore":147}],137:[function(require,module,exports){
+},{"substance-application":4,"substance-util":132,"underscore":139}],129:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -16103,13 +15610,13 @@ Object.defineProperties(SurfaceController.prototype, {
 });
 
 module.exports = SurfaceController;
-},{"substance-util":140,"underscore":147}],138:[function(require,module,exports){
+},{"substance-util":132,"underscore":139}],130:[function(require,module,exports){
 "use strict";
 
 var TOC = require("./toc_view");
 
 module.exports = TOC;
-},{"./toc_view":139}],139:[function(require,module,exports){
+},{"./toc_view":131}],131:[function(require,module,exports){
 "use strict";
 
 var View = require("substance-application").View;
@@ -16169,7 +15676,7 @@ TOCView.prototype = new TOCView.Prototype();
 
 module.exports = TOCView;
 
-},{"substance-application":4,"substance-data":28,"underscore":147}],140:[function(require,module,exports){
+},{"substance-application":4,"substance-data":28,"underscore":139}],132:[function(require,module,exports){
 "use strict";
 
 var util = require("./src/util");
@@ -16182,7 +15689,7 @@ util.Fragmenter = require("./src/fragmenter");
 
 module.exports = util;
 
-},{"./src/async":141,"./src/dom":142,"./src/errors":143,"./src/fragmenter":144,"./src/html":145,"./src/util":146}],141:[function(require,module,exports){
+},{"./src/async":133,"./src/dom":134,"./src/errors":135,"./src/fragmenter":136,"./src/html":137,"./src/util":138}],133:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -16379,7 +15886,7 @@ async.each = function(options, cb) {
 
 module.exports = async;
 
-},{"./util.js":146,"underscore":147}],142:[function(require,module,exports){
+},{"./util.js":138,"underscore":139}],134:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -16443,7 +15950,7 @@ dom.getNodeType = function(el) {
 
 module.exports = dom;
 
-},{"underscore":147}],143:[function(require,module,exports){
+},{"underscore":139}],135:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -16514,7 +16021,7 @@ errors.define = function(className, code) {
 
 module.exports = errors;
 
-},{"./util":146,"underscore":147}],144:[function(require,module,exports){
+},{"./util":138,"underscore":139}],136:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -16717,7 +16224,7 @@ Fragmenter.prototype = new Fragmenter.Prototype();
 
 module.exports = Fragmenter;
 
-},{"underscore":147}],145:[function(require,module,exports){
+},{"underscore":139}],137:[function(require,module,exports){
 "use strict";
 
 var html = {};
@@ -16763,7 +16270,7 @@ html.tpl = function (tpl, ctx) {
 
 module.exports = html;
 
-},{"underscore":147}],146:[function(require,module,exports){
+},{"underscore":139}],138:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -17293,7 +16800,7 @@ util.isEmpty = function(str) {
 
 module.exports = util;
 
-},{"fs":152,"underscore":147}],147:[function(require,module,exports){
+},{"fs":145,"underscore":139}],139:[function(require,module,exports){
 //     Underscore.js 1.5.2
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -18571,7 +18078,116 @@ module.exports = util;
 
 }).call(this);
 
-},{}],148:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var Application = require("substance-application");
+var $$ = Application.$$;
+
+var ReaderController = require("./reader_controller");
+var Article = require("substance-article");
+var SubstanceRouter = require("./substance_router");
+var Keyboard = require("substance-commander").Keyboard;
+var util = require("substance-util");
+var html = util.html;
+
+
+// The Substance Reader Application
+// ========
+//
+
+var Reader = function(opts) {
+  Application.call(this, opts);
+
+  this.doc = Article.fromSnapshot(opts.document);
+
+  this.controller = new ReaderController(this.doc, {});
+
+  // Set up router
+  var router = new SubstanceRouter(this);
+  this.setRouter(router);
+};
+
+Reader.Article = require("substance-article");
+Reader.Outline = require("lens-outline");
+
+Reader.Prototype = function() {
+
+
+  this.isIOSDevice = function() {
+    var iPadAgent = navigator.userAgent.match(/iPad/i) != null;
+    var iPodAgent = navigator.userAgent.match(/iPhone/i) != null;
+    return iPadAgent || iPodAgent;
+  };
+
+  this.isIphone = function() {
+    var iPhoneAgent = navigator.userAgent.match(/iPhone/i) != null;
+    return iPhoneAgent;
+  };
+
+  this.isMobile = function() {
+    var iPadAgent = navigator.userAgent.match(/iPad/i) != null;
+    var iPodAgent = navigator.userAgent.match(/iPhone/i) != null;
+    var AndroidAgent = navigator.userAgent.match(/Android/i) != null;
+    var webOSAgent = navigator.userAgent.match(/webOS/i) != null;
+
+    return iPadAgent || iPodAgent || AndroidAgent || webOSAgent;
+  };
+
+  this.isTouchDevice = function() {
+    return 'ontouchstart' in document.documentElement;
+  };
+
+
+  // Start listening to routes
+  // --------
+
+  this.render = function() {
+    var container = $$('#container');
+    
+    if (this.isTouchDevice()) {
+      $(container).addClass('touchable');
+    }
+
+    if (this.isIOSDevice()) {
+      $(container).addClass('ios');
+    }
+
+    if (this.isIphone()) {
+      $(container).addClass('iphone');
+    }
+
+    var main  = $$('#main');
+    container.appendChild(main);
+    this.el.appendChild(container);
+  };
+
+  // Update State
+  // --------
+  //
+  // Since we just have one state this means we are ready to render
+  // the one and only ReaderView
+  // TODO: this is kind of a workaround: updateState is called from
+  // the SubstanceRouter which is really not the right place
+
+  this.afterTransition = function(newState, oldState) {
+    // Experimental: only add the view if the oldState was null
+    if (!oldState) {
+      this.$('#main').html(this.controller.view.el);
+      this.updateTitle(this.doc.title);
+    }
+  };
+};
+
+Reader.Prototype.prototype = Application.prototype;
+Reader.prototype = new Reader.Prototype();
+Reader.prototype.constructor = Reader;
+
+
+module.exports = Reader;
+
+},{"./reader_controller":141,"./substance_router":144,"lens-outline":2,"substance-application":4,"substance-article":10,"substance-commander":24,"substance-util":132,"underscore":139}],141:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -18702,7 +18318,7 @@ ReaderController.prototype = new ReaderController.Prototype();
 
 module.exports = ReaderController;
 
-},{"./reader_view":149,"substance-application":4,"substance-document":35,"substance-surface":135,"substance-util":140,"underscore":147}],149:[function(require,module,exports){
+},{"./reader_view":142,"substance-application":4,"substance-document":35,"substance-surface":127,"substance-util":132,"underscore":139}],142:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -19502,76 +19118,10 @@ __addResourcePanel = function(self, doc, name) {
 
 module.exports = ReaderView;
 
-},{"lens-outline":2,"substance-application":4,"substance-data":28,"substance-surface":135,"substance-toc":138,"substance-util":140,"underscore":147}],150:[function(require,module,exports){
-"use strict";
-
-var _ = require("underscore");
-var Application = require("substance-application");
-var $$ = Application.$$;
-
-var ReaderController = require("./reader_controller");
-var Article = require("substance-article");
-var SubstanceRouter = require("./substance_router");
-var Keyboard = require("substance-commander").Keyboard;
-var util = require("substance-util");
-var html = util.html;
-
-
-// The Substance Application
-// ========
-//
-
-var Substance = function(opts) {
-  Application.call(this, opts);
-
-  this.doc = Article.fromSnapshot(opts.document);
-
-  this.controller = new ReaderController(this.doc, {});
-
-  // Set up router
-  var router = new SubstanceRouter(this);
-  this.setRouter(router);
-};
-
-Substance.Article = require("substance-article");
-Substance.Outline = require("lens-outline");
-
-Substance.Prototype = function() {
-
-  // Start listening to routes
-  // --------
-
-  this.render = function() {
-    var container = $$('#container');
-    var main  = $$('#main');
-
-    container.appendChild(main);
-    this.el.appendChild(container);
-  };
-
-  // Update State
-  // --------
-  //
-  // Since we just have one state this means we are ready to render
-  // the one and only ReaderView
-  // TODO: this is kind of a workaround: updateState is called from
-  // the SubstanceRouter which is really not the right place
-
-  this.afterTransition = function(newState, oldState) {
-    // Experimental: only add the view if the oldState was null
-    if (!oldState) {
-      this.$('#main').html(this.controller.view.el);
-      this.updateTitle(this.doc.title);
-    }
-  };
-};
-
-Substance.Prototype.prototype = Application.prototype;
-Substance.prototype = new Substance.Prototype();
-Substance.prototype.constructor = Substance;
-
-
+},{"lens-outline":2,"substance-application":4,"substance-data":28,"substance-surface":127,"substance-toc":130,"substance-util":132,"underscore":139}],143:[function(require,module,exports){
+var Substance = {};
 Substance.util = require("substance-util");
+
 Substance.Application = require("substance-application");
 Substance.Commander = require("substance-commander");
 Substance.Document = require("substance-document");
@@ -19580,10 +19130,10 @@ Substance.Chronicle = require("substance-chronicle");
 Substance.Data = require("substance-data");
 Substance.RegExp = require("substance-regexp");
 Substance.Surface = require("substance-surface");
+Substance.Reader = require("./reader");
 
 module.exports = Substance;
-
-},{"./reader_controller":148,"./substance_router":151,"lens-outline":2,"substance-application":4,"substance-article":10,"substance-chronicle":15,"substance-commander":24,"substance-data":28,"substance-document":35,"substance-operator":126,"substance-regexp":133,"substance-surface":135,"substance-util":140,"underscore":147}],151:[function(require,module,exports){
+},{"./reader":140,"substance-application":4,"substance-chronicle":15,"substance-commander":24,"substance-data":28,"substance-document":35,"substance-operator":118,"substance-regexp":125,"substance-surface":127,"substance-util":132}],144:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -19669,7 +19219,7 @@ SubstanceRouter.routes = [
 ];
 
 module.exports = SubstanceRouter;
-},{"substance-application":4,"underscore":147}],152:[function(require,module,exports){
+},{"substance-application":4,"underscore":139}],145:[function(require,module,exports){
 // nothing to see here... no file methods for the browser
 
 },{}]},{},[1])

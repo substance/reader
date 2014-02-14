@@ -325,7 +325,7 @@ Outline
 -------------------------------------------------------------------------------*/
 
 
-.content-node.text .content {
+.text  {
   white-space: pre-wrap;
   white-space: -moz-pre-wrap;
   white-space: -pre-wrap;
@@ -503,15 +503,15 @@ Outline
   position: relative;
 }
 
-
 .content-node.contributor .content {
-  overflow: auto;
+  /*overflow: auto;*/
 }
 
 .content-node.contributor .image {
   width: 200px;
   padding-right: 20px;
   float: left;
+  position: relative;
 }
 
 .content-node.contributor .label {
@@ -528,7 +528,19 @@ Outline
   width: 100%;
 }
 
-
+.contributor-image-file {
+  position: absolute;
+  display: block;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  width: 100%;
+  opacity: 0;
+  
+  background: green;
+  cursor: pointer;
+}
 /* Table */
 
 .substance-article .content-node.table > .content {
@@ -586,7 +598,6 @@ Outline
 }
 
 .substance-article .content-node.figure div .image-wrapper img {
-  /*width: 100%;*/
   max-width: 100%;
 }
 
@@ -1001,9 +1012,6 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 /* Resources Panel 
 ======================================================================= */
 
-.article .delete-resource {
-  display: none;
-}
 
 .article .resources {
   float: right;
@@ -1014,12 +1022,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   padding-left: 50px;
   padding-right: 50px;
   position: relative;
-  /*overflow: auto;*/
 }
-
-/*.article .resources .surface {
-  padding-top: 80px;
-}*/
 
 .article .nodes {
   padding-left: 50px;

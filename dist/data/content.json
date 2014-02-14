@@ -17,7 +17,7 @@
         "contributor_1",
         "contributor_2"
       ],
-      "published_on": "2014-01-31T22:00:00.000Z",
+      "published_on": "2014-02-03T22:00:00.000Z",
       "guid": "beyond-simulating-paper",
       "creator": "",
       "title": "Beyond simulating paper",
@@ -32,6 +32,8 @@
         "f446b86f5dd6f26dd6f320cf0dd03a95",
         "heading_5588f8aeb752a21af3daf79f8f8ced75",
         "339a5e45176056dd710bf008c163631c",
+        "heading_1f41d28d15c4e0f99e979909ad415647",
+        "a75ea0a401f6dc12f573e7a3394ac01c",
         "heading_34accf320821bf28b7be80a32aabb779",
         "f66b6631c2ac00cbf0e8791fc579ae65",
         "heading_1",
@@ -141,11 +143,12 @@
       "content": "Oliver has worked in various fields of Computer Science. He loves and masters code generation, parsers and lately, Javascript. Back in 2010, he helped with the initial design of the Substance Document Model. Today he's involved in every aspect of development, with a focus on infrastructure and system architecture."
     },
     "figure_1": {
-      "type": "figure",
       "id": "figure_1",
-      "url": "http://about.substance.io/images/oliver.jpg",
       "label": "Oliver Buchtala",
-      "caption": "caption_figure_1"
+      "url": "",
+      "image": "oliver.jpg",
+      "caption": "caption_figure_1",
+      "type": "figure"
     },
     "caption_figure_2": {
       "type": "text",
@@ -154,11 +157,12 @@
       "content": "The Substance Composer is a professional writing environment targeting scientists, journalists and book authors. For the first time you can write an article without having to scroll back and forth for the referenced figures. You can also create and and collaboratively discuss issues that stick on a particular text-fragment. Don't get irritated by the browser's address bar, the final product will run locally as a native application on your operating system."
     },
     "figure_2": {
-      "type": "figure",
       "id": "figure_2",
-      "url": "http://f.cl.ly/items/2P3i3x17450I0v2i1C0a/Screen%20Shot%202014-01-30%20at%2010.40.06.png",
       "label": "Substance Composer",
-      "caption": "caption_figure_2"
+      "url": "",
+      "image": "composer.png",
+      "caption": "caption_figure_2",
+      "type": "figure"
     },
     "caption_figure_3": {
       "type": "text",
@@ -167,11 +171,12 @@
       "content": "The Substance Reader is used to publish your documents online. It lets you explore figures and figure descriptions – without losing your place in the article text. While most online articles simply replicate print, the Substance Reader provides an interactive reading experience."
     },
     "figure_3": {
-      "type": "figure",
       "id": "figure_3",
-      "url": "http://f.cl.ly/items/3Q0s053U0l3z2x0D241t/Screen%20Shot%202014-01-30%20at%2010.37.56.png",
       "label": "Substance Reader",
-      "caption": "caption_figure_3"
+      "url": "",
+      "image": "reader.png",
+      "caption": "caption_figure_3",
+      "type": "figure"
     },
     "remark_1": {
       "id": "remark_1",
@@ -225,7 +230,7 @@
       "type": "text",
       "id": "339a5e45176056dd710bf008c163631c",
       "source_id": "",
-      "content": "Substance was initiated in late 2010, as an attempt to bring content-oriented authoring to the web. Users should be able to focus on their writing, leaving the layout part to the authoring system entirely. The content produced should be exposed as data, which allows digital documents to be queried like a database. With the help of Samo Korosec our designer in chief, we got a first release ready in February 2011. The initial feedback was great. More than 5000 people signed up within the first three months. At that time Substance was an experiment and not ready for production use. Since then we've been working hard to change that."
+      "content": "Substance was initiated in late 2010, as an attempt to bring content-oriented authoring to the web. Users should be able to focus on their writing, leaving the layout part to the authoring system entirely. The content produced should be exposed as data, which allows digital documents to be queried like a database, and eases integration of that content. With the help of Samo Korosec our designer in chief, we got a first release ready in February 2011. The initial feedback was great. More than 5000 people signed up within the first three months. At that time Substance was an experiment and not ready for production use. Since then we've been working hard to change that."
     },
     "24abe29340b1869ff8194d8c44defcc6": {
       "type": "text",
@@ -243,7 +248,7 @@
       "type": "text",
       "id": "8b3d9e6e62a13b2677ee6de4d21281a9",
       "source_id": "",
-      "content": "Through our company, registered in Austria,  we are offering consulting to help organizations modernize their digital publishing workflows. We have helped innovate publishers, such as eLife to improve the way scientific research is consumed online. Together with Ivan Grubisic from Berkeley we developed a new interactive display for scientific articles, eLife Lens. Only days ago, Pubchase has made available the whole corpus of PubMed open access articles for viewing in Lens. Our work on Lens has also substantially driven the Substance project, as it served as a great real-world usecase. Credits go to Ian Mulvany from eLife for investing into that idea in the scope of an open source project."
+      "content": "Through our company, registered in Austria,  we are offering consulting to help organizations modernize their digital publishing workflows. We have helped innovate publishers, such as eLife to improve the way scientific research is consumed online. Together with Ivan Grubisic from Berkeley we developed a new interactive display for scientific articles, eLife Lens. Only days ago, PubChase has made available the whole corpus of PubMed open access articles for viewing in Lens. Our work on Lens has also substantially driven the Substance project, as it served as a great real-world usecase. Credits go to Ian Mulvany from eLife for investing into that idea in the scope of an open source project. We are interested to see what other use cases people will develop. Don't hesitate to contact us if you want to bring in your idea."
     },
     "heading_1e53f35b58dab3b4db49c60a4c857852": {
       "type": "heading",
@@ -306,8 +311,8 @@
         "content"
       ],
       "range": [
-        333,
-        345
+        372,
+        384
       ],
       "url": "http://dribbble.com/froodee"
     },
@@ -315,7 +320,7 @@
       "type": "text",
       "id": "020a738b51115cb25e64a7d4b92c9d22",
       "source_id": "",
-      "content": "The article you are currently reading is the first that has been written using the all new Composer. The software is already functional, we just need to work out the reimaining glitches and package it as a native application for all major platforms."
+      "content": "The article you are currently reading is the first that has been written using the all new Composer. The software is already functional, we just need to work out the remaining glitches and package it as a native application for all major platforms."
     },
     "heading_ee4117a422d6d347a77fd77be667fcb4": {
       "type": "heading",
@@ -328,7 +333,7 @@
       "type": "text",
       "id": "f446b86f5dd6f26dd6f320cf0dd03a95",
       "source_id": "",
-      "content": "It's a new year. And we wanted to share with you what our plans are for 2014. We are still on our mission to build open software to modernize digital publishing and move beyond simulating paper, as this is what current word-processors (MS Word, OpenOffice) and formats (PDF) do. By promoting an open document format and supporting tools we want to unleash the full power of digital content and provide an interactive experience for authoring and viewing. Moreover, we would like to enable people to act as their own publisher and no longer be subject to the politics of big publishing companies and software vendors. In this post we would like to explain some decisions we have made in order to make that happen and what you can expect for near future. But first, let us explain what the main idea of Substance was about."
+      "content": "It's a new year. And we wanted to share with you what our plans are for 2014. We are still on our mission to build open software to help modernize digital publishing and move beyond simulating paper, as this is what current word-processors (MS Word, Apple Pages, OpenOffice) and formats (PDF) do. By promoting an open document format and supporting tools we want to unleash the full power of digital content and provide an interactive experience for authoring and viewing. Moreover, we would like to enable people to act as their own publisher and no longer be subject to the politics of big publishing companies and software vendors. In this post we would like to explain some decisions we have made in order to make that happen and what you can expect for the near future. But first, let us explain what the main idea of Substance was about."
     },
     "figure_reference_c563c2959d51d92ae901dbd8bf5eb15b": {
       "type": "figure_reference",
@@ -351,8 +356,8 @@
         "content"
       ],
       "range": [
-        295,
-        315
+        313,
+        333
       ]
     },
     "emphasis_6bfa86f79bca6d0d6a4ad441cc620e77": {
@@ -475,8 +480,8 @@
         "content"
       ],
       "range": [
-        374,
-        389
+        392,
+        407
       ]
     },
     "emphasis_6674ad273d0fc1eb7b6b0c4ec640e8bc": {
@@ -487,8 +492,8 @@
         "content"
       ],
       "range": [
-        405,
-        416
+        423,
+        434
       ]
     },
     "emphasis_8eeb9a33d0b17825f7e42067dc7029d5": {
@@ -499,8 +504,8 @@
         "content"
       ],
       "range": [
-        432,
-        441
+        450,
+        459
       ]
     },
     "emphasis_76713ea772b856f1c89fd54e479eea3b": {
@@ -511,8 +516,8 @@
         "content"
       ],
       "range": [
-        446,
-        453
+        464,
+        471
       ]
     },
     "link_6c4a69adcba5badcd12e46a30f170f28": {
@@ -535,11 +540,12 @@
       "content": "As the initiator of Substance, Michael coordinates the project and leads UI/UX development. He is a passionate open source commiter since many years. Notable projects include Prose, a visual interface for managing content on GitHub and eLife Lens, a new way to view research."
     },
     "figure_0e51617a008094838943650223b2bff8": {
-      "type": "figure",
       "id": "figure_0e51617a008094838943650223b2bff8",
-      "url": "http://about.substance.io/images/michael.jpg",
       "label": "Michael Aufreiter",
-      "caption": "text_fdeed277471f0af847eb0b38dd4cd9c0"
+      "url": "",
+      "image": "michael.jpg",
+      "caption": "text_fdeed277471f0af847eb0b38dd4cd9c0",
+      "type": "figure"
     },
     "link_b275e4b1f3fbb5014053178905b9a2f7": {
       "type": "link",
@@ -764,14 +770,14 @@
       "type": "text",
       "id": "6f83b7ccaadf32d1f929758b6da55700",
       "source_id": "",
-      "content": "Using the Substance Converter you can turn existing formats into Substance documents and vice versa. By delegating the hard work to Pandoc we support a wide range of input and output formats, such as Markdown, Media Wiki and DocBook, but also Word processor formats such as Microsoft Word docx and OpenOffice/LibreOffice ODT."
+      "content": "Using the Substance Converter allows users to turn existing formats into Substance documents and vice versa. By delegating the hard work to Pandoc we support a wide range of input and output formats, such as Markdown, Media Wiki and DocBook, but also Word processor formats such as Microsoft Word docx and OpenOffice/LibreOffice ODT."
     },
     "heading_453538dc3c47342cdffaacbe497ea059": {
       "type": "heading",
       "id": "heading_453538dc3c47342cdffaacbe497ea059",
       "source_id": "",
       "content": "Substance Converter",
-      "level": 1
+      "level": 2
     },
     "link_1f400158400efc9419aae98abbdc49e3": {
       "type": "link",
@@ -781,8 +787,8 @@
         "content"
       ],
       "range": [
-        132,
-        138
+        140,
+        146
       ],
       "url": "http://johnmacfarlane/pandoc"
     },
@@ -837,6 +843,57 @@
         436
       ],
       "url": "http://ncbi.nlm.nih.gov/pubmed"
+    },
+    "emphasis_74b2a2a11dc2771b2a1b97c3a03629cb": {
+      "type": "emphasis",
+      "id": "emphasis_74b2a2a11dc2771b2a1b97c3a03629cb",
+      "path": [
+        "f446b86f5dd6f26dd6f320cf0dd03a95",
+        "content"
+      ],
+      "range": [
+        182,
+        198
+      ]
+    },
+    "a75ea0a401f6dc12f573e7a3394ac01c": {
+      "type": "text",
+      "id": "a75ea0a401f6dc12f573e7a3394ac01c",
+      "source_id": "",
+      "content": "Substance is a good fit for book authors and journalists, as it enables self-publishing of books and stories. It's also suitable for  acadamic use cases, such as writing and publishinging research articles, but also for students creating seminar papers. At the end, Substance is for everyone who is writing prose and interested in a modern alternative to classic word-processing."
+    },
+    "heading_1f41d28d15c4e0f99e979909ad415647": {
+      "type": "heading",
+      "id": "heading_1f41d28d15c4e0f99e979909ad415647",
+      "source_id": "",
+      "content": "Who is it for",
+      "level": 1
+    },
+    "figure_reference_58fc95787d9a3be99b09c33f37a1f6c8": {
+      "type": "figure_reference",
+      "id": "figure_reference_58fc95787d9a3be99b09c33f37a1f6c8",
+      "path": [
+        "defe47142b41156e20d7123f8bd3332b",
+        "content"
+      ],
+      "range": [
+        273,
+        279
+      ],
+      "target": "figure_2"
+    },
+    "link_c879848bd1a03ffcb144f4661cdaa26b": {
+      "type": "link",
+      "id": "link_c879848bd1a03ffcb144f4661cdaa26b",
+      "path": [
+        "8b3d9e6e62a13b2677ee6de4d21281a9",
+        "content"
+      ],
+      "range": [
+        784,
+        791
+      ],
+      "url": "mailto:info@substance.io"
     }
   }
 }
