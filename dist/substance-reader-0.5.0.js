@@ -69,7 +69,7 @@ Outline.Prototype = function() {
     this.factor = factor;
 
     // Content height is smaller as the panel height, we don't need a scrollbar
-    if (panelHeight > contentHeight) {
+    if (panelHeight >= contentHeight) {
       this.$el.addClass('needless');
       this.el.innerHTML = "";
       return;
@@ -10053,7 +10053,7 @@ ContributorView.Prototype = function() {
 
     if (this.node.image_url) {
       this.imageEl = $$('.image', {
-        children: [$$('img', {src: this.node.image_url})]
+        children: [$$('img', {src: this.node.image || this.node.image_url})]
       });
       body.appendChild(this.imageEl);
     }
@@ -10748,25 +10748,22 @@ FigureView.Prototype = function() {
 
     var bodyEl = $$('.resource-body');
 
-    this.imgEl = $$("img");
-
     // Prepares blobs etc. for the image
-
+    var url = this.node.image || this.node.image_url;
+    
     // Add graphic (img element)
     this.imgWrapper = $$('.image-wrapper', {
       children: [
         $$("a", {
-          href: "#",
+          href: url,
           title: "View image in full size",
           target: "_blank",
-          children: [this.imgEl]
+          children: [$$('img', {src: url})]
         })
       ]
     });
 
     bodyEl.appendChild(this.imgWrapper);
-
-    this.updateImage();
 
     var caption = this.node.getCaption();
     if (caption) {
@@ -10784,15 +10781,6 @@ FigureView.Prototype = function() {
     NodeView.dispose.call(this);
     this.labelView.dispose();
     if (this.captionView) this.captionView.dispose();
-  };
-
-  this.updateImage = function() {
-    var url = this.node.getUrl();
-    this.imgEl.setAttribute("src", url);
-
-    $(this.imgWrapper).find('a').attr({
-      href: url
-    });
   };
 
   // Updates image src when figure is updated by ImageUrlEditor
@@ -16793,6 +16781,26 @@ util.later = function(f, context) {
 
 util.isEmpty = function(str) {
   return !str.match(/\w/);
+};
+
+// Create a human readable, but URL-compatible slug from a string
+
+util.slug = function(str) {
+  str = str.replace(/^\s+|\s+$/g, ''); // trim
+  str = str.toLowerCase();
+  
+  // remove accents, swap ñ for n, etc
+  var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+  var to   = "aaaaeeeeiiiioooouuuunc------";
+  for (var i=0, l=from.length ; i<l ; i++) {
+    str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+  }
+
+  str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+    .replace(/\s+/g, '-') // collapse whitespace and replace by -
+    .replace(/-+/g, '-'); // collapse dashes
+
+  return str;
 };
 
 // Export

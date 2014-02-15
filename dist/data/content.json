@@ -123,7 +123,7 @@
       "name": "Michael Aufreiter",
       "role": "author",
       "organization": "Substance Software GmbH",
-      "image": "http://about.substance.io/images/michael_avatar.jpg",
+      "image_url": "data/contributor_1.png",
       "email": "michael@substance.io"
     },
     "contributor_2": {
@@ -133,7 +133,7 @@
       "name": "Oliver Buchtala",
       "role": "author",
       "organization": "Substance Software GmbH",
-      "image": "http://about.substance.io/images/oliver_avatar.jpg",
+      "image_url": "data/contributor_2.png",
       "email": "oliver@substance.io"
     },
     "caption_figure_1": {
@@ -146,7 +146,7 @@
       "id": "figure_1",
       "label": "Oliver Buchtala",
       "url": "",
-      "image": "oliver.jpg",
+      "image_url": "data/oliver.jpg",
       "caption": "caption_figure_1",
       "type": "figure"
     },
@@ -160,7 +160,7 @@
       "id": "figure_2",
       "label": "Substance Composer",
       "url": "",
-      "image": "composer.png",
+      "image_url": "data/composer.png",
       "caption": "caption_figure_2",
       "type": "figure"
     },
@@ -174,7 +174,7 @@
       "id": "figure_3",
       "label": "Substance Reader",
       "url": "",
-      "image": "reader.png",
+      "image_url": "data/reader.png",
       "caption": "caption_figure_3",
       "type": "figure"
     },
@@ -543,7 +543,7 @@
       "id": "figure_0e51617a008094838943650223b2bff8",
       "label": "Michael Aufreiter",
       "url": "",
-      "image": "michael.jpg",
+      "image_url": "data/michael.jpg",
       "caption": "text_fdeed277471f0af847eb0b38dd4cd9c0",
       "type": "figure"
     },
