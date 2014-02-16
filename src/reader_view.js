@@ -534,7 +534,8 @@ ReaderView.Prototype = function() {
 
     var highlightedNodes;
     if (state.resourceId !== undefined) {
-      highlightedNodes = this.readerCtrl.getResourceReferenceContainers(state.resourceId);
+
+      highlightedNodes = this.readerCtrl.getNodesForResource(state.resourceId);
       outlineParams["highlightedNodes"] = highlightedNodes;
     }
     else if (state.nodeId !== undefined) {
@@ -542,7 +543,7 @@ ReaderView.Prototype = function() {
     }
     else if (state.id === "focus") {
       var focusState = this.readerCtrl.focusCtrl.state;
-      highlightedNodes = this.readerCtrl.getResourceReferenceContainers(focusState.resourceId);
+      highlightedNodes = this.readerCtrl.getNodesForResource(focusState.resourceId);
       outlineParams["highlightedNodes"] = highlightedNodes;
       outlineParams["context"] = focusState.contextId;
     }
@@ -573,24 +574,6 @@ ReaderView.Prototype = function() {
       // selectedNode: state.node,
       highlightedNodes: [state.resourceId]
     });
-  };
-
-  this.getResourceReferenceContainers = function() {
-    var state = this.readerCtrl.state;
-
-    if (!state.resource) return [];
-
-    // A reference is an annotation node. We want to highlight
-    // all (top-level) nodes that contain a reference to the currently activated resource
-    // For that we take all references pointing to the resource
-    // and find the root of the node on which the annotation sticks on.
-    var references = this.resources.get(state.resource);
-    var container = this.readerCtrl.content.container;
-    var nodes = _.uniq(_.map(references, function(ref) {
-      var nodeId = container.getRoot(ref.path[0]);
-      return nodeId;
-    }));
-    return nodes;
   };
 
   // Rendering

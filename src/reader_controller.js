@@ -107,16 +107,11 @@ ReaderController.Prototype = function() {
     return this.state.contextId || "toc";
   };
 
-  this.getResourceReferenceContainers = function(resourceId) {
-    // A reference is an annotation node. We want to highlight
-    // all (top-level) nodes that contain a reference to the currently activated resource
-    // For that we take all references pointing to the resource
-    // and find the root of the node on which the annotation sticks on.
+  this.getNodesForResource = function(resourceId) {
     var references = this.referenceIndex.get(resourceId);
-    var container = this.contentCtrl.session.container;
-    var nodes = _.uniq(_.map(references, function(ref) {
-      return container.lookupRootNode(ref.path[0]);
-    }));
+    var nodes = _.map(references, function(r) {
+      return r.path[0];
+    });
     return nodes;
   };
 
