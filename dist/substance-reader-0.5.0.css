@@ -405,53 +405,29 @@ Outline
 
 .content-node .list-item {
   padding: 2px 0px;
-  padding-left: 20px;
   position: relative;
+
+  /* for the time being, classical list and list-styles... */
+  list-style-type:disc;
 }
 
-.content-node .list-item .bullet {
-  position: absolute;
-  left: 0px;
-  top: 15px;
-  width: 4px;
-  height: 4px;
-  background: #bbb;
+
+.content-node.list .list-item.level-1 {
+  margin-left: 20px;
 }
 
-/*p:before {
-  content:"Read this: ";
-}*/
-
-
-
-
-
-/*.content-node .listitem .bullet {
-  position: absolute;
-  left: 0px;
-  top: 14px;
-  width: 4px;
-  height: 4px;
-  background: #bbb;
+.content-node.list .list-item.level-2 {
+  margin-left: 40px;
 }
 
-.content-node.list .content {
-  min-height: 30px;
-}*/
-
-/*.content-node.list { }
-
-.content-node.list .content {
-
+.content-node.list .list-item.level-3 {
+  margin-left: 60px;
 }
 
-.content-node.list.level-2 .content {
-  font-size: 20px;
+.content-node.list .list-item.level-4 {
+  margin-left: 80px;
 }
 
-.content-node.list.level-3 .content {
-  font-size: 17px;
-}*/
 /* Image Node
 -------------------------------------------------------------------------------*/
 
