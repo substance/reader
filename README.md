@@ -6,23 +6,7 @@ The Substance Reader is an integral part of the Substance technology stack used 
 
 ## Using the Reader
 
-### The manual way
-
 Just take the contents from the `dist` folder, and replace the data folder with your own document's content.
-
-### Using the Substance Publisher command line utility.
-
-You can read Substance Documents (`.sdf` archives) or JSON files representing the Substance Document Format.
-
-```bash
-$ substance-publish my-essay.sdf <target-folder>
-```
-
-Or feed it some markdown. Requires Pandoc to be installed.
-
-```bash
-$ substance-publish my-essay.md <target-folder>
-```
 
 ### License
 
