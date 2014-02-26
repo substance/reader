@@ -79,6 +79,7 @@
   "node_modules": {
     "underscore": "1.5.x",
     "express": "3.3.x",
+    "substance-test": "0.3.0",
     "mocha": "1.12.x"
   },
   "npm": {
