@@ -5,16 +5,13 @@
 /* General style */
 
 body {
-  /*font-family: Times;*/
-  font-family: 'Source Sans Pro', Helvetica, Arial, Verdana, sans-serif;
+  font-family: 'Open Sans', Helvetica, Arial, Verdana, sans-serif;
   color: #000;
   -webkit-font-smoothing: antialiased;
-  /*margin: 50px;*/
   font-size: 10pt;
 }
 
 @page {
-  /*size:8.5in 11in;*/
   margin: 0.7cm;
 }
 
@@ -22,7 +19,6 @@ body {
   font-size: 40px;
   font-weight: bold;
 }
-
 
 .cover .authors {
   font-size: 20px;
@@ -87,8 +83,6 @@ img {
 }
 
 
-/* Code block */
-
 /* Codeblock Node
 -------------------------------------------------------------------------------*/
 
@@ -100,7 +94,7 @@ img {
 }
 
 .content-node.codeblock > .content {
-  font-family: 'Source Code Pro';
+  font-family: 'Open Sans';
   background: #eee;
   /*font-size: 14px;*/
   min-height: 28px;

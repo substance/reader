@@ -29,7 +29,7 @@ var Reader = function(opts) {
 };
 
 Reader.Article = require("substance-article");
-Reader.Outline = require("lens-outline");
+Reader.Outline = require("substance-outline");
 
 Reader.Prototype = function() {
 

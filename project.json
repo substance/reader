@@ -3,72 +3,72 @@
     {
       "repository": "https://github.com/substance/application.git",
       "folder": "node_modules/substance-application",
-      "branch": "appstates"
+      "branch": "master"
     },
     {
       "repository": "https://github.com/substance/chronicle.git",
       "folder": "node_modules/substance-chronicle",
-      "branch": "indexeddb"
+      "branch": "master"
     },
     {
       "repository": "https://github.com/substance/commander.git",
       "folder": "node_modules/substance-commander",
-      "branch": "0.2.x"
+      "branch": "master"
     },
     {
       "repository": "https://github.com/michael/data.git",
       "folder": "node_modules/substance-data",
-      "branch": "0.9.x"
+      "branch": "master"
     },
     {
       "repository": "https://github.com/substance/document.git",
       "folder": "node_modules/substance-document",
-      "branch": "prototype"
+      "branch": "master"
     },
     {
       "repository": "https://github.com/substance/article.git",
       "folder": "node_modules/substance-article",
-      "branch": "prototype"
+      "branch": "master"
     },
     {
       "repository": "https://github.com/substance/nodes.git",
       "folder": "node_modules/substance-nodes",
-      "branch": "prototype"
+      "branch": "master"
     },
     {
-      "repository": "https://github.com/substance/lens-outline.git",
-      "folder": "node_modules/lens-outline",
-      "branch": "prototype"
+      "repository": "https://github.com/substance/outline.git",
+      "folder": "node_modules/substance-outline",
+      "branch": "master"
     },
     {
       "repository": "https://github.com/substance/toc.git",
       "folder": "node_modules/substance-toc",
-      "branch": "prototype"
+      "branch": "master"
     },
     {
       "repository": "https://github.com/substance/converter.git",
       "folder": "node_modules/substance-converter",
-      "branch": "pandoc_1_12_1"
+      "branch": "master"
     },
     {
       "repository": "https://github.com/substance/operator.git",
       "folder": "node_modules/substance-operator",
-      "branch": "0.3.x"
+      "branch": "master"
     },
     {
       "repository": "https://github.com/substance/regexp.git",
       "folder": "node_modules/substance-regexp",
-      "branch": "0.2.x"
+      "branch": "master"
     },
     {
       "repository": "https://github.com/substance/surface.git",
       "folder": "node_modules/substance-surface",
-      "branch": "0.4.x"
+      "branch": "master"
     },
     {
       "repository": "https://github.com/substance/util.git",
       "folder": "node_modules/substance-util",
-      "branch": "0.3.x"
+      "branch": "master"
     },
     {
       "repository": "https://github.com/substance/reader.git",
@@ -79,7 +79,6 @@
   "node_modules": {
     "underscore": "1.5.x",
     "express": "3.3.x",
-    "substance-store": "0.1.x",
     "mocha": "1.12.x"
   },
   "npm": {
@@ -91,7 +90,7 @@
   "styles": {
     "styles/substance.css": "styles/substance.css",
     "styles/surface.css": "node_modules/substance-surface/styles/surface.css",
-    "styles/lens-outline.css": "node_modules/lens-outline/outline.css",
+    "styles/substance-outline.css": "node_modules/substance-outline/outline.css",
 
     "styles/nodes/text.css": "node_modules/substance-article/nodes/text/text.css",
     "styles/nodes/paragraph.css": "node_modules/substance-article/nodes/paragraph/paragraph.css",
@@ -132,7 +131,7 @@
     "LICENSE": "LICENSE"
   },
   "bundle": {
-    "name": "substance-reader-0.5.0",
+    "name": "substance-reader-0.4.0",
     "folder": "./dist",
     "source": "./boot.js",
     "index": "./index.html"

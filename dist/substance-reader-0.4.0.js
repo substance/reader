@@ -1,212 +1,6 @@
-;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 window.Substance = require("./src/substance");
 },{"./src/substance":150}],2:[function(require,module,exports){
-"use strict";
-
-var Outline = require('./outline');
-
-module.exports = Outline;
-
-},{"./outline":3}],3:[function(require,module,exports){
-"use strict";
-
-var View = require("substance-application").View;
-var $$ = require("substance-application").$$;
-var _ = require("underscore");
-
-// Lens.Outline
-// ==========================================================================
-//
-// Takes a surface, which is projected to a minimap
-
-var Outline = function(surface) {
-  View.call(this);
-
-  this.surface = surface;
-
-  // Initial view state, telling which node is selected and which are highlighted
-  this.state = {
-    selectedNode: null,
-    highlightedNodes: []
-  };
-
-  this.$el.addClass('lens-outline');
-
-  _.bindAll(this, 'mouseDown', 'mouseUp', 'mouseMove', 'updateVisibleArea');
-
-  // Mouse event handlers
-  // --------
-
-  this.$el.mousedown(this.mouseDown);
-
-  $(window).mousemove(this.mouseMove);
-  $(window).mouseup(this.mouseUp);
-};
-
-Outline.Prototype = function() {
-
-  // Render Document Outline
-  // -------------
-  //
-  // Renders outline and calculates bounds
-
-  this.render = function() {
-    var that = this;
-    var totalHeight = 0;
-
-    var fragment = document.createDocumentFragment();
-    this.visibleArea = $$('.visible-area');
-    fragment.appendChild(this.visibleArea);
-
-
-    // Initial Calculations
-    // --------
-
-    var contentHeight = this.surface.$('.nodes').height();
-    var panelHeight = this.surface.$el.height();
-
-    var factor = (contentHeight / panelHeight);
-    this.factor = factor;
-
-    // Content height is smaller as the panel height, we don't need a scrollbar
-    if (panelHeight >= contentHeight) {
-      this.$el.addClass('needless');
-      this.el.innerHTML = "";
-      return;
-    }
-
-    // Render nodes
-    // --------
-
-    var container = this.surface.getContainer();
-    var nodes = container.getNodes();
-
-    _.each(nodes, function(node) {
-      var dn = this.surface.$('#'+node.id);
-      var height = dn.outerHeight(true) / factor;
-
-      // Outline node construction
-      var $node = $('<div class="node">')
-        .attr({
-          id: 'outline_'+node.id,
-        })
-        .css({
-          "position": "absolute",
-          "height": height-1,
-          "top": totalHeight
-        })
-        .addClass(node.type)
-        .append('<div class="arrow">');
-      fragment.appendChild($node[0]);
-      totalHeight += height;
-    }, this);
-
-    // Init scroll pos
-    var scrollTop = that.surface.$el.scrollTop();
-
-    that.el.innerHTML = "";
-    that.el.appendChild(fragment);
-    that.updateVisibleArea(scrollTop);
-
-    return this;
-  };
-
-
-  // Update visible area
-  // -------------
-  //
-  // Should get called from the user when the content area is scrolled
-
-  this.updateVisibleArea = function(scrollTop) {
-    $(this.visibleArea).css({
-      "top": scrollTop / this.factor,
-      "height": this.surface.$el.height() / this.factor
-    });
-  };
-
-
-  // Update Outline
-  // -------------
-  //
-  // Usage:
-  //
-  // outline.update({
-  //   selectedNode: "node_14",
-  //   highlightNodes: []
-  // })
-
-  this.update = function(state) {
-    this.render();
-    this.state = state;
-
-    // Reset
-    this.$('.node').removeClass('selected').removeClass('highlighted');
-    this.$el.removeClass('figures').removeClass('citations').removeClass('errors').removeClass('remarks');
-
-    // Set context
-    this.$el.addClass(state.context);
-
-    // Mark selected node
-    this.$('#outline_' + state.selectedNode).addClass('selected');
-
-    // Mark highlighted nodes
-    _.each(state.highlightedNodes, function(n) {
-      this.$('#outline_'+n).addClass('highlighted');
-    }, this);
-
-  };
-
-
-  // Handle Mouse down event
-  // -----------------
-  //
-
-  this.mouseDown = function(e) {
-    this._mouseDown = true;
-    var y = e.pageY;
-
-    if (e.target !== this.visibleArea) {
-      // Jump to mousedown position
-      this.offset = $(this.visibleArea).height()/2;
-      this.mouseMove(e);
-    } else {
-      this.offset = y - $(this.visibleArea).position().top;
-    }
-
-    return false;
-  };
-
-  // Handle Mouse Up
-  // -----------------
-  //
-  // Mouse lifted, no scroll anymore
-
-  this.mouseUp = function() {
-    this._mouseDown = false;
-  };
-
-  // Handle Scroll
-  // -----------------
-  //
-  // Handle scroll event
-  // .visible-area handle
-
-  this.mouseMove = function(e) {
-    if (this._mouseDown) {
-      var y = e.pageY;
-      // find offset to visible-area.top
-      var scroll = (y - this.offset)*this.factor;
-      this.surface.$el.scrollTop(scroll);
-    }
-  };
-};
-
-Outline.Prototype.prototype = View.prototype;
-Outline.prototype = new Outline.Prototype();
-
-module.exports = Outline;
-
-},{"substance-application":4,"underscore":146}],4:[function(require,module,exports){
 "use strict";
 
 var Application = require("./src/application");
@@ -218,7 +12,7 @@ Application.$$ = Application.ElementRenderer.$$;
 
 module.exports = Application;
 
-},{"./src/application":5,"./src/controller":6,"./src/renderers/element_renderer":7,"./src/router":8,"./src/view":9}],5:[function(require,module,exports){
+},{"./src/application":3,"./src/controller":4,"./src/renderers/element_renderer":5,"./src/router":6,"./src/view":7}],3:[function(require,module,exports){
 "use strict";
 
 var View = require("./view");
@@ -421,7 +215,7 @@ Object.defineProperty(Application.prototype, "controller", {
 
 module.exports = Application;
 
-},{"./view":9,"substance-util":139,"underscore":146}],6:[function(require,module,exports){
+},{"./view":7,"substance-util":139,"underscore":146}],4:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -672,7 +466,7 @@ Object.defineProperty(Controller.prototype, "childController", {
 
 module.exports = Controller;
 
-},{"substance-util":139,"underscore":146}],7:[function(require,module,exports){
+},{"substance-util":139,"underscore":146}],5:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -783,7 +577,7 @@ ElementRenderer.Prototype.prototype = util.Events;
 ElementRenderer.prototype = new ElementRenderer.Prototype();
 
 module.exports = ElementRenderer;
-},{"substance-regexp":132,"substance-util":139}],8:[function(require,module,exports){
+},{"substance-regexp":132,"substance-util":139}],6:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -1103,7 +897,7 @@ Router.history = new History;
 
 
 module.exports = Router;
-},{"substance-util":139,"underscore":146}],9:[function(require,module,exports){
+},{"substance-util":139,"underscore":146}],7:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -1191,7 +985,7 @@ View.prototype = new View.Prototype();
 
 module.exports = View;
 
-},{"substance-util":139}],10:[function(require,module,exports){
+},{"substance-util":139}],8:[function(require,module,exports){
 "use strict";
 
 var Article = require("./src/article");
@@ -1200,7 +994,7 @@ Article.ViewFactory = require("./src/view_factory");
 
 module.exports = Article;
 
-},{"./src/article":12,"./src/renderer":13,"./src/view_factory":14}],11:[function(require,module,exports){
+},{"./src/article":10,"./src/renderer":11,"./src/view_factory":12}],9:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -1215,7 +1009,7 @@ _.each(require("substance-nodes"), function(spec, name) {
 
 module.exports = nodes;
 
-},{"substance-nodes":43,"underscore":146}],12:[function(require,module,exports){
+},{"substance-nodes":41,"underscore":146}],10:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -1692,7 +1486,7 @@ Object.defineProperties(Article.prototype, {
 
 module.exports = Article;
 
-},{"../nodes":11,"substance-document":35,"substance-util":139,"underscore":146}],13:[function(require,module,exports){
+},{"../nodes":9,"substance-document":33,"substance-util":139,"underscore":146}],11:[function(require,module,exports){
 "use strict";
 
 var ViewFactory = require("./view_factory");
@@ -1762,7 +1556,7 @@ ArticleRenderer.prototype = new ArticleRenderer.Prototype();
 
 module.exports = ArticleRenderer;
 
-},{"./view_factory":14,"underscore":146}],14:[function(require,module,exports){
+},{"./view_factory":12,"underscore":146}],12:[function(require,module,exports){
 "use strict";
 
 var ViewFactory = function(document) {
@@ -1802,7 +1596,7 @@ ViewFactory.prototype = new ViewFactory.Prototype();
 
 module.exports = ViewFactory;
 
-},{}],15:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 "use strict";
 
 var Chronicle = require('./src/chronicle');
@@ -1823,7 +1617,7 @@ Chronicle.IndexedDBBackend = require("./src/backends/indexeddb_backend");
 
 module.exports = Chronicle;
 
-},{"./src/array_adapter":16,"./src/backends/indexeddb_backend":17,"./src/chronicle":18,"./src/chronicle_impl":19,"./src/diff_impl":20,"./src/index_impl":21,"./src/text_adapter":22,"./src/tmp_index":23}],16:[function(require,module,exports){
+},{"./src/array_adapter":14,"./src/backends/indexeddb_backend":15,"./src/chronicle":16,"./src/chronicle_impl":17,"./src/diff_impl":18,"./src/index_impl":19,"./src/text_adapter":20,"./src/tmp_index":21}],14:[function(require,module,exports){
 "use strict";
 
 var util = require('substance-util');
@@ -1865,7 +1659,7 @@ ArrayOperationAdapter.prototype = new ArrayOperationAdapter.Prototype();
 
 module.exports = ArrayOperationAdapter;
 
-},{"./chronicle":18,"substance-operator":125,"substance-util":139}],17:[function(require,module,exports){
+},{"./chronicle":16,"substance-operator":123,"substance-util":139}],15:[function(require,module,exports){
 "use strict";
 
 var util = require("substance-util");
@@ -2109,7 +1903,7 @@ IndexedDbBackend.prototype = new IndexedDbBackend.Prototype();
 
 module.exports = IndexedDbBackend;
 
-},{"../chronicle":18,"substance-util":139,"underscore":146}],18:[function(require,module,exports){
+},{"../chronicle":16,"substance-util":139,"underscore":146}],16:[function(require,module,exports){
 "use strict";
 
 /*jshint unused: false*/ // deactivating this, as we define abstract interfaces here
@@ -2822,7 +2616,7 @@ Chronicle.mergeConflict = function(a, b) {
 
 module.exports = Chronicle;
 
-},{"substance-util":139,"underscore":146}],19:[function(require,module,exports){
+},{"substance-util":139,"underscore":146}],17:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -3468,7 +3262,7 @@ ChronicleImpl.create = function(options) {
 
 module.exports = ChronicleImpl;
 
-},{"./chronicle":18,"substance-util":139,"underscore":146}],20:[function(require,module,exports){
+},{"./chronicle":16,"substance-util":139,"underscore":146}],18:[function(require,module,exports){
 var _ = require("underscore");
 var Chronicle = require("./chronicle");
 
@@ -3538,7 +3332,7 @@ DiffImpl.create = function(id, reverts, applies) {
 
 module.exports = DiffImpl;
 
-},{"./chronicle":18,"underscore":146}],21:[function(require,module,exports){
+},{"./chronicle":16,"underscore":146}],19:[function(require,module,exports){
 "use strict";
 
 // Imports
@@ -3877,7 +3671,7 @@ IndexImpl.create = function(options) {
 
 module.exports = IndexImpl;
 
-},{"./chronicle":18,"substance-util":139,"underscore":146}],22:[function(require,module,exports){
+},{"./chronicle":16,"substance-util":139,"underscore":146}],20:[function(require,module,exports){
 "use strict";
 
 var util = require('substance-util');
@@ -3917,7 +3711,7 @@ TextOperationAdapter.prototype = new TextOperationAdapter.Prototype();
 
 module.exports = TextOperationAdapter;
 
-},{"./chronicle":18,"substance-operator":125,"substance-util":139}],23:[function(require,module,exports){
+},{"./chronicle":16,"substance-operator":123,"substance-util":139}],21:[function(require,module,exports){
 var _ = require("underscore");
 var util = require("substance-util");
 var errors = util.errors;
@@ -3999,1168 +3793,431 @@ TmpIndex.prototype = new TmpIndex.Prototype();
 
 module.exports = TmpIndex;
 
-},{"./index_impl":21,"substance-util":139,"underscore":146}],24:[function(require,module,exports){
+},{"./index_impl":19,"substance-util":139,"underscore":146}],22:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Keyboard: require("./src/keyboard"),
-  Mousetrap: require("./src/mousetrap")
+  ChromeKeyboard: require("./src/chrome_keyboard")
 };
 
-},{"./src/keyboard":26,"./src/mousetrap":27}],25:[function(require,module,exports){
-/*global define:false */
+},{"./src/chrome_keyboard":23,"./src/keyboard":25}],23:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+var util = require("substance-util");
+
+function _attachListener(el, type, callback) {
+  if (el.addEventListener) {
+    el.addEventListener(type, callback, true);
+  } else {
+    el.attachEvent('on' + type, callback);
+  }
+}
+
+function _detachListener(el, type, callback) {
+  if (el.removeEventListener) {
+    el.removeEventListener(type, callback, true);
+  } else {
+    el.detachEvent('on' + type, callback);
+  }
+}
+
+var ChromeKeyboard = function(map, keytable) {
+
+  this.keytable = keytable;
+  this.map = map;
+
+  this.registry = {};
+
+  if (!keytable) {
+    var DefaultKeyTable =  require("./default_keytable.js");
+    this.keytable = new DefaultKeyTable();
+  }
+
+  // to detect if there is a candidate for a given key
+  this.__registeredKeyCodes = {"keypress": {}, "keyup": {}, "keydown": {}};
+
+  this.defaultHandlers = {
+    "keypress": this.PASS,
+    "keyup": this.BLOCK,
+    "keydown": this.PASS
+  };
+};
+
+ChromeKeyboard.Prototype = function() {
+
+  // handler to pass events (does not call prevent default)
+  this.PASS = function() {
+    // console.log('Keyboard: passing event to parent.');
+  };
+
+  this.BLOCK = function(e) {
+    //console.log('Keyboard: blocking event.', e);
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  var _mods = ['ctrlKey', 'metaKey', 'shiftKey', 'altKey', 'altGraphKey'];
+
+  // for sorting modifiers
+  var _modPos = {};
+  for (var i = 0; i < _mods.length; i++) {
+    _modPos[_mods[i]] = i;
+  }
+
+  var _modName = {
+    'ctrl': 'ctrlKey',
+    'command': 'metaKey',
+    'shift': 'shiftKey',
+    'alt': 'altKey',
+    'alt-gr': 'altGraphKey'
+  };
+
+  var _inverseModNames = {};
+  _.each(_modName, function(mod, name) {
+    _inverseModNames[mod] = name;
+  });
+
+  //console.log("_inverseModNames", _inverseModNames);
+
+  this.defaultHandler = function(e) {
+    // console.log("Default handler: preventing event", e);
+    e.preventDefault();
+  };
+
+  var _lookupHandler = function(self, e, start) {
+    if (!start) return null;
+
+    var reg = start;
+    // traverse to the particular registry for the present modifiers
+    for (var i = 0; i < _mods.length; i++) {
+      var mod = _mods[i];
+      if (e[mod]) {
+        reg = reg[mod];
+      }
+      if (!reg) return null;
+    }
+
+    if (reg) {
+      var keyCode = e.keyCode;
+      if (e.type === "keypress") {
+         keyCode = e.keyCode || self.keytable.table[String.fromCharCode(e.which)];
+      }
+      return reg[keyCode];
+    } else {
+      return null;
+    }
+  };
+
+  this.handleKeyPress = function(e) {
+    var type = "keypress";
+    //console.log("Keyboard keypress", e, this.describeEvent(e));
+    // do not handle events without a character...
+    if (String.fromCharCode(e.which)) {
+      var handler = _lookupHandler(this, e, this.registry[type]);
+      if (handler) {
+        try {
+          handler(e);
+        } catch (err) {
+          this.BLOCK(e);
+          console.error(err.message);
+          util.printStackTrace(err);
+          throw err;
+        }
+      } else if (this.defaultHandlers[type]) {
+        this.defaultHandlers[type](e);
+      }
+    } else if (this.defaultHandlers[type]) {
+      this.defaultHandlers[type](e);
+    } else {
+      throw new Error("No default handler for: " + type);
+    }
+
+  };
+
+  this.handleKey = function(type, e) {
+    // console.log("Keyboard handleKey", type, this.describeEvent(e));
+    if (this.__registeredKeyCodes[type][e.keyCode]) {
+      //console.log("Keyboard.handleKey", type, this.describeEvent(e));
+
+      var handler = _lookupHandler(this, e, this.registry[type]);
+
+      if (handler) {
+        //console.log("... found handler", handler);
+        try {
+          handler(e);
+        } catch (err) {
+          this.BLOCK(e);
+          console.error(err.message);
+          util.printStackTrace(err);
+          throw err;
+        }
+      }
+    } else if (this.defaultHandlers[type]) {
+      this.defaultHandlers[type](e);
+    } else {
+      throw new Error("No default handler for: " + type);
+    }
+  };
+
+  this.connect = function(el) {
+    this.el = el;
+    this.__onKeyPress = this.handleKeyPress.bind(this);
+    this.__onKeyUp = this.handleKey.bind(this, "keyup");
+    this.__onKeyDown = this.handleKey.bind(this, "keydown");
+    _attachListener(el, 'keypress', this.__onKeyPress);
+    _attachListener(el, 'keydown', this.__onKeyDown);
+    _attachListener(el, 'keyup', this.__onKeyUp);
+
+    // console.log("Attaching keyboard to", el, "bindings:", this.registry);
+  };
+
+  this.disconnect = function() {
+    _detachListener(this.el, 'keypress', this.__onKeyPress);
+    _detachListener(this.el, 'keydown', this.__onKeyDown);
+    _detachListener(this.el, 'keyup', this.__onKeyUp);
+  };
+
+  this.setDefaultHandler = function(type, handler) {
+    if (arguments.length === 1) {
+      _.each(this.defaultHandlers, function(__, name) {
+        this.defaultHandlers[name] = arguments[0];
+      }, this);
+    } else {
+      this.defaultHandlers[type] = handler;
+    }
+  };
+
+  // Bind a handler for a key combination.
+  // -----
+  // Only key combinations with modifiers and a regular key.
+  // Examples:
+  // bind('ctrl', 'shift', 'r', myhandler);
+  // TODO: I want to get rid of the type. Instead introduce an abstraction
+  // that triggers key repetition using only one handler
+  this.bindSingle = function(combination, type, handler) {
+
+    if (["keypress", "keydown", "keyup"].indexOf(type) < 0) {
+      throw new Error("Expecting keyboard event type as second argument.");
+    }
+    if (!_.isFunction(handler)) {
+      throw new Error("Expecting function handler as third argument.");
+    }
+
+    // Note: extract modifiers from the combination.
+    // They can be provided in arbitrary order.
+    var i;
+    var mods = [];
+    var mod, modName;
+    for (i = 0; i < combination.length-1; i++) {
+      modName = combination[i];
+      mod = _modName[modName];
+      if (!mod) {
+        throw new Error("Unknown modifier: " + modName);
+      }
+      mods.push(mod);
+    }
+    var key = _.last(combination);
+    var keyCode = this.keytable.getKeyCode(key);
+
+    // if the name implies extra modifiers the map can return an array
+    if (_.isArray(keyCode)) {
+      for (i = 0; i < keyCode.length-1; i++) {
+        modName = keyCode[i];
+        mod = _modName[modName];
+        if (!mod) {
+          throw new Error("Unknown modifier: " + modName);
+        }
+        mods.push(mod);
+      }
+      keyCode = _.last(keyCode);
+    }
+
+    mods.sort(function(a, b) {
+      return _modPos[a] - _modPos[b];
+    });
+
+    this.registry[type] = this.registry[type] || {};
+    var reg = this.registry[type];
+    for (i = 0; i < mods.length; i++) {
+      mod = mods[i];
+      reg[mod] = reg[mod] || {};
+      reg = reg[mod];
+    }
+
+    reg[keyCode] = handler;
+
+    this.__registeredKeyCodes[type][keyCode] = true;
+  };
+
+  this.bindAll = function(combinations, type, handler) {
+    for (var i = 0; i < combinations.length; i++) {
+      this.bindSingle(combinations[i], type, handler);
+    }
+  };
+
+  this.bind = function(combination, type, handler) {
+    var combinations;
+    if (_.isString(combination)) {
+      combinations = this.compileMapping(combination);
+      this.bindAll(combinations, type, handler);
+    } else {
+      this.bindSingle(combination, type, handler);
+    }
+  };
+
+  this.pass = function(combination) {
+    var combinations;
+    if (_.isString(combination)) {
+      combinations = this.compileMapping(combination);
+    } else {
+      combinations = [combination];
+    }
+    this.bindAll(combinations, "keyup", this.PASS);
+    this.bindAll(combinations, "keydown", this.PASS);
+    this.bindAll(combinations, "keypress", this.PASS);
+  };
+
+  this.compileMapping = function(name) {
+    var combinations = [];
+    var specs = this.map[name];
+    for (var i = 0; i < specs.length; i++) {
+      var spec = specs[i];
+      var combination = spec.split("+");
+      combinations.push(combination);
+    }
+    return combinations;
+  };
+
+  this.describeEvent = function(e) {
+    var names = [];
+    for (var i = 0; i < _mods.length; i++) {
+      var mod = _mods[i];
+      if (e[mod] === true) {
+        names.push(_inverseModNames[mod]);
+      }
+    }
+    names.push(this.keytable.getKeyName(e.keyCode));
+
+    return names.join("+");
+  };
+};
+ChromeKeyboard.prototype = new ChromeKeyboard.Prototype();
+
+module.exports = ChromeKeyboard;
+
+},{"./default_keytable.js":24,"substance-util":139,"underscore":146}],24:[function(require,module,exports){
+"use strict";
+
+var _ = require("underscore");
+
+var DefaultKeyTable = function() {
+};
+
+// TODO: we will just implement different versions of this for different browsers and platforms.
+DefaultKeyTable.Prototype = function() {
+
+  var initTable = function() {
+    var i;
+    this.table = {};
+
+    // alphabet
+    for (i = 0; i < 26; i++) {
+      var code = i + 65;
+      var u = String.fromCharCode(code).toUpperCase();
+      var l = String.fromCharCode(code).toLowerCase();
+      this.table[u] = code;
+      this.table[l] = code;
+    }
+
+    // Numbers
+    for (i = 0; i < 10; i++) {
+      this.table[""+i] = 48 + i;
+    }
+
+    // F-keys
+    for (i = 1; i < 13; i++) {
+      this.table["f"+i] = 111 + i;
+    }
+
+    // special characters
+    _.extend(this.table, {
+      "*": 106,
+      "+": 107,
+      "-": 109,
+      ".": 110,
+      "/": 111,
+      ";": 186,
+      "=": 187,
+      ",": 188,
+      "`": 192,
+      "[": 219,
+      "\\": 220,
+      "]": 221,
+      "\"": 222
+    });
+
+    // custom aliases
+    _.extend(this.table, {
+      "backspace": 8,
+      "tab": 9,
+      "enter": 13,
+      "shift": 16,
+      "ctrl": 17,
+      "alt": 18,
+      "capslock": 20,
+      "esc": 27,
+      "space": 32,
+      "pageup": 33,
+      "pagedown": 34,
+      "end": 35,
+      "home": 36,
+      "left": 37,
+      "up": 38,
+      "right": 39,
+      "down": 40,
+      "ins": 45,
+      "del": 46,
+    });
+
+    this.inverseTable = {};
+    _.each(this.table, function(code, alias) {
+      this.inverseTable[code] = alias;
+    }, this);
+
+    // console.log("INVERSE TABLE", this.inverseTable);
+  }.call(this);
+
+  this.getKeyCode = function(s) {
+    if (this.table[s] !== undefined) {
+      return this.table[s];
+    } else {
+      throw new Error("Unknown key: " + s);
+    }
+  };
+
+  this.getKeyName = function(code) {
+    if (this.inverseTable[code] !== undefined) {
+      return this.inverseTable[code];
+    } else {
+      return "native("+code+")";
+    }
+  };
+};
+DefaultKeyTable.prototype = new DefaultKeyTable.Prototype();
+
+module.exports = DefaultKeyTable;
+
+},{"underscore":146}],25:[function(require,module,exports){
+"use strict";
+
 /**
- * Copyright 2013 Craig Campbell
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Mousetrap is a simple keyboard shortcut library for Javascript with
- * no external dependencies
- *
- * @version 1.4.4
- * @url craig.is/killing/mice
+ * Note: This implementation has been derived from
+ * Craig Campbell's Mousetrap: https://github.com/ccampbell/mousetrap
+ * which is licensed under the Apache License.
  */
-(function() {
 
-    /**
-     * mapping of special keycodes to their corresponding keys
-     *
-     * everything in this dictionary cannot use keypress events
-     * so it has to be here to map to the correct keycodes for
-     * keyup/keydown events
-     *
-     * @type {Object}
-     */
-    var _MAP = {
-            8: 'backspace',
-            9: 'tab',
-            13: 'enter',
-            16: 'shift',
-            17: 'ctrl',
-            18: 'alt',
-            20: 'capslock',
-            27: 'esc',
-            32: 'space',
-            33: 'pageup',
-            34: 'pagedown',
-            35: 'end',
-            36: 'home',
-            37: 'left',
-            38: 'up',
-            39: 'right',
-            40: 'down',
-            45: 'ins',
-            46: 'del',
-            91: 'meta',
-            93: 'meta',
-            224: 'meta'
-        },
-
-        /**
-         * mapping for special characters so they can support
-         *
-         * this dictionary is only used incase you want to bind a
-         * keyup or keydown event to one of these keys
-         *
-         * @type {Object}
-         */
-        _KEYCODE_MAP = {
-            106: '*',
-            107: '+',
-            109: '-',
-            110: '.',
-            111 : '/',
-            186: ';',
-            187: '=',
-            188: ',',
-            189: '-',
-            190: '.',
-            191: '/',
-            192: '`',
-            219: '[',
-            220: '\\',
-            221: ']',
-            222: '\''
-        },
-
-        /**
-         * this is a mapping of keys that require shift on a US keypad
-         * back to the non shift equivelents
-         *
-         * this is so you can use keyup events with these keys
-         *
-         * note that this will only work reliably on US keyboards
-         *
-         * @type {Object}
-         */
-        _SHIFT_MAP = {
-            '~': '`',
-            '!': '1',
-            '@': '2',
-            '#': '3',
-            '$': '4',
-            '%': '5',
-            '^': '6',
-            '&': '7',
-            '*': '8',
-            '(': '9',
-            ')': '0',
-            '_': '-',
-            '+': '=',
-            ':': ';',
-            '\"': '\'',
-            '<': ',',
-            '>': '.',
-            '?': '/',
-            '|': '\\'
-        },
-
-        /**
-         * this is a list of special strings you can use to map
-         * to modifier keys when you specify your keyboard shortcuts
-         *
-         * @type {Object}
-         */
-        _SPECIAL_ALIASES = {
-            'option': 'alt',
-            'command': 'meta',
-            'return': 'enter',
-            'escape': 'esc',
-            'mod': /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'meta' : 'ctrl'
-        },
-
-        /**
-         * variable to store the flipped version of _MAP from above
-         * needed to check if we should use keypress or not when no action
-         * is specified
-         *
-         * @type {Object|undefined}
-         */
-        _REVERSE_MAP,
-
-        /**
-         * a list of all the callbacks setup via Mousetrap.bind()
-         *
-         * @type {Object}
-         */
-        _callbacks = {},
-
-        /**
-         * direct map of string combinations to callbacks used for trigger()
-         *
-         * @type {Object}
-         */
-        _directMap = {},
-
-        /**
-         * keeps track of what level each sequence is at since multiple
-         * sequences can start out with the same sequence
-         *
-         * @type {Object}
-         */
-        _sequenceLevels = {},
-
-        /**
-         * variable to store the setTimeout call
-         *
-         * @type {null|number}
-         */
-        _resetTimer,
-
-        /**
-         * temporary state where we will ignore the next keyup
-         *
-         * @type {boolean|string}
-         */
-        _ignoreNextKeyup = false,
-
-        /**
-         * temporary state where we will ignore the next keypress
-         *
-         * @type {boolean}
-         */
-        _ignoreNextKeypress = false,
-
-        /**
-         * are we currently inside of a sequence?
-         * type of action ("keyup" or "keydown" or "keypress") or false
-         *
-         * @type {boolean|string}
-         */
-        _nextExpectedAction = false;
-
-    /**
-     * loop through the f keys, f1 to f19 and add them to the map
-     * programatically
-     */
-    for (var i = 1; i < 20; ++i) {
-        _MAP[111 + i] = 'f' + i;
-    }
-
-    /**
-     * loop through to map numbers on the numeric keypad
-     */
-    for (i = 0; i <= 9; ++i) {
-        _MAP[i + 96] = i;
-    }
-
-    /**
-     * cross browser add event method
-     *
-     * @param {Element|HTMLDocument} object
-     * @param {string} type
-     * @param {Function} callback
-     * @returns void
-     */
-    function _addEvent(object, type, callback) {
-        if (object.addEventListener) {
-            object.addEventListener(type, callback, false);
-            return;
-        }
-
-        object.attachEvent('on' + type, callback);
-    }
-
-    /**
-     * takes the event and returns the key character
-     *
-     * @param {Event} e
-     * @return {string}
-     */
-    function _characterFromEvent(e) {
-
-        // for keypress events we should return the character as is
-        if (e.type == 'keypress') {
-            var character = String.fromCharCode(e.which);
-
-            // if the shift key is not pressed then it is safe to assume
-            // that we want the character to be lowercase.  this means if
-            // you accidentally have caps lock on then your key bindings
-            // will continue to work
-            //
-            // the only side effect that might not be desired is if you
-            // bind something like 'A' cause you want to trigger an
-            // event when capital A is pressed caps lock will no longer
-            // trigger the event.  shift+a will though.
-            if (!e.shiftKey) {
-                character = character.toLowerCase();
-            }
-
-            return character;
-        }
-
-        // for non keypress events the special maps are needed
-        if (_MAP[e.which]) {
-            return _MAP[e.which];
-        }
-
-        if (_KEYCODE_MAP[e.which]) {
-            return _KEYCODE_MAP[e.which];
-        }
-
-        // if it is not in the special map
-
-        // with keydown and keyup events the character seems to always
-        // come in as an uppercase character whether you are pressing shift
-        // or not.  we should make sure it is always lowercase for comparisons
-        return String.fromCharCode(e.which).toLowerCase();
-    }
-
-    /**
-     * checks if two arrays are equal
-     *
-     * @param {Array} modifiers1
-     * @param {Array} modifiers2
-     * @returns {boolean}
-     */
-    function _modifiersMatch(modifiers1, modifiers2) {
-        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
-    }
-
-    /**
-     * resets all sequence counters except for the ones passed in
-     *
-     * @param {Object} doNotReset
-     * @returns void
-     */
-    function _resetSequences(doNotReset) {
-        doNotReset = doNotReset || {};
-
-        var activeSequences = false,
-            key;
-
-        for (key in _sequenceLevels) {
-            if (doNotReset[key]) {
-                activeSequences = true;
-                continue;
-            }
-            _sequenceLevels[key] = 0;
-        }
-
-        if (!activeSequences) {
-            _nextExpectedAction = false;
-        }
-    }
-
-    /**
-     * finds all callbacks that match based on the keycode, modifiers,
-     * and action
-     *
-     * @param {string} character
-     * @param {Array} modifiers
-     * @param {Event|Object} e
-     * @param {string=} sequenceName - name of the sequence we are looking for
-     * @param {string=} combination
-     * @param {number=} level
-     * @returns {Array}
-     */
-    function _getMatches(character, modifiers, e, sequenceName, combination, level) {
-        var i,
-            callback,
-            matches = [],
-            action = e.type;
-
-        // if there are no events related to this keycode
-        if (!_callbacks[character]) {
-            return [];
-        }
-
-        // if a modifier key is coming up on its own we should allow it
-        if (action == 'keyup' && _isModifier(character)) {
-            modifiers = [character];
-        }
-
-        // loop through all callbacks for the key that was pressed
-        // and see if any of them match
-        for (i = 0; i < _callbacks[character].length; ++i) {
-            callback = _callbacks[character][i];
-
-            // if a sequence name is not specified, but this is a sequence at
-            // the wrong level then move onto the next match
-            if (!sequenceName && callback.seq && _sequenceLevels[callback.seq] != callback.level) {
-                continue;
-            }
-
-            // if the action we are looking for doesn't match the action we got
-            // then we should keep going
-            if (action != callback.action) {
-                continue;
-            }
-
-            // if this is a keypress event and the meta key and control key
-            // are not pressed that means that we need to only look at the
-            // character, otherwise check the modifiers as well
-            //
-            // chrome will not fire a keypress if meta or control is down
-            // safari will fire a keypress if meta or meta+shift is down
-            // firefox will fire a keypress if meta or control is down
-            if ((action == 'keypress' && !e.metaKey && !e.ctrlKey) || _modifiersMatch(modifiers, callback.modifiers)) {
-
-                // when you bind a combination or sequence a second time it
-                // should overwrite the first one.  if a sequenceName or
-                // combination is specified in this call it does just that
-                //
-                // @todo make deleting its own method?
-                var deleteCombo = !sequenceName && callback.combo == combination;
-                var deleteSequence = sequenceName && callback.seq == sequenceName && callback.level == level;
-                if (deleteCombo || deleteSequence) {
-                    _callbacks[character].splice(i, 1);
-                }
-
-                matches.push(callback);
-            }
-        }
-
-        return matches;
-    }
-
-    /**
-     * takes a key event and figures out what the modifiers are
-     *
-     * @param {Event} e
-     * @returns {Array}
-     */
-    function _eventModifiers(e) {
-        var modifiers = [];
-
-        if (e.shiftKey) {
-            modifiers.push('shift');
-        }
-
-        if (e.altKey) {
-            modifiers.push('alt');
-        }
-
-        if (e.ctrlKey) {
-            modifiers.push('ctrl');
-        }
-
-        if (e.metaKey) {
-            modifiers.push('meta');
-        }
-
-        return modifiers;
-    }
-
-    /**
-     * actually calls the callback function
-     *
-     * if your callback function returns false this will use the jquery
-     * convention - prevent default and stop propogation on the event
-     *
-     * @param {Function} callback
-     * @param {Event} e
-     * @returns void
-     */
-    function _fireCallback(callback, e, combo) {
-
-        // if this event should not happen stop here
-        if (Mousetrap.stopCallback(e, e.target || e.srcElement, combo)) {
-            return;
-        }
-
-        if (callback(e, combo) === false) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-
-            e.returnValue = false;
-            e.cancelBubble = true;
-        }
-    }
-
-    /**
-     * handles a character key event
-     *
-     * @param {string} character
-     * @param {Array} modifiers
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleKey(character, modifiers, e) {
-        var callbacks = _getMatches(character, modifiers, e),
-            i,
-            doNotReset = {},
-            maxLevel = 0,
-            processedSequenceCallback = false;
-
-        // Calculate the maxLevel for sequences so we can only execute the longest callback sequence
-        for (i = 0; i < callbacks.length; ++i) {
-            if (callbacks[i].seq) {
-                maxLevel = Math.max(maxLevel, callbacks[i].level);
-            }
-        }
-
-        // loop through matching callbacks for this key event
-        for (i = 0; i < callbacks.length; ++i) {
-
-            // fire for all sequence callbacks
-            // this is because if for example you have multiple sequences
-            // bound such as "g i" and "g t" they both need to fire the
-            // callback for matching g cause otherwise you can only ever
-            // match the first one
-            if (callbacks[i].seq) {
-
-                // only fire callbacks for the maxLevel to prevent
-                // subsequences from also firing
-                //
-                // for example 'a option b' should not cause 'option b' to fire
-                // even though 'option b' is part of the other sequence
-                //
-                // any sequences that do not match here will be discarded
-                // below by the _resetSequences call
-                if (callbacks[i].level != maxLevel) {
-                    continue;
-                }
-
-                processedSequenceCallback = true;
-
-                // keep a list of which sequences were matches for later
-                doNotReset[callbacks[i].seq] = 1;
-                _fireCallback(callbacks[i].callback, e, callbacks[i].combo);
-                continue;
-
-            } else if (Mousetrap.TRIGGER_PREFIX_COMBOS) {
-                // HACK: Mousetrap does not trigger 'prefixes'
-                _fireCallback(callbacks[i].callback, e, callbacks[i].combo);
-            } else {
-                // if there were no sequence matches but we are still here
-                // that means this is a regular match so we should fire that
-                if (!processedSequenceCallback) {
-                    _fireCallback(callbacks[i].callback, e, callbacks[i].combo);
-                }
-            }
-        }
-
-        // if the key you pressed matches the type of sequence without
-        // being a modifier (ie "keyup" or "keypress") then we should
-        // reset all sequences that were not matched by this event
-        //
-        // this is so, for example, if you have the sequence "h a t" and you
-        // type "h e a r t" it does not match.  in this case the "e" will
-        // cause the sequence to reset
-        //
-        // modifier keys are ignored because you can have a sequence
-        // that contains modifiers such as "enter ctrl+space" and in most
-        // cases the modifier key will be pressed before the next key
-        //
-        // also if you have a sequence such as "ctrl+b a" then pressing the
-        // "b" key will trigger a "keypress" and a "keydown"
-        //
-        // the "keydown" is expected when there is a modifier, but the
-        // "keypress" ends up matching the _nextExpectedAction since it occurs
-        // after and that causes the sequence to reset
-        //
-        // we ignore keypresses in a sequence that directly follow a keydown
-        // for the same character
-        var ignoreThisKeypress = e.type == 'keypress' && _ignoreNextKeypress;
-        if (e.type == _nextExpectedAction && !_isModifier(character) && !ignoreThisKeypress) {
-            _resetSequences(doNotReset);
-        }
-
-        _ignoreNextKeypress = processedSequenceCallback && e.type == 'keydown';
-
-        // provide information about if there have callbacks detected
-        // E.g., this is used to trigger a default key handler in case of no others did match
-        return callbacks.length > 0;
-    }
-
-    /**
-     * handles a keydown event
-     *
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleKeyEvent(e) {
-
-        // normalize e.which for key events
-        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
-        if (typeof e.which !== 'number') {
-            e.which = e.keyCode;
-        }
-
-        var character = _characterFromEvent(e);
-
-        // no character found then stop
-        if (!character) {
-            return;
-        }
-
-        // need to use === for the character check because the character can be 0
-        if (e.type == 'keyup' && _ignoreNextKeyup === character) {
-            _ignoreNextKeyup = false;
-            return;
-        }
-
-        Mousetrap.handleKey(character, _eventModifiers(e), e);
-    }
-
-    /**
-     * determines if the keycode specified is a modifier key or not
-     *
-     * @param {string} key
-     * @returns {boolean}
-     */
-    function _isModifier(key) {
-        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
-    }
-
-    /**
-     * called to set a 1 second timeout on the specified sequence
-     *
-     * this is so after each key press in the sequence you have 1 second
-     * to press the next key before you have to start over
-     *
-     * @returns void
-     */
-    function _resetSequenceTimer() {
-        clearTimeout(_resetTimer);
-        _resetTimer = setTimeout(_resetSequences, 1000);
-    }
-
-    /**
-     * reverses the map lookup so that we can look for specific keys
-     * to see what can and can't use keypress
-     *
-     * @return {Object}
-     */
-    function _getReverseMap() {
-        if (!_REVERSE_MAP) {
-            _REVERSE_MAP = {};
-            for (var key in _MAP) {
-
-                // pull out the numeric keypad from here cause keypress should
-                // be able to detect the keys from the character
-                if (key > 95 && key < 112) {
-                    continue;
-                }
-
-                if (_MAP.hasOwnProperty(key)) {
-                    _REVERSE_MAP[_MAP[key]] = key;
-                }
-            }
-        }
-        return _REVERSE_MAP;
-    }
-
-    /**
-     * picks the best action based on the key combination
-     *
-     * @param {string} key - character for key
-     * @param {Array} modifiers
-     * @param {string=} action passed in
-     */
-    function _pickBestAction(key, modifiers, action) {
-
-        // if no action was picked in we should try to pick the one
-        // that we think would work best for this key
-        if (!action) {
-            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
-        }
-
-        // modifier keys don't work as expected with keypress,
-        // switch to keydown
-        if (action == 'keypress' && modifiers.length) {
-            action = 'keydown';
-        }
-
-        return action;
-    }
-
-    /**
-     * binds a key sequence to an event
-     *
-     * @param {string} combo - combo specified in bind call
-     * @param {Array} keys
-     * @param {Function} callback
-     * @param {string=} action
-     * @returns void
-     */
-    function _bindSequence(combo, keys, callback, action) {
-
-        // start off by adding a sequence level record for this combination
-        // and setting the level to 0
-        _sequenceLevels[combo] = 0;
-
-        /**
-         * callback to increase the sequence level for this sequence and reset
-         * all other sequences that were active
-         *
-         * @param {string} nextAction
-         * @returns {Function}
-         */
-        function _increaseSequence(nextAction) {
-            return function() {
-                _nextExpectedAction = nextAction;
-                ++_sequenceLevels[combo];
-                _resetSequenceTimer();
-            };
-        }
-
-        /**
-         * wraps the specified callback inside of another function in order
-         * to reset all sequence counters as soon as this sequence is done
-         *
-         * @param {Event} e
-         * @returns void
-         */
-        function _callbackAndReset(e) {
-            _fireCallback(callback, e, combo);
-
-            // we should ignore the next key up if the action is key down
-            // or keypress.  this is so if you finish a sequence and
-            // release the key the final key will not trigger a keyup
-            if (action !== 'keyup') {
-                _ignoreNextKeyup = _characterFromEvent(e);
-            }
-
-            // weird race condition if a sequence ends with the key
-            // another sequence begins with
-            setTimeout(_resetSequences, 10);
-        }
-
-        // loop through keys one at a time and bind the appropriate callback
-        // function.  for any key leading up to the final one it should
-        // increase the sequence. after the final, it should reset all sequences
-        //
-        // if an action is specified in the original bind call then that will
-        // be used throughout.  otherwise we will pass the action that the
-        // next key in the sequence should match.  this allows a sequence
-        // to mix and match keypress and keydown events depending on which
-        // ones are better suited to the key provided
-        for (var i = 0; i < keys.length; ++i) {
-            var isFinal = i + 1 === keys.length;
-            var wrappedCallback = isFinal ? _callbackAndReset : _increaseSequence(action || _getKeyInfo(keys[i + 1]).action);
-            _bindSingle(keys[i], wrappedCallback, action, combo, i);
-        }
-    }
-
-    /**
-     * Converts from a string key combination to an array
-     *
-     * @param  {string} combination like "command+shift+l"
-     * @return {Array}
-     */
-    function _keysFromString(combination) {
-        if (combination === '+') {
-            return ['+'];
-        }
-
-        return combination.split('+');
-    }
-
-    /**
-     * Gets info for a specific key combination
-     *
-     * @param  {string} combination key combination ("command+s" or "a" or "*")
-     * @param  {string=} action
-     * @returns {Object}
-     */
-    function _getKeyInfo(combination, action) {
-        var keys,
-            key,
-            i,
-            modifiers = [];
-
-        // take the keys from this pattern and figure out what the actual
-        // pattern is all about
-        keys = _keysFromString(combination);
-
-        for (i = 0; i < keys.length; ++i) {
-            key = keys[i];
-
-            // normalize key names
-            if (_SPECIAL_ALIASES[key]) {
-                key = _SPECIAL_ALIASES[key];
-            }
-
-            // if this is not a keypress event then we should
-            // be smart about using shift keys
-            // this will only work for US keyboards however
-            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
-                key = _SHIFT_MAP[key];
-                modifiers.push('shift');
-            }
-
-            // if this key is a modifier then add it to the list of modifiers
-            if (_isModifier(key)) {
-                modifiers.push(key);
-            }
-        }
-
-        // depending on what the key combination is
-        // we will try to pick the best event for it
-        action = _pickBestAction(key, modifiers, action);
-
-        return {
-            key: key,
-            modifiers: modifiers,
-            action: action
-        };
-    }
-
-    /**
-     * binds a single keyboard combination
-     *
-     * @param {string} combination
-     * @param {Function} callback
-     * @param {string=} action
-     * @param {string=} sequenceName - name of sequence if part of sequence
-     * @param {number=} level - what part of the sequence the command is
-     * @returns void
-     */
-    function _bindSingle(combination, callback, action, sequenceName, level) {
-
-        // store a direct mapped reference for use with Mousetrap.trigger
-        _directMap[combination + ':' + action] = callback;
-
-        // make sure multiple spaces in a row become a single space
-        combination = combination.replace(/\s+/g, ' ');
-
-        var sequence = combination.split(' '),
-            info;
-
-        // if this pattern is a sequence of keys then run through this method
-        // to reprocess each pattern one key at a time
-        if (sequence.length > 1) {
-            _bindSequence(combination, sequence, callback, action);
-            return;
-        }
-
-        info = _getKeyInfo(combination, action);
-
-        // make sure to initialize array if this is the first time
-        // a callback is added for this key
-        _callbacks[info.key] = _callbacks[info.key] || [];
-
-        // remove an existing match if there is one
-        _getMatches(info.key, info.modifiers, {type: info.action}, sequenceName, combination, level);
-
-        // add this call back to the array
-        // if it is a sequence put it at the beginning
-        // if not put it at the end
-        //
-        // this is important because the way these are processed expects
-        // the sequence ones to come first
-        _callbacks[info.key][sequenceName ? 'unshift' : 'push']({
-            callback: callback,
-            modifiers: info.modifiers,
-            action: info.action,
-            seq: sequenceName,
-            level: level,
-            combo: combination
-        });
-    }
-
-    /**
-     * binds multiple combinations to the same callback
-     *
-     * @param {Array} combinations
-     * @param {Function} callback
-     * @param {string|undefined} action
-     * @returns void
-     */
-    function _bindMultiple(combinations, callback, action) {
-        for (var i = 0; i < combinations.length; ++i) {
-            _bindSingle(combinations[i], callback, action);
-        }
-    }
-
-    // start!
-    _addEvent(document, 'keypress', _handleKeyEvent);
-    _addEvent(document, 'keydown', _handleKeyEvent);
-    _addEvent(document, 'keyup', _handleKeyEvent);
-
-    var Mousetrap = {
-
-        /**
-         * binds an event to mousetrap
-         *
-         * can be a single key, a combination of keys separated with +,
-         * an array of keys, or a sequence of keys separated by spaces
-         *
-         * be sure to list the modifier keys first to make sure that the
-         * correct key ends up getting bound (the last key in the pattern)
-         *
-         * @param {string|Array} keys
-         * @param {Function} callback
-         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
-         * @returns void
-         */
-        bind: function(keys, callback, action) {
-            keys = keys instanceof Array ? keys : [keys];
-            _bindMultiple(keys, callback, action);
-            return this;
-        },
-
-        /**
-         * unbinds an event to mousetrap
-         *
-         * the unbinding sets the callback function of the specified key combo
-         * to an empty function and deletes the corresponding key in the
-         * _directMap dict.
-         *
-         * TODO: actually remove this from the _callbacks dictionary instead
-         * of binding an empty function
-         *
-         * the keycombo+action has to be exactly the same as
-         * it was defined in the bind method
-         *
-         * @param {string|Array} keys
-         * @param {string} action
-         * @returns void
-         */
-        unbind: function(keys, action) {
-            return Mousetrap.bind(keys, function() {}, action);
-        },
-
-        /**
-         * triggers an event that has already been bound
-         *
-         * @param {string} keys
-         * @param {string=} action
-         * @returns void
-         */
-        trigger: function(keys, action) {
-            if (_directMap[keys + ':' + action]) {
-                _directMap[keys + ':' + action]({}, keys);
-            }
-            return this;
-        },
-
-        /**
-         * resets the library back to its initial state.  this is useful
-         * if you want to clear out the current keyboard shortcuts and bind
-         * new ones - for example if you switch to another page
-         *
-         * @returns void
-         */
-        reset: function() {
-            _callbacks = {};
-            _directMap = {};
-            return this;
-        },
-
-       /**
-        * should we stop this event before firing off callbacks
-        *
-        * @param {Event} e
-        * @param {Element} element
-        * @return {boolean}
-        */
-        stopCallback: function(e, element) {
-
-            // if the element has the class "mousetrap" then no need to stop
-            if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
-                return false;
-            }
-
-            // stop for input, select, and textarea
-            return element.tagName == 'INPUT' || element.tagName == 'SELECT' || element.tagName == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
-        },
-
-        /**
-         * exposes _handleKey publicly so it can be overwritten by extensions
-         */
-        handleKey: _handleKey,
-
-        /**
-         * Trigger callbacks for combos even when they are part of sequnence.
-         */
-         TRIGGER_PREFIX_COMBOS: false
-    };
-
-    // expose mousetrap to the global object
-    window.Mousetrap = Mousetrap;
-
-    // expose mousetrap as an AMD module
-    if (typeof define === 'function' && define.amd) {
-        define(Mousetrap);
-    }
-}) ();
-
-},{}],26:[function(require,module,exports){
-"use strict";
-
-require("../lib/mousetrap");
-var Mousetrap = window.Mousetrap;
-
-var Keyboard = function(mainControl) {
-  this.__bindings = {};
-  this.__mainControl = mainControl;
-  this.__controls = [];
-  this.__defaultHandler = null;
-};
-
-Keyboard.Prototype = function() {
-
-  // keep the original key handler for delegation
-  var __handleKey = Mousetrap.handleKey;
-
-  function __getContext(self, pathStr) {
-    var path = pathStr.split(".");
-    var context = self.__bindings;
-
-    // prepare the hierarchical data structure
-    for (var i = 0; i < path.length; i++) {
-      var c = path[i];
-      context.contexts = context.contexts || {};
-      context.contexts[c] = context.contexts[c] || {};
-      context = context.contexts[c];
-    }
-
-    return context;
-  }
-
-  function __registerBindings(self, definition) {
-    var context = __getContext(self, definition.context);
-    // add the commands into the given context
-    context.commands = context.commands || [];
-    context.commands = context.commands.concat(definition.commands);
-  }
-
-  function __createCallback(control, commandSpec) {
-    var obj = control;
-    if (commandSpec.scope) {
-      obj = control[commandSpec.scope];
-    }
-    // default is preventing the default
-    var preventDefault = (commandSpec.preventDefault !== "false");
-
-    return function(e) {
-      obj[commandSpec.command].apply(obj, commandSpec.args);
-      if (preventDefault) e.preventDefault();
-    };
-  }
-
-  function __bind(control, commands) {
-    if (commands === undefined) return;
-
-    for (var i = 0; i < commands.length; i++) {
-      var command = commands[i];
-      Mousetrap.bind(command.keys, __createCallback(control, command));
-    }
-  }
-
-  function __injectDefaultHandler(defaultHandlers) {
-    if (!defaultHandlers || defaultHandlers.length === 0) return;
-
-    var handleKey = function(character, modifiers, e) {
-      if (__handleKey(character, modifiers, e)) return;
-
-      for (var i = defaultHandlers.length - 1; i >= 0; i--) {
-        var item = defaultHandlers[i];
-
-        // the handler function must return a command specification that
-        // will be interpreted by the associated controller
-        var cmd = item.handler(character, modifiers, e);
-
-        // if the handler does not take care of the event
-        // cmd should be falsy
-        if (cmd) {
-          var control = item.control;
-          var command = cmd.command;
-          var args = cmd.args;
-          control[command].apply(control, args);
-
-          // we prevent the default behaviour and also bubbling through
-          // eventual parent default handlers.
-          //e.preventDefault();
-          return;
-        }
-      }
-    };
-
-    Mousetrap.handleKey = handleKey;
-  }
-
-  function __createBindings(self) {
-    // TODO: would be great to have Mousetrap more modular and create several immutable
-    // versions which would be switched here
-    Mousetrap.reset();
-    Mousetrap.handleKey = __handleKey;
-    var defaultHandlers = [];
-
-    function processBinding(context, control, bindings) {
-      __bind(control, bindings.commands);
-      if (bindings.default !== undefined) {
-        defaultHandlers.push({
-          context: context,
-          control: control,
-          handler: bindings.default
-        });
-      }
-    }
-
-    // TODO build active key mappings from registered bindings
-    var controls = self.__controls;
-    var bindings = self.__bindings;
-    var context = "";
-    var control = self.__mainControl;
-
-    processBinding(context, control, bindings);
-
-    for (var i = 0; i < controls.length; i++) {
-      context = controls[i][0];
-      control = controls[i][1];
-
-      if (bindings.contexts === undefined || bindings.contexts[context] === undefined) {
-        break;
-      }
-
-      bindings = bindings.contexts[context];
-      processBinding(context, control, bindings);
-    }
-
-    __injectDefaultHandler(defaultHandlers);
-  }
-
-  // Registers bindings declared in the definition.
-  // --------
-  //
-
-  this.registerBindings = function(definition) {
-    console.log("Keyboard.registerBindings: definition=", definition);
-    for (var i = 0; i < definition.length; i++) {
-      var def = definition[i];
-      __registerBindings(this, def);
-    }
-    this.stateChanged();
-  };
-
-  this.setDefaultHandler = function(contextStr, handler) {
-    var context = __getContext(this, contextStr);
-    context.default = handler;
-  };
-
-  // Updates the keyboard bindings after application state changes.
-  // --------
-  //
-
-  this.stateChanged = function() {
-    // controllers are structured in hierarchical contexts
-    // having one controller taking responsibility for each context.
-    this.__controls = this.__mainControl.getActiveControllers();
-    __createBindings(this);
-  };
-
-  // Enters a subcontext using a given controller.
-  // --------
-  //
-  // Use this to add finer grained sub-states. The sub-context will be kept
-  // until `exit(context)` is called or the application state is changed.
-
-  this.enter = function(context, control) {
-    this.__controls.push([context, control]);
-    __createBindings(this);
-  };
-
-  // Exits a previously entered subcontext.
-  // --------
-  //
-
-  this.exit = function(context) {
-    var pos = -1;
-    for (var i = this.__controls.length - 1; i >= 0; i--) {
-      if (this.__controls[i][0] === context) {
-        pos = i;
-        break;
-      }
-    }
-    if (pos < 0) {
-      throw new Error("Unknown context: " + context, ", expected one of: " + JSON.stringify(this.__contexts));
-    }
-    this.__controls = this.__controls.slice(0, pos);
-    __createBindings(this);
-  };
-
-  // Supported flags:
-  // TRIGGER_PREFIX_COMBOS: trigger combos that are already part of other sequences (default: false)
-  this.set = function(prop, value) {
-    Mousetrap[prop] = value;
-  };
-
-};
-Keyboard.prototype = new Keyboard.Prototype();
-
-module.exports = Keyboard;
-
-},{"../lib/mousetrap":25}],27:[function(require,module,exports){
-"use strict";
 
 /**
  * mapping of special keycodes to their corresponding keys
@@ -5293,19 +4350,19 @@ for (i = 0; i <= 9; ++i) {
  * @returns void
  */
 function _attachListener(object, type, callback) {
-    if (object.addEventListener) {
-        object.addEventListener(type, callback, false);
-    } else {
-        object.attachEvent('on' + type, callback);
-    }
+  if (object.addEventListener) {
+    object.addEventListener(type, callback, false);
+  } else {
+    object.attachEvent('on' + type, callback);
+  }
 }
 
 function _detachListener(object, type, callback) {
-    if (object.removeEventListener) {
-        object.removeEventListener(type, callback, false);
-    } else {
-        object.detachEvent('on' + type, callback);
-    }
+  if (object.removeEventListener) {
+    object.removeEventListener(type, callback, false);
+  } else {
+    object.detachEvent('on' + type, callback);
+  }
 }
 
 /**
@@ -5316,41 +4373,41 @@ function _detachListener(object, type, callback) {
  */
 function _characterFromEvent(e) {
 
-    // for keypress events we should return the character as is
-    if (e.type == 'keypress') {
-        var character = String.fromCharCode(e.which);
+  // for keypress events we should return the character as is
+  if (e.type == 'keypress') {
+    var character = String.fromCharCode(e.which);
 
-        // if the shift key is not pressed then it is safe to assume
-        // that we want the character to be lowercase.  this means if
-        // you accidentally have caps lock on then your key bindings
-        // will continue to work
-        //
-        // the only side effect that might not be desired is if you
-        // bind something like 'A' cause you want to trigger an
-        // event when capital A is pressed caps lock will no longer
-        // trigger the event.  shift+a will though.
-        if (!e.shiftKey) {
-            character = character.toLowerCase();
-        }
-
-        return character;
+    // if the shift key is not pressed then it is safe to assume
+    // that we want the character to be lowercase.  this means if
+    // you accidentally have caps lock on then your key bindings
+    // will continue to work
+    //
+    // the only side effect that might not be desired is if you
+    // bind something like 'A' cause you want to trigger an
+    // event when capital A is pressed caps lock will no longer
+    // trigger the event.  shift+a will though.
+    if (!e.shiftKey) {
+        character = character.toLowerCase();
     }
 
-    // for non keypress events the special maps are needed
-    if (_MAP[e.which]) {
-        return _MAP[e.which];
-    }
+    return character;
+  }
 
-    if (_KEYCODE_MAP[e.which]) {
-        return _KEYCODE_MAP[e.which];
-    }
+  // for non keypress events the special maps are needed
+  if (_MAP[e.which]) {
+    return _MAP[e.which];
+  }
 
-    // if it is not in the special map
+  if (_KEYCODE_MAP[e.which]) {
+    return _KEYCODE_MAP[e.which];
+  }
 
-    // with keydown and keyup events the character seems to always
-    // come in as an uppercase character whether you are pressing shift
-    // or not.  we should make sure it is always lowercase for comparisons
-    return String.fromCharCode(e.which).toLowerCase();
+  // if it is not in the special map
+
+  // with keydown and keyup events the character seems to always
+  // come in as an uppercase character whether you are pressing shift
+  // or not.  we should make sure it is always lowercase for comparisons
+  return String.fromCharCode(e.which).toLowerCase();
 }
 
 /**
@@ -5361,7 +4418,7 @@ function _characterFromEvent(e) {
  * @returns {boolean}
  */
 function _modifiersMatch(modifiers1, modifiers2) {
-    return modifiers1.sort().join(',') === modifiers2.sort().join(',');
+  return modifiers1.sort().join(',') === modifiers2.sort().join(',');
 }
 
 /**
@@ -5371,25 +4428,25 @@ function _modifiersMatch(modifiers1, modifiers2) {
  * @returns {Array}
  */
 function _eventModifiers(e) {
-    var modifiers = [];
+  var modifiers = [];
 
-    if (e.shiftKey) {
-        modifiers.push('shift');
-    }
+  if (e.shiftKey) {
+      modifiers.push('shift');
+  }
 
-    if (e.altKey) {
-        modifiers.push('alt');
-    }
+  if (e.altKey) {
+      modifiers.push('alt');
+  }
 
-    if (e.ctrlKey) {
-        modifiers.push('ctrl');
-    }
+  if (e.ctrlKey) {
+      modifiers.push('ctrl');
+  }
 
-    if (e.metaKey) {
-        modifiers.push('meta');
-    }
+  if (e.metaKey) {
+      modifiers.push('meta');
+  }
 
-    return modifiers;
+  return modifiers;
 }
 
 /**
@@ -5399,7 +4456,7 @@ function _eventModifiers(e) {
  * @returns {boolean}
  */
 function _isModifier(key) {
-    return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
+  return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
 }
 
 /**
@@ -5409,696 +4466,678 @@ function _isModifier(key) {
  * @return {Array}
  */
 function _keysFromString(combination) {
-    if (combination === '+') {
-        return ['+'];
-    }
+  if (combination === '+') {
+      return ['+'];
+  }
 
-    return combination.split('+');
+  return combination.split('+');
 }
 
-var Mousetrap = function() {
-    /**
-     * variable to store the flipped version of _MAP from above
-     * needed to check if we should use keypress or not when no action
-     * is specified
-     *
-     * @type {Object|undefined}
-     */
-    this._REVERSE_MAP = {};
+var Keyboard = function(keymap) {
+  /**
+   * variable to store the flipped version of _MAP from above
+   * needed to check if we should use keypress or not when no action
+   * is specified
+   *
+   * @type {Object|undefined}
+   */
+  this._REVERSE_MAP = {};
+
+  /**
+   * a list of all the callbacks setup via Keyboard.bind()
+   *
+   * @type {Object}
+   */
+  this._callbacks = {};
+
+  /**
+   * direct map of string combinations to callbacks used for trigger()
+   *
+   * @type {Object}
+   */
+  this._directMap = {};
+
+  /**
+   * keeps track of what level each sequence is at since multiple
+   * sequences can start out with the same sequence
+   *
+   * @type {Object}
+   */
+  this._sequenceLevels = {};
+
+  /**
+   * variable to store the setTimeout call
+   *
+   * @type {null|number}
+   */
+  this._resetTimer = null;
+
+  /**
+   * temporary state where we will ignore the next keyup
+   *
+   * @type {boolean|string}
+   */
+  this._ignoreNextKeyup = false;
+
+  /**
+   * temporary state where we will ignore the next keypress
+   *
+   * @type {boolean}
+   */
+  this._ignoreNextKeypress = false;
+
+  /**
+   * are we currently inside of a sequence?
+   * type of action ("keyup" or "keydown" or "keypress") or false
+   *
+   * @type {boolean|string}
+   */
+  this._nextExpectedAction = false;
+
+  this._handler = this._handleKeyEvent.bind(this);
+
+  this.keymap = keymap;
+};
+
+Keyboard.Prototype = function() {
+
+  /**
+   * resets all sequence counters except for the ones passed in
+   *
+   * @param {Object} doNotReset
+   * @returns void
+   */
+  function _resetSequences(doNotReset) {
+      doNotReset = doNotReset || {};
+
+      var activeSequences = false,
+          key;
+
+      for (key in this._sequenceLevels) {
+          if (doNotReset[key]) {
+              activeSequences = true;
+              continue;
+          }
+          this._sequenceLevels[key] = 0;
+      }
+
+      if (!activeSequences) {
+          this._nextExpectedAction = false;
+      }
+  }
+
+  /**
+   * finds all callbacks that match based on the keycode, modifiers,
+   * and action
+   *
+   * @param {string} character
+   * @param {Array} modifiers
+   * @param {Event|Object} e
+   * @param {string=} sequenceName - name of the sequence we are looking for
+   * @param {string=} combination
+   * @param {number=} level
+   * @returns {Array}
+   */
+  function _getMatches(character, modifiers, e, sequenceName, combination, level) {
+      var i,
+          callback,
+          matches = [],
+          action = e.type;
+
+      // if there are no events related to this keycode
+      if (!this._callbacks[character]) {
+          return [];
+      }
+
+      // if a modifier key is coming up on its own we should allow it
+      if (action == 'keyup' && _isModifier(character)) {
+          modifiers = [character];
+      }
+
+      // loop through all callbacks for the key that was pressed
+      // and see if any of them match
+      for (i = 0; i < this._callbacks[character].length; ++i) {
+          callback = this._callbacks[character][i];
+
+          // if a sequence name is not specified, but this is a sequence at
+          // the wrong level then move onto the next match
+          if (!sequenceName && callback.seq && this._sequenceLevels[callback.seq] != callback.level) {
+              continue;
+          }
+
+          // if the action we are looking for doesn't match the action we got
+          // then we should keep going
+          if (action != callback.action) {
+              continue;
+          }
+
+          // if this is a keypress event and the meta key and control key
+          // are not pressed that means that we need to only look at the
+          // character, otherwise check the modifiers as well
+          //
+          // chrome will not fire a keypress if meta or control is down
+          // safari will fire a keypress if meta or meta+shift is down
+          // firefox will fire a keypress if meta or control is down
+          if ((action == 'keypress' && !e.metaKey && !e.ctrlKey) || _modifiersMatch(modifiers, callback.modifiers)) {
+
+              // when you bind a combination or sequence a second time it
+              // should overwrite the first one.  if a sequenceName or
+              // combination is specified in this call it does just that
+              //
+              // @todo make deleting its own method?
+              var deleteCombo = !sequenceName && callback.combo == combination;
+              var deleteSequence = sequenceName && callback.seq == sequenceName && callback.level == level;
+              if (deleteCombo || deleteSequence) {
+                  this._callbacks[character].splice(i, 1);
+              }
+
+              matches.push(callback);
+          }
+      }
+
+      return matches;
+  }
+
+  /**
+   * actually calls the callback function
+   *
+   * if your callback function returns false this will use the jquery
+   * convention - prevent default and stop propogation on the event
+   *
+   * @param {Function} callback
+   * @param {Event} e
+   * @returns void
+   */
+  function _fireCallback(callback, e, combo) {
+
+    // if this event should not happen stop here
+    if (this.NOT_IN_EDITABLES && this.stopCallback(e, e.target || e.srcElement, combo)) {
+         return;
+    }
+
+    if (callback.call(callback.self, e, combo) === false) {
+      if (e.preventDefault) {
+        e.preventDefault();
+      }
+
+      if (e.stopPropagation) {
+        e.stopPropagation();
+      }
+
+      e.returnValue = false;
+      e.cancelBubble = true;
+    }
+  }
+
+  /**
+   * handles a character key event
+   *
+   * @param {string} character
+   * @param {Array} modifiers
+   * @param {Event} e
+   * @returns void
+   */
+  this.handleKey = function (character, modifiers, e) {
+    var callbacks = _getMatches.call(this, character, modifiers, e),
+        i,
+        doNotReset = {},
+        maxLevel = 0,
+        processedSequenceCallback = false;
+
+    // Calculate the maxLevel for sequences so we can only execute the longest callback sequence
+    for (i = 0; i < callbacks.length; ++i) {
+      if (callbacks[i].seq) {
+          maxLevel = Math.max(maxLevel, callbacks[i].level);
+      }
+    }
+
+    // loop through matching callbacks for this key event
+    for (i = 0; i < callbacks.length; ++i) {
+
+      // fire for all sequence callbacks
+      // this is because if for example you have multiple sequences
+      // bound such as "g i" and "g t" they both need to fire the
+      // callback for matching g cause otherwise you can only ever
+      // match the first one
+      if (callbacks[i].seq) {
+
+        // only fire callbacks for the maxLevel to prevent
+        // subsequences from also firing
+        //
+        // for example 'a option b' should not cause 'option b' to fire
+        // even though 'option b' is part of the other sequence
+        //
+        // any sequences that do not match here will be discarded
+        // below by the _resetSequences call
+        if (callbacks[i].level != maxLevel) {
+            continue;
+        }
+
+        processedSequenceCallback = true;
+
+        // keep a list of which sequences were matches for later
+        doNotReset[callbacks[i].seq] = 1;
+        _fireCallback.call(this, callbacks[i].callback, e, callbacks[i].combo);
+        continue;
+
+      } else if (Keyboard.TRIGGER_PREFIX_COMBOS) {
+        // HACK: Mousetrap does not trigger 'prefixes'
+        _fireCallback.call(this, callbacks[i].callback, e, callbacks[i].combo);
+      } else {
+        // if there were no sequence matches but we are still here
+        // that means this is a regular match so we should fire that
+        if (!processedSequenceCallback) {
+            _fireCallback.call(this, callbacks[i].callback, e, callbacks[i].combo);
+        }
+      }
+    }
+
+    // if the key you pressed matches the type of sequence without
+    // being a modifier (ie "keyup" or "keypress") then we should
+    // reset all sequences that were not matched by this event
+    //
+    // this is so, for example, if you have the sequence "h a t" and you
+    // type "h e a r t" it does not match.  in this case the "e" will
+    // cause the sequence to reset
+    //
+    // modifier keys are ignored because you can have a sequence
+    // that contains modifiers such as "enter ctrl+space" and in most
+    // cases the modifier key will be pressed before the next key
+    //
+    // also if you have a sequence such as "ctrl+b a" then pressing the
+    // "b" key will trigger a "keypress" and a "keydown"
+    //
+    // the "keydown" is expected when there is a modifier, but the
+    // "keypress" ends up matching the _nextExpectedAction since it occurs
+    // after and that causes the sequence to reset
+    //
+    // we ignore keypresses in a sequence that directly follow a keydown
+    // for the same character
+    var ignoreThisKeypress = e.type == 'keypress' && this._ignoreNextKeypress;
+    if (e.type == this._nextExpectedAction && !_isModifier(character) && !ignoreThisKeypress) {
+        _resetSequences.call(this, doNotReset);
+    }
+
+    this._ignoreNextKeypress = processedSequenceCallback && e.type == 'keydown';
+
+    // provide information about if there have callbacks detected
+    // E.g., this is used to trigger a default key handler in case of no others did match
+    return callbacks.length > 0;
+  };
+
+  /**
+   * handles a keydown event
+   *
+   * @param {Event} e
+   * @returns void
+   */
+  this._handleKeyEvent = function(e) {
+
+    // normalize e.which for key events
+    // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
+    if (typeof e.which !== 'number') {
+        e.which = e.keyCode;
+    }
+
+    var character = _characterFromEvent(e);
+
+    // no character found then stop
+    if (!character) {
+      return;
+    }
+
+    // need to use === for the character check because the character can be 0
+    if (e.type == 'keyup' && this._ignoreNextKeyup === character) {
+      this._ignoreNextKeyup = false;
+      return;
+    }
+
+    this.handleKey(character, _eventModifiers(e), e);
+  };
+
+  /**
+   * Gets info for a specific key combination
+   *
+   * @param  {string} combination key combination ("command+s" or "a" or "*")
+   * @param  {string=} action
+   * @returns {Object}
+   */
+  function _getKeyInfo(combination, action) {
+    var keys,
+        key,
+        i,
+        modifiers = [];
+
+    // take the keys from this pattern and figure out what the actual
+    // pattern is all about
+    keys = _keysFromString(combination);
+
+    for (i = 0; i < keys.length; ++i) {
+      key = keys[i];
+
+      // normalize key names
+      if (_SPECIAL_ALIASES[key]) {
+          key = _SPECIAL_ALIASES[key];
+      }
+
+      // if this is not a keypress event then we should
+      // be smart about using shift keys
+      // this will only work for US keyboards however
+      if (action && action != 'keypress' && _SHIFT_MAP[key]) {
+          key = _SHIFT_MAP[key];
+          modifiers.push('shift');
+      }
+
+      // if this key is a modifier then add it to the list of modifiers
+      if (_isModifier(key)) {
+          modifiers.push(key);
+      }
+    }
+
+    // depending on what the key combination is
+    // we will try to pick the best event for it
+    action = _pickBestAction.call(this, key, modifiers, action);
+
+    return {
+      key: key,
+      modifiers: modifiers,
+      action: action
+    };
+  }
+
+  /**
+   * binds a single keyboard combination
+   *
+   * @param {string} combination
+   * @param {Function} callback
+   * @param {string=} action
+   * @param {string=} sequenceName - name of sequence if part of sequence
+   * @param {number=} level - what part of the sequence the command is
+   * @returns void
+   */
+  function _bindSingle(combination, callback, action, sequenceName, level) {
+
+    // store a direct mapped reference for use with Keyboard.trigger
+    this._directMap[combination + ':' + action] = callback;
+
+    // make sure multiple spaces in a row become a single space
+    combination = combination.replace(/\s+/g, ' ');
+
+    var sequence = combination.split(' '),
+        info;
+
+    // if this pattern is a sequence of keys then run through this method
+    // to reprocess each pattern one key at a time
+    if (sequence.length > 1) {
+      _bindSequence.call(this, combination, sequence, callback, action);
+      return;
+    }
+
+    info = _getKeyInfo.call(this, combination, action);
+
+    // make sure to initialize array if this is the first time
+    // a callback is added for this key
+    this._callbacks[info.key] = this._callbacks[info.key] || [];
+
+    // remove an existing match if there is one
+    _getMatches.call(this, info.key, info.modifiers, {type: info.action}, sequenceName, combination, level);
+
+    // add this call back to the array
+    // if it is a sequence put it at the beginning
+    // if not put it at the end
+    //
+    // this is important because the way these are processed expects
+    // the sequence ones to come first
+    this._callbacks[info.key][sequenceName ? 'unshift' : 'push']({
+      callback: callback,
+      modifiers: info.modifiers,
+      action: info.action,
+      seq: sequenceName,
+      level: level,
+      combo: combination
+    });
+  }
+
+  /**
+   * binds multiple combinations to the same callback
+   *
+   * @param {Array} combinations
+   * @param {Function} callback
+   * @param {string|undefined} action
+   * @returns void
+   */
+  function _bindMultiple(combinations, callback, action) {
+    for (var i = 0; i < combinations.length; ++i) {
+      _bindSingle.call(this, combinations[i], callback, action);
+    }
+  }
+
+
+  /**
+   * called to set a 1 second timeout on the specified sequence
+   *
+   * this is so after each key press in the sequence you have 1 second
+   * to press the next key before you have to start over
+   *
+   * @returns void
+   */
+  function _resetSequenceTimer() {
+    clearTimeout(this._resetTimer);
+    this._resetTimer = setTimeout(_resetSequences.bind(this), 1000);
+  }
+
+  /**
+   * reverses the map lookup so that we can look for specific keys
+   * to see what can and can't use keypress
+   *
+   * @return {Object}
+   */
+  function _getReverseMap() {
+    if (!this._REVERSE_MAP) {
+      this._REVERSE_MAP = {};
+      for (var key in _MAP) {
+
+        // pull out the numeric keypad from here cause keypress should
+        // be able to detect the keys from the character
+        if (key > 95 && key < 112) {
+          continue;
+        }
+
+        if (_MAP.hasOwnProperty(key)) {
+          this._REVERSE_MAP[_MAP[key]] = key;
+        }
+      }
+    }
+    return this._REVERSE_MAP;
+  }
+
+  /**
+   * picks the best action based on the key combination
+   *
+   * @param {string} key - character for key
+   * @param {Array} modifiers
+   * @param {string=} action passed in
+   */
+  function _pickBestAction(key, modifiers, action) {
+
+    // if no action was picked in we should try to pick the one
+    // that we think would work best for this key
+    if (!action) {
+      action = _getReverseMap.call(this)[key] ? 'keydown' : 'keypress';
+    }
+
+    // modifier keys don't work as expected with keypress,
+    // switch to keydown
+    if (action == 'keypress' && modifiers.length) {
+      action = 'keydown';
+    }
+
+    return action;
+  }
+
+  /**
+   * binds a key sequence to an event
+   *
+   * @param {string} combo - combo specified in bind call
+   * @param {Array} keys
+   * @param {Function} callback
+   * @param {string=} action
+   * @returns void
+   */
+  function _bindSequence(combo, keys, callback, action) {
+
+    var that = this;
+
+    // start off by adding a sequence level record for this combination
+    // and setting the level to 0
+    this._sequenceLevels[combo] = 0;
 
     /**
-     * a list of all the callbacks setup via Mousetrap.bind()
+     * callback to increase the sequence level for this sequence and reset
+     * all other sequences that were active
      *
-     * @type {Object}
+     * @param {string} nextAction
+     * @returns {Function}
      */
+    function _increaseSequence(nextAction) {
+      return function() {
+        that._nextExpectedAction = nextAction;
+        ++that._sequenceLevels[combo];
+        _resetSequenceTimer.call(that);
+      };
+    }
+
+    /**
+     * wraps the specified callback inside of another function in order
+     * to reset all sequence counters as soon as this sequence is done
+     *
+     * @param {Event} e
+     * @returns void
+     */
+    function _callbackAndReset(e) {
+      _fireCallback.call(this, callback, e, combo);
+
+      // we should ignore the next key up if the action is key down
+      // or keypress.  this is so if you finish a sequence and
+      // release the key the final key will not trigger a keyup
+      if (action !== 'keyup') {
+        this._ignoreNextKeyup = _characterFromEvent(e);
+      }
+
+      // weird race condition if a sequence ends with the key
+      // another sequence begins with
+      setTimeout(_resetSequences.bind(this), 10);
+    }
+
+    // loop through keys one at a time and bind the appropriate callback
+    // function.  for any key leading up to the final one it should
+    // increase the sequence. after the final, it should reset all sequences
+    //
+    // if an action is specified in the original bind call then that will
+    // be used throughout.  otherwise we will pass the action that the
+    // next key in the sequence should match.  this allows a sequence
+    // to mix and match keypress and keydown events depending on which
+    // ones are better suited to the key provided
+    for (var i = 0; i < keys.length; ++i) {
+        var isFinal = i + 1 === keys.length;
+        var wrappedCallback = isFinal ? _callbackAndReset : _increaseSequence.call(this, action || _getKeyInfo(keys[i + 1]).action);
+        _bindSingle.call(this, keys[i], wrappedCallback, action, combo, i);
+    }
+  }
+
+  /**
+   * binds an event to mousetrap
+   *
+   * can be a single key, a combination of keys separated with +,
+   * an array of keys, or a sequence of keys separated by spaces
+   *
+   * be sure to list the modifier keys first to make sure that the
+   * correct key ends up getting bound (the last key in the pattern)
+   *
+   * @param {string|Array} keys
+   * @param {Function} callback
+   * @param {string=} action - 'keypress', 'keydown', or 'keyup'
+   * @returns void
+   */
+  this.bind = function(keys, callback, action, self) {
+    callback.self = self;
+    keys = (keys instanceof Array) ? keys : [keys];
+    _bindMultiple.call(this, keys, callback, action);
+    return this;
+  };
+
+  this.bindMapped = function(alias, callback, action, self) {
+    return this.bind(this.keymap[alias], callback, action, self);
+  };
+
+  /**
+   * triggers an event that has already been bound
+   *
+   * @param {string} keys
+   * @param {string=} action
+   * @returns void
+   */
+  this.trigger = function(keys, action) {
+    if (this._directMap[keys + ':' + action]) {
+      this._directMap[keys + ':' + action].call(this, {}, keys);
+    }
+    return this;
+  };
+
+  /**
+   * resets the library back to its initial state.  this is useful
+   * if you want to clear out the current keyboard shortcuts and bind
+   * new ones - for example if you switch to another page
+   *
+   * @returns void
+   */
+  this.reset = function() {
     this._callbacks = {};
-
-    /**
-     * direct map of string combinations to callbacks used for trigger()
-     *
-     * @type {Object}
-     */
     this._directMap = {};
+    return this;
+  };
 
-    /**
-     * keeps track of what level each sequence is at since multiple
-     * sequences can start out with the same sequence
-     *
-     * @type {Object}
-     */
-    this._sequenceLevels = {};
+  /**
+  * should we stop this event before firing off callbacks
+  *
+  * @param {Event} e
+  * @param {Element} element
+  * @return {boolean}
+  */
+  this.stopCallback = function(e, element) {
+    // if the element has the class "mousetrap" then no need to stop
+    if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
+      return false;
+    }
 
-    /**
-     * variable to store the setTimeout call
-     *
-     * @type {null|number}
-     */
-    this._resetTimer = null;
+    // stop for input, select, and textarea
+    return element.tagName == 'INPUT' || element.tagName == 'SELECT' || element.tagName == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
+  };
 
-    /**
-     * temporary state where we will ignore the next keyup
-     *
-     * @type {boolean|string}
-     */
-    this._ignoreNextKeyup = false;
+  this.connect = function(el) {
+    _attachListener(el, 'keypress', this._handler);
+    _attachListener(el, 'keydown', this._handler);
+    _attachListener(el, 'keyup', this._handler);
+  };
 
-    /**
-     * temporary state where we will ignore the next keypress
-     *
-     * @type {boolean}
-     */
-    this._ignoreNextKeypress = false;
+  this.disconnect = function(el) {
+    _detachListener(el, 'keypress', this._handler);
+    _detachListener(el, 'keydown', this._handler);
+    _detachListener(el, 'keyup', this._handler);
+  };
 
-    /**
-     * are we currently inside of a sequence?
-     * type of action ("keyup" or "keydown" or "keypress") or false
-     *
-     * @type {boolean|string}
-     */
-    this._nextExpectedAction = false;
-
-    this._handler = this._handleKeyEvent.bind(this);
+  /**
+   * Trigger callbacks for combos even when they are part of sequnence.
+   */
+  this.TRIGGER_PREFIX_COMBOS = false;
+  this.NOT_IN_EDITABLES = false;
 };
 
-Mousetrap.Prototype = function() {
+Keyboard.prototype = new Keyboard.Prototype();
 
-    /**
-     * resets all sequence counters except for the ones passed in
-     *
-     * @param {Object} doNotReset
-     * @returns void
-     */
-    function _resetSequences(doNotReset) {
-        doNotReset = doNotReset || {};
+module.exports = Keyboard;
 
-        var activeSequences = false,
-            key;
-
-        for (key in this._sequenceLevels) {
-            if (doNotReset[key]) {
-                activeSequences = true;
-                continue;
-            }
-            this._sequenceLevels[key] = 0;
-        }
-
-        if (!activeSequences) {
-            this._nextExpectedAction = false;
-        }
-    }
-
-    /**
-     * finds all callbacks that match based on the keycode, modifiers,
-     * and action
-     *
-     * @param {string} character
-     * @param {Array} modifiers
-     * @param {Event|Object} e
-     * @param {string=} sequenceName - name of the sequence we are looking for
-     * @param {string=} combination
-     * @param {number=} level
-     * @returns {Array}
-     */
-    function _getMatches(character, modifiers, e, sequenceName, combination, level) {
-        var i,
-            callback,
-            matches = [],
-            action = e.type;
-
-        // if there are no events related to this keycode
-        if (!this._callbacks[character]) {
-            return [];
-        }
-
-        // if a modifier key is coming up on its own we should allow it
-        if (action == 'keyup' && _isModifier(character)) {
-            modifiers = [character];
-        }
-
-        // loop through all callbacks for the key that was pressed
-        // and see if any of them match
-        for (i = 0; i < this._callbacks[character].length; ++i) {
-            callback = this._callbacks[character][i];
-
-            // if a sequence name is not specified, but this is a sequence at
-            // the wrong level then move onto the next match
-            if (!sequenceName && callback.seq && this._sequenceLevels[callback.seq] != callback.level) {
-                continue;
-            }
-
-            // if the action we are looking for doesn't match the action we got
-            // then we should keep going
-            if (action != callback.action) {
-                continue;
-            }
-
-            // if this is a keypress event and the meta key and control key
-            // are not pressed that means that we need to only look at the
-            // character, otherwise check the modifiers as well
-            //
-            // chrome will not fire a keypress if meta or control is down
-            // safari will fire a keypress if meta or meta+shift is down
-            // firefox will fire a keypress if meta or control is down
-            if ((action == 'keypress' && !e.metaKey && !e.ctrlKey) || _modifiersMatch(modifiers, callback.modifiers)) {
-
-                // when you bind a combination or sequence a second time it
-                // should overwrite the first one.  if a sequenceName or
-                // combination is specified in this call it does just that
-                //
-                // @todo make deleting its own method?
-                var deleteCombo = !sequenceName && callback.combo == combination;
-                var deleteSequence = sequenceName && callback.seq == sequenceName && callback.level == level;
-                if (deleteCombo || deleteSequence) {
-                    this._callbacks[character].splice(i, 1);
-                }
-
-                matches.push(callback);
-            }
-        }
-
-        return matches;
-    }
-
-    /**
-     * actually calls the callback function
-     *
-     * if your callback function returns false this will use the jquery
-     * convention - prevent default and stop propogation on the event
-     *
-     * @param {Function} callback
-     * @param {Event} e
-     * @returns void
-     */
-    function _fireCallback(callback, e, combo) {
-
-        // if this event should not happen stop here
-        if (this.NOT_IN_EDITABLES && this.stopCallback(e, e.target || e.srcElement, combo)) {
-             return;
-        }
-
-        if (callback.call(this, e, combo) === false) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-
-            e.returnValue = false;
-            e.cancelBubble = true;
-        }
-    }
-
-    /**
-     * handles a character key event
-     *
-     * @param {string} character
-     * @param {Array} modifiers
-     * @param {Event} e
-     * @returns void
-     */
-    this.handleKey = function (character, modifiers, e) {
-        var callbacks = _getMatches.call(this, character, modifiers, e),
-            i,
-            doNotReset = {},
-            maxLevel = 0,
-            processedSequenceCallback = false;
-
-        // Calculate the maxLevel for sequences so we can only execute the longest callback sequence
-        for (i = 0; i < callbacks.length; ++i) {
-            if (callbacks[i].seq) {
-                maxLevel = Math.max(maxLevel, callbacks[i].level);
-            }
-        }
-
-        // loop through matching callbacks for this key event
-        for (i = 0; i < callbacks.length; ++i) {
-
-            // fire for all sequence callbacks
-            // this is because if for example you have multiple sequences
-            // bound such as "g i" and "g t" they both need to fire the
-            // callback for matching g cause otherwise you can only ever
-            // match the first one
-            if (callbacks[i].seq) {
-
-                // only fire callbacks for the maxLevel to prevent
-                // subsequences from also firing
-                //
-                // for example 'a option b' should not cause 'option b' to fire
-                // even though 'option b' is part of the other sequence
-                //
-                // any sequences that do not match here will be discarded
-                // below by the _resetSequences call
-                if (callbacks[i].level != maxLevel) {
-                    continue;
-                }
-
-                processedSequenceCallback = true;
-
-                // keep a list of which sequences were matches for later
-                doNotReset[callbacks[i].seq] = 1;
-                _fireCallback.call(this, callbacks[i].callback, e, callbacks[i].combo);
-                continue;
-
-            } else if (Mousetrap.TRIGGER_PREFIX_COMBOS) {
-                // HACK: Mousetrap does not trigger 'prefixes'
-                _fireCallback.call(this, callbacks[i].callback, e, callbacks[i].combo);
-            } else {
-                // if there were no sequence matches but we are still here
-                // that means this is a regular match so we should fire that
-                if (!processedSequenceCallback) {
-                    _fireCallback.call(this, callbacks[i].callback, e, callbacks[i].combo);
-                }
-            }
-        }
-
-        // if the key you pressed matches the type of sequence without
-        // being a modifier (ie "keyup" or "keypress") then we should
-        // reset all sequences that were not matched by this event
-        //
-        // this is so, for example, if you have the sequence "h a t" and you
-        // type "h e a r t" it does not match.  in this case the "e" will
-        // cause the sequence to reset
-        //
-        // modifier keys are ignored because you can have a sequence
-        // that contains modifiers such as "enter ctrl+space" and in most
-        // cases the modifier key will be pressed before the next key
-        //
-        // also if you have a sequence such as "ctrl+b a" then pressing the
-        // "b" key will trigger a "keypress" and a "keydown"
-        //
-        // the "keydown" is expected when there is a modifier, but the
-        // "keypress" ends up matching the _nextExpectedAction since it occurs
-        // after and that causes the sequence to reset
-        //
-        // we ignore keypresses in a sequence that directly follow a keydown
-        // for the same character
-        var ignoreThisKeypress = e.type == 'keypress' && this._ignoreNextKeypress;
-        if (e.type == this._nextExpectedAction && !_isModifier(character) && !ignoreThisKeypress) {
-            _resetSequences.call(this, doNotReset);
-        }
-
-        this._ignoreNextKeypress = processedSequenceCallback && e.type == 'keydown';
-
-        // provide information about if there have callbacks detected
-        // E.g., this is used to trigger a default key handler in case of no others did match
-        return callbacks.length > 0;
-    };
-
-    /**
-     * handles a keydown event
-     *
-     * @param {Event} e
-     * @returns void
-     */
-    this._handleKeyEvent = function(e) {
-
-        // normalize e.which for key events
-        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
-        if (typeof e.which !== 'number') {
-            e.which = e.keyCode;
-        }
-
-        var character = _characterFromEvent(e);
-
-        // no character found then stop
-        if (!character) {
-            return;
-        }
-
-        // need to use === for the character check because the character can be 0
-        if (e.type == 'keyup' && this._ignoreNextKeyup === character) {
-            this._ignoreNextKeyup = false;
-            return;
-        }
-
-        this.handleKey(character, _eventModifiers(e), e);
-    };
-
-    /**
-     * Gets info for a specific key combination
-     *
-     * @param  {string} combination key combination ("command+s" or "a" or "*")
-     * @param  {string=} action
-     * @returns {Object}
-     */
-    function _getKeyInfo(combination, action) {
-        var keys,
-            key,
-            i,
-            modifiers = [];
-
-        // take the keys from this pattern and figure out what the actual
-        // pattern is all about
-        keys = _keysFromString(combination);
-
-        for (i = 0; i < keys.length; ++i) {
-            key = keys[i];
-
-            // normalize key names
-            if (_SPECIAL_ALIASES[key]) {
-                key = _SPECIAL_ALIASES[key];
-            }
-
-            // if this is not a keypress event then we should
-            // be smart about using shift keys
-            // this will only work for US keyboards however
-            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
-                key = _SHIFT_MAP[key];
-                modifiers.push('shift');
-            }
-
-            // if this key is a modifier then add it to the list of modifiers
-            if (_isModifier(key)) {
-                modifiers.push(key);
-            }
-        }
-
-        // depending on what the key combination is
-        // we will try to pick the best event for it
-        action = _pickBestAction.call(this, key, modifiers, action);
-
-        return {
-            key: key,
-            modifiers: modifiers,
-            action: action
-        };
-    }
-
-    /**
-     * binds a single keyboard combination
-     *
-     * @param {string} combination
-     * @param {Function} callback
-     * @param {string=} action
-     * @param {string=} sequenceName - name of sequence if part of sequence
-     * @param {number=} level - what part of the sequence the command is
-     * @returns void
-     */
-    function _bindSingle(combination, callback, action, sequenceName, level) {
-
-        // store a direct mapped reference for use with Mousetrap.trigger
-        this._directMap[combination + ':' + action] = callback;
-
-        // make sure multiple spaces in a row become a single space
-        combination = combination.replace(/\s+/g, ' ');
-
-        var sequence = combination.split(' '),
-            info;
-
-        // if this pattern is a sequence of keys then run through this method
-        // to reprocess each pattern one key at a time
-        if (sequence.length > 1) {
-            _bindSequence.call(this, combination, sequence, callback, action);
-            return;
-        }
-
-        info = _getKeyInfo.call(this, combination, action);
-
-        // make sure to initialize array if this is the first time
-        // a callback is added for this key
-        this._callbacks[info.key] = this._callbacks[info.key] || [];
-
-        // remove an existing match if there is one
-        _getMatches.call(this, info.key, info.modifiers, {type: info.action}, sequenceName, combination, level);
-
-        // add this call back to the array
-        // if it is a sequence put it at the beginning
-        // if not put it at the end
-        //
-        // this is important because the way these are processed expects
-        // the sequence ones to come first
-        this._callbacks[info.key][sequenceName ? 'unshift' : 'push']({
-            callback: callback,
-            modifiers: info.modifiers,
-            action: info.action,
-            seq: sequenceName,
-            level: level,
-            combo: combination
-        });
-    }
-
-    /**
-     * binds multiple combinations to the same callback
-     *
-     * @param {Array} combinations
-     * @param {Function} callback
-     * @param {string|undefined} action
-     * @returns void
-     */
-    function _bindMultiple(combinations, callback, action) {
-        for (var i = 0; i < combinations.length; ++i) {
-            _bindSingle.call(this, combinations[i], callback, action);
-        }
-    }
-
-
-    /**
-     * called to set a 1 second timeout on the specified sequence
-     *
-     * this is so after each key press in the sequence you have 1 second
-     * to press the next key before you have to start over
-     *
-     * @returns void
-     */
-    function _resetSequenceTimer() {
-        clearTimeout(this._resetTimer);
-        this._resetTimer = setTimeout(_resetSequences.bind(this), 1000);
-    }
-
-    /**
-     * reverses the map lookup so that we can look for specific keys
-     * to see what can and can't use keypress
-     *
-     * @return {Object}
-     */
-    function _getReverseMap() {
-        if (!this._REVERSE_MAP) {
-            this._REVERSE_MAP = {};
-            for (var key in _MAP) {
-
-                // pull out the numeric keypad from here cause keypress should
-                // be able to detect the keys from the character
-                if (key > 95 && key < 112) {
-                    continue;
-                }
-
-                if (_MAP.hasOwnProperty(key)) {
-                    this._REVERSE_MAP[_MAP[key]] = key;
-                }
-            }
-        }
-        return this._REVERSE_MAP;
-    }
-
-    /**
-     * picks the best action based on the key combination
-     *
-     * @param {string} key - character for key
-     * @param {Array} modifiers
-     * @param {string=} action passed in
-     */
-    function _pickBestAction(key, modifiers, action) {
-
-        // if no action was picked in we should try to pick the one
-        // that we think would work best for this key
-        if (!action) {
-            action = _getReverseMap.call(this)[key] ? 'keydown' : 'keypress';
-        }
-
-        // modifier keys don't work as expected with keypress,
-        // switch to keydown
-        if (action == 'keypress' && modifiers.length) {
-            action = 'keydown';
-        }
-
-        return action;
-    }
-
-    /**
-     * binds a key sequence to an event
-     *
-     * @param {string} combo - combo specified in bind call
-     * @param {Array} keys
-     * @param {Function} callback
-     * @param {string=} action
-     * @returns void
-     */
-    function _bindSequence(combo, keys, callback, action) {
-
-        var that = this;
-
-        // start off by adding a sequence level record for this combination
-        // and setting the level to 0
-        this._sequenceLevels[combo] = 0;
-
-        /**
-         * callback to increase the sequence level for this sequence and reset
-         * all other sequences that were active
-         *
-         * @param {string} nextAction
-         * @returns {Function}
-         */
-        function _increaseSequence(nextAction) {
-            return function() {
-                that._nextExpectedAction = nextAction;
-                ++that._sequenceLevels[combo];
-                _resetSequenceTimer.call(that);
-            };
-        }
-
-        /**
-         * wraps the specified callback inside of another function in order
-         * to reset all sequence counters as soon as this sequence is done
-         *
-         * @param {Event} e
-         * @returns void
-         */
-        function _callbackAndReset(e) {
-            _fireCallback.call(this, callback, e, combo);
-
-            // we should ignore the next key up if the action is key down
-            // or keypress.  this is so if you finish a sequence and
-            // release the key the final key will not trigger a keyup
-            if (action !== 'keyup') {
-                this._ignoreNextKeyup = _characterFromEvent(e);
-            }
-
-            // weird race condition if a sequence ends with the key
-            // another sequence begins with
-            setTimeout(_resetSequences.bind(this), 10);
-        }
-
-        // loop through keys one at a time and bind the appropriate callback
-        // function.  for any key leading up to the final one it should
-        // increase the sequence. after the final, it should reset all sequences
-        //
-        // if an action is specified in the original bind call then that will
-        // be used throughout.  otherwise we will pass the action that the
-        // next key in the sequence should match.  this allows a sequence
-        // to mix and match keypress and keydown events depending on which
-        // ones are better suited to the key provided
-        for (var i = 0; i < keys.length; ++i) {
-            var isFinal = i + 1 === keys.length;
-            var wrappedCallback = isFinal ? _callbackAndReset : _increaseSequence.call(this, action || _getKeyInfo(keys[i + 1]).action);
-            _bindSingle.call(this, keys[i], wrappedCallback, action, combo, i);
-        }
-    }
-
-    /**
-     * binds an event to mousetrap
-     *
-     * can be a single key, a combination of keys separated with +,
-     * an array of keys, or a sequence of keys separated by spaces
-     *
-     * be sure to list the modifier keys first to make sure that the
-     * correct key ends up getting bound (the last key in the pattern)
-     *
-     * @param {string|Array} keys
-     * @param {Function} callback
-     * @param {string=} action - 'keypress', 'keydown', or 'keyup'
-     * @returns void
-     */
-    this.bind = function(keys, callback, action) {
-        keys = keys instanceof Array ? keys : [keys];
-        _bindMultiple.call(this, keys, callback, action);
-        return this;
-    };
-
-    /**
-     * unbinds an event to mousetrap
-     *
-     * the unbinding sets the callback function of the specified key combo
-     * to an empty function and deletes the corresponding key in the
-     * _directMap dict.
-     *
-     * TODO: actually remove this from the _callbacks dictionary instead
-     * of binding an empty function
-     *
-     * the keycombo+action has to be exactly the same as
-     * it was defined in the bind method
-     *
-     * @param {string|Array} keys
-     * @param {string} action
-     * @returns void
-     */
-    this.unbind = function(keys, action) {
-        return this.bind(keys, function() {}, action);
-    };
-
-    /**
-     * triggers an event that has already been bound
-     *
-     * @param {string} keys
-     * @param {string=} action
-     * @returns void
-     */
-    this.trigger = function(keys, action) {
-        if (this._directMap[keys + ':' + action]) {
-            this._directMap[keys + ':' + action].call(this, {}, keys);
-        }
-        return this;
-    };
-
-    /**
-     * resets the library back to its initial state.  this is useful
-     * if you want to clear out the current keyboard shortcuts and bind
-     * new ones - for example if you switch to another page
-     *
-     * @returns void
-     */
-    this.reset = function() {
-        this._callbacks = {};
-        this._directMap = {};
-        return this;
-    };
-
-   /**
-    * should we stop this event before firing off callbacks
-    *
-    * @param {Event} e
-    * @param {Element} element
-    * @return {boolean}
-    */
-    this.stopCallback = function(e, element) {
-
-        // if the element has the class "mousetrap" then no need to stop
-        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
-            return false;
-        }
-
-        // stop for input, select, and textarea
-        return element.tagName == 'INPUT' || element.tagName == 'SELECT' || element.tagName == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
-    };
-
-    this.connect = function(el) {
-        this._el = el;
-
-        _attachListener(this._el, 'keypress', this._handler);
-        _attachListener(this._el, 'keydown', this._handler);
-        _attachListener(this._el, 'keyup', this._handler);
-    };
-
-    this.disconnect = function() {
-
-        _detachListener(this._el, 'keypress', this._handler);
-        _detachListener(this._el, 'keydown', this._handler);
-        _detachListener(this._el, 'keyup', this._handler);
-    };
-
-    /**
-     * Trigger callbacks for combos even when they are part of sequnence.
-     */
-     this.TRIGGER_PREFIX_COMBOS = false;
-     this.NOT_IN_EDITABLES = false;
-};
-
-Mousetrap.prototype = new Mousetrap.Prototype();
-
-module.exports = Mousetrap;
-
-},{}],28:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 "use strict";
 
 var Data = {};
@@ -6130,7 +5169,7 @@ Data.defineNodeProperties = function(prototype, properties, readonly) {
 
 module.exports = Data;
 
-},{"./src/graph":30,"underscore":146}],29:[function(require,module,exports){
+},{"./src/graph":28,"underscore":146}],27:[function(require,module,exports){
 "use strict";
 
 var Chronicle = require('substance-chronicle');
@@ -6177,7 +5216,7 @@ ChronicleAdapter.prototype = new ChronicleAdapter.Prototype();
 
 module.exports = ChronicleAdapter;
 
-},{"substance-chronicle":15,"substance-operator":125}],30:[function(require,module,exports){
+},{"substance-chronicle":13,"substance-operator":123}],28:[function(require,module,exports){
 "use strict";
 
 var _ = require('underscore');
@@ -7000,7 +6039,7 @@ Graph.Index = Index;
 
 module.exports = Graph;
 
-},{"./chronicle_adapter":29,"./graph_index":31,"./persistence_adapter":32,"./property":33,"./schema":34,"substance-chronicle":15,"substance-operator":125,"substance-util":139,"underscore":146}],31:[function(require,module,exports){
+},{"./chronicle_adapter":27,"./graph_index":29,"./persistence_adapter":30,"./property":31,"./schema":32,"substance-chronicle":13,"substance-operator":123,"substance-util":139,"underscore":146}],29:[function(require,module,exports){
 var _ = require("underscore");
 var util = require("substance-util");
 
@@ -7188,7 +6227,7 @@ Index.typeFilter = function(schema, types) {
 
 module.exports = Index;
 
-},{"substance-util":139,"underscore":146}],32:[function(require,module,exports){
+},{"substance-util":139,"underscore":146}],30:[function(require,module,exports){
 "use strict";
 
 var Operator = require('substance-operator');
@@ -7231,7 +6270,7 @@ PersistenceAdapter.prototype = new PersistenceAdapter.Prototype();
 
 module.exports = PersistenceAdapter;
 
-},{"substance-operator":125}],33:[function(require,module,exports){
+},{"substance-operator":123}],31:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7341,7 +6380,7 @@ Object.defineProperties(Property.prototype, {
 
 module.exports = Property;
 
-},{"underscore":146}],34:[function(require,module,exports){
+},{"underscore":146}],32:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7516,7 +6555,7 @@ Schema.prototype = new Schema.Prototype();
 
 module.exports = Schema;
 
-},{"substance-util":139,"underscore":146}],35:[function(require,module,exports){
+},{"substance-util":139,"underscore":146}],33:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7530,7 +6569,7 @@ Document.Session = require('./src/document_session');
 
 module.exports = Document;
 
-},{"./src/annotator":36,"./src/container":37,"./src/cursor":38,"./src/document":39,"./src/document_session":40,"./src/selection":42,"underscore":146}],36:[function(require,module,exports){
+},{"./src/annotator":34,"./src/container":35,"./src/cursor":36,"./src/document":37,"./src/document_session":38,"./src/selection":40,"underscore":146}],34:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -7915,7 +6954,7 @@ _getConfig = function(doc) {
 
 module.exports = Annotator;
 
-},{"./document":39,"substance-operator":125,"substance-util":139,"underscore":146}],37:[function(require,module,exports){
+},{"./document":37,"substance-operator":123,"substance-util":139,"underscore":146}],35:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -8154,7 +7193,7 @@ Container.ContainerError = ContainerError;
 
 module.exports = Container;
 
-},{"./node_surface_provider":41,"substance-util":139,"underscore":146}],38:[function(require,module,exports){
+},{"./node_surface_provider":39,"substance-util":139,"underscore":146}],36:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -8364,7 +7403,7 @@ Cursor.prototype = new Cursor.Prototype();
 
 module.exports = Cursor;
 
-},{"substance-util":139,"underscore":146}],39:[function(require,module,exports){
+},{"substance-util":139,"underscore":146}],37:[function(require,module,exports){
 "use strict";
 
 // Substance.Document 0.5.0
@@ -8634,7 +7673,7 @@ Document.DocumentError = DocumentError;
 
 module.exports = Document;
 
-},{"substance-data":28,"substance-operator":125,"substance-util":139,"underscore":146}],40:[function(require,module,exports){
+},{"substance-data":26,"substance-operator":123,"substance-util":139,"underscore":146}],38:[function(require,module,exports){
 "use strict";
 
 var Annotator = require("./annotator");
@@ -8710,7 +7749,7 @@ Object.defineProperties(DocumentSession.prototype, {
 
 module.exports = DocumentSession;
 
-},{"./annotator":36,"./selection":42}],41:[function(require,module,exports){
+},{"./annotator":34,"./selection":40}],39:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -8780,7 +7819,7 @@ NodeSurfaceProvider.EmptySurface = function(node) {
 
 module.exports = NodeSurfaceProvider;
 
-},{"underscore":146}],42:[function(require,module,exports){
+},{"underscore":146}],40:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -9356,7 +8395,7 @@ Selection.SelectionError = SelectionError;
 
 module.exports = Selection;
 
-},{"./cursor":38,"substance-util":139,"underscore":146}],43:[function(require,module,exports){
+},{"./cursor":36,"substance-util":139,"underscore":146}],41:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -9396,7 +8435,7 @@ module.exports = {
   "formula": require("./src/formula"),
 };
 
-},{"./src/annotation":45,"./src/blob_reference":47,"./src/citation":50,"./src/citation_reference":52,"./src/code":54,"./src/codeblock":57,"./src/contributor":60,"./src/cover":63,"./src/cross_reference":65,"./src/emphasis":67,"./src/error":70,"./src/error_reference":72,"./src/figure":75,"./src/figure_reference":77,"./src/file":79,"./src/formula":82,"./src/heading":85,"./src/image":88,"./src/issue":89,"./src/link":92,"./src/list":94,"./src/list_item":97,"./src/math":100,"./src/node":102,"./src/paragraph":105,"./src/remark":108,"./src/remark_reference":111,"./src/strong":113,"./src/subscript":115,"./src/superscript":117,"./src/table":119,"./src/text":122}],44:[function(require,module,exports){
+},{"./src/annotation":43,"./src/blob_reference":45,"./src/citation":48,"./src/citation_reference":50,"./src/code":52,"./src/codeblock":55,"./src/contributor":58,"./src/cover":61,"./src/cross_reference":63,"./src/emphasis":65,"./src/error":68,"./src/error_reference":70,"./src/figure":73,"./src/figure_reference":75,"./src/file":77,"./src/formula":80,"./src/heading":83,"./src/image":86,"./src/issue":87,"./src/link":90,"./src/list":92,"./src/list_item":95,"./src/math":98,"./src/node":100,"./src/paragraph":103,"./src/remark":106,"./src/remark_reference":109,"./src/strong":111,"./src/subscript":113,"./src/superscript":115,"./src/table":117,"./src/text":120}],42:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require('../node/node');
@@ -9472,14 +8511,14 @@ Annotation.prototype.defineProperties();
 
 module.exports = Annotation;
 
-},{"../node/node":103,"underscore":146}],45:[function(require,module,exports){
+},{"../node/node":101,"underscore":146}],43:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./annotation")
 };
 
-},{"./annotation":44}],46:[function(require,module,exports){
+},{"./annotation":42}],44:[function(require,module,exports){
 "use strict";
 
 var Node = require('../node/node');
@@ -9526,14 +8565,14 @@ BlobReference.prototype.defineProperties();
 
 module.exports = BlobReference;
 
-},{"../node/node":103}],47:[function(require,module,exports){
+},{"../node/node":101}],45:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./blob_reference")
 };
 
-},{"./blob_reference":46}],48:[function(require,module,exports){
+},{"./blob_reference":44}],46:[function(require,module,exports){
 var DocumentNode = require('../node/node');
 
 // Citation
@@ -9646,7 +8685,7 @@ Object.defineProperties(Citation.prototype, {
 
 module.exports = Citation;
 
-},{"../node/node":103}],49:[function(require,module,exports){
+},{"../node/node":101}],47:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node").View;
@@ -9761,7 +8800,7 @@ CitationView.prototype.constructor = CitationView;
 
 module.exports = CitationView;
 
-},{"../node":102,"../text":122,"substance-application":4}],50:[function(require,module,exports){
+},{"../node":100,"../text":120,"substance-application":2}],48:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -9769,7 +8808,7 @@ module.exports = {
   View: require('./citation_view')
 };
 
-},{"./citation":48,"./citation_view":49}],51:[function(require,module,exports){
+},{"./citation":46,"./citation_view":47}],49:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -9830,14 +8869,14 @@ CitationReference.prototype.defineProperties();
 
 module.exports = CitationReference;
 
-},{"../annotation/annotation":44}],52:[function(require,module,exports){
+},{"../annotation/annotation":42}],50:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./citation_reference")
 };
 
-},{"./citation_reference":51}],53:[function(require,module,exports){
+},{"./citation_reference":49}],51:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -9896,14 +8935,14 @@ Code.prototype.constructor = Code;
 
 module.exports = Code;
 
-},{"../annotation/annotation":44}],54:[function(require,module,exports){
+},{"../annotation/annotation":42}],52:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./code")
 };
 
-},{"./code":53}],55:[function(require,module,exports){
+},{"./code":51}],53:[function(require,module,exports){
 "use strict";
 
 var Text = require("../text/text_node");
@@ -9964,7 +9003,7 @@ Codeblock.prototype.defineProperties();
 module.exports = Codeblock;
 
 
-},{"../text/text_node":123}],56:[function(require,module,exports){
+},{"../text/text_node":121}],54:[function(require,module,exports){
 "use strict";
 
 var TextView = require('../text/text_view');
@@ -9985,7 +9024,7 @@ CodeblockView.prototype = new CodeblockView.Prototype();
 
 module.exports = CodeblockView;
 
-},{"../text/text_view":124}],57:[function(require,module,exports){
+},{"../text/text_view":122}],55:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -9993,7 +9032,7 @@ module.exports = {
   View: require("./codeblock_view")
 };
 
-},{"./codeblock":55,"./codeblock_view":56}],58:[function(require,module,exports){
+},{"./codeblock":53,"./codeblock_view":54}],56:[function(require,module,exports){
 var _ = require('underscore');
 var DocumentNode = require('../node/node');
 
@@ -10060,6 +9099,7 @@ Contributor.Prototype = function() {
   };
 
   this.getBlob = function() {
+    if (!this.properties.image) return null;
     var file = this.document.get(this.properties.image);
     if (!file) return null;
     return file.getData();
@@ -10097,7 +9137,7 @@ Object.defineProperties(Contributor.prototype, {
 
 module.exports = Contributor;
 
-},{"../node/node":103,"underscore":146}],59:[function(require,module,exports){
+},{"../node/node":101,"underscore":146}],57:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node").View;
@@ -10192,7 +9232,7 @@ ContributorView.prototype = new ContributorView.Prototype();
 
 module.exports = ContributorView;
 
-},{"../node":102,"../text/text_view":124,"substance-application":4}],60:[function(require,module,exports){
+},{"../node":100,"../text/text_view":122,"substance-application":2}],58:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10200,7 +9240,7 @@ module.exports = {
   View: require("./contributor_view")
 };
 
-},{"./contributor":58,"./contributor_view":59}],61:[function(require,module,exports){
+},{"./contributor":56,"./contributor_view":57}],59:[function(require,module,exports){
 var _ = require('underscore');
 var DocumentNode = require('../node/node');
 
@@ -10275,7 +9315,7 @@ Object.defineProperties(Cover.prototype, {
 
 module.exports = Cover;
 
-},{"../node/node":103,"underscore":146}],62:[function(require,module,exports){
+},{"../node/node":101,"underscore":146}],60:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -10368,7 +9408,7 @@ CoverView.prototype = new CoverView.Prototype();
 
 module.exports = CoverView;
 
-},{"../node/node_view":104,"../text/text_view":124,"substance-application":4,"substance-document":35,"underscore":146}],63:[function(require,module,exports){
+},{"../node/node_view":102,"../text/text_view":122,"substance-application":2,"substance-document":33,"underscore":146}],61:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10376,7 +9416,7 @@ module.exports = {
   View: require('./cover_view')
 };
 
-},{"./cover":61,"./cover_view":62}],64:[function(require,module,exports){
+},{"./cover":59,"./cover_view":60}],62:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -10439,14 +9479,14 @@ CrossReference.prototype.defineProperties();
 
 module.exports = CrossReference;
 
-},{"../annotation/annotation":44}],65:[function(require,module,exports){
+},{"../annotation/annotation":42}],63:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./cross_reference")
 };
 
-},{"./cross_reference":64}],66:[function(require,module,exports){
+},{"./cross_reference":62}],64:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -10506,14 +9546,14 @@ Emphasis.prototype.constructor = Emphasis;
 module.exports = Emphasis;
 
 
-},{"../annotation/annotation":44}],67:[function(require,module,exports){
+},{"../annotation/annotation":42}],65:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./emphasis")
 };
 
-},{"./emphasis":66}],68:[function(require,module,exports){
+},{"./emphasis":64}],66:[function(require,module,exports){
 "use strict";
 
 var Issue = require('../issue/issue');
@@ -10566,7 +9606,7 @@ ErrorNode.prototype.constructor = ErrorNode;
 
 module.exports = ErrorNode;
 
-},{"../issue/issue":90}],69:[function(require,module,exports){
+},{"../issue/issue":88}],67:[function(require,module,exports){
 "use strict";
 
 var IssueView = require("../issue/issue_view");
@@ -10584,7 +9624,7 @@ ErrorView.prototype = new ErrorView.Prototype();
 
 module.exports = ErrorView;
 
-},{"../issue/issue_view":91}],70:[function(require,module,exports){
+},{"../issue/issue_view":89}],68:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10592,7 +9632,7 @@ module.exports = {
   View: require("./error_view")
 };
 
-},{"./error":68,"./error_view":69}],71:[function(require,module,exports){
+},{"./error":66,"./error_view":67}],69:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -10655,14 +9695,14 @@ ErrorReference.prototype.defineProperties();
 
 module.exports = ErrorReference;
 
-},{"../annotation/annotation":44}],72:[function(require,module,exports){
+},{"../annotation/annotation":42}],70:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./error_reference")
 };
 
-},{"./error_reference":71}],73:[function(require,module,exports){
+},{"./error_reference":69}],71:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require("../node/node");
@@ -10722,6 +9762,7 @@ Figure.Prototype = function() {
   };
 
   this.getBlob = function() {
+    if (!this.properties.image) return null;
     var file = this.document.get(this.properties.image);
     if (!file) return null;
     return file.getData();
@@ -10792,7 +9833,7 @@ Figure.create = function(data) {
 
 module.exports = Figure;
 
-},{"../node/node":103}],74:[function(require,module,exports){
+},{"../node/node":101}],72:[function(require,module,exports){
 "use strict";
 
 var $$ = require ("substance-application").$$;
@@ -10870,7 +9911,7 @@ FigureView.prototype = new FigureView.Prototype();
 
 module.exports = FigureView;
 
-},{"../node/node_view":104,"../text/text_view":124,"substance-application":4}],75:[function(require,module,exports){
+},{"../node/node_view":102,"../text/text_view":122,"substance-application":2}],73:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10878,7 +9919,7 @@ module.exports = {
   View: require('./figure_view')
 };
 
-},{"./figure":73,"./figure_view":74}],76:[function(require,module,exports){
+},{"./figure":71,"./figure_view":72}],74:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -10940,14 +9981,14 @@ FigureReference.prototype.defineProperties();
 
 module.exports = FigureReference;
 
-},{"../annotation/annotation":44}],77:[function(require,module,exports){
+},{"../annotation/annotation":42}],75:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./figure_reference")
 };
 
-},{"./figure_reference":76}],78:[function(require,module,exports){
+},{"./figure_reference":74}],76:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require("../node/node");
@@ -10962,7 +10003,7 @@ File.type = {
   "id": "file",
   "parent": "content",
   "properties": {
-    "data": "string", // either a blob reference or just a string for text files
+    "version": "number",
     "content_type": "string" // content mime type
   }
 };
@@ -10974,8 +10015,8 @@ File.description = {
     "A file is a file is a file."
   ],
   "properties": {
-    "data": "A data reference",
-    "content_type": "Content MIME type"
+    "content_type": "Content MIME type",
+    "version": "File version, gets incremented every time the file content changes."
   }
 };
 
@@ -10985,7 +10026,7 @@ File.description = {
 
 File.example = {
   "id": "figure1.png",
-  "data": "figure1.png",
+  "version": 1,
   "content_type": "image/png"
 };
 
@@ -11004,14 +10045,23 @@ File.Prototype = function() {
     return this.properties.content_type === "application/json";
   };
 
-  this.getData = function() {
-    return this.document.fileData[this.properties.data];
+  this.getData = function(version) {
+    var dataKey = this.properties.id+".v"+(version || this.properties.version);
+    return this.document.fileData[dataKey];
   };
 
   // Assigns a data object from the temporary data store
-  this.setData = function(data, dataKey) {
-    // Data key defaults to File.id (which corresponds to the filename)
-    dataKey = dataKey || this.properties.id;
+  this.updateData = function(data) {
+    var version = this.properties.version;
+
+    // Version is set and no record exists in doc.fileData
+    if (version && !this.getData(version)) {
+      // Initialize = silent data update without triggering a version bump
+    } else {
+      version = version ? version + 1 : 1;
+    }
+
+    var dataKey = this.properties.id+".v"+version;
 
     // First create the data in our temporary data store
     if (this.isJSON()) {
@@ -11022,9 +10072,9 @@ File.Prototype = function() {
       this.document.fileData[dataKey] = new Blob([data], {type: this.properties.content_type});
     }
 
-    // FigureView / ContributorView is listening to this event
-    if (dataKey !== this.properties.data) {
-      this.document.set([this.properties.id, "data"], dataKey);
+    if (version !== this.properties.version) {
+      // FigureView / ContributorView is listening to this operation
+      this.document.set([this.properties.id, "version"], version);  
     }
   };
 
@@ -11037,14 +10087,14 @@ File.prototype.constructor = File;
 File.prototype.defineProperties();
 
 module.exports = File;
-},{"../node/node":103,"underscore":146}],79:[function(require,module,exports){
+},{"../node/node":101,"underscore":146}],77:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./file")
 };
 
-},{"./file":78}],80:[function(require,module,exports){
+},{"./file":76}],78:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require('../node/node');
@@ -11115,7 +10165,7 @@ Formula.prototype.defineProperties();
 
 module.exports = Formula;
 
-},{"../node/node":103}],81:[function(require,module,exports){
+},{"../node/node":101}],79:[function(require,module,exports){
 "use strict";
 
 var NodeView = require('../node/node_view');
@@ -11181,7 +10231,7 @@ FormulaView.prototype = new FormulaView.Prototype();
 
 module.exports = FormulaView;
 
-},{"../node/node_view":104}],82:[function(require,module,exports){
+},{"../node/node_view":102}],80:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11189,7 +10239,7 @@ module.exports = {
   View: require('./formula_view')
 };
 
-},{"./formula":80,"./formula_view":81}],83:[function(require,module,exports){
+},{"./formula":78,"./formula_view":79}],81:[function(require,module,exports){
 "use strict";
 
 var Text = require("../text/text_node");
@@ -11251,7 +10301,7 @@ Heading.prototype.defineProperties();
 
 module.exports = Heading;
 
-},{"../text/text_node":123}],84:[function(require,module,exports){
+},{"../text/text_node":121}],82:[function(require,module,exports){
 "use strict";
 
 var TextView = require('../text/text_view');
@@ -11287,7 +10337,7 @@ HeadingView.prototype = new HeadingView.Prototype();
 
 module.exports = HeadingView;
 
-},{"../text/text_view":124}],85:[function(require,module,exports){
+},{"../text/text_view":122}],83:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11295,7 +10345,7 @@ module.exports = {
   View: require("./heading_view")
 };
 
-},{"./heading":83,"./heading_view":84}],86:[function(require,module,exports){
+},{"./heading":81,"./heading_view":82}],84:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require('../node/node');
@@ -11355,7 +10405,7 @@ ImageNode.prototype.defineProperties();
 
 module.exports = ImageNode;
 
-},{"../node/node":103}],87:[function(require,module,exports){
+},{"../node/node":101}],85:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node/node");
@@ -11411,7 +10461,7 @@ ImageView.prototype = new ImageView.Prototype();
 
 module.exports = ImageView;
 
-},{"../node/node":103,"substance-application":4}],88:[function(require,module,exports){
+},{"../node/node":101,"substance-application":2}],86:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11419,7 +10469,7 @@ module.exports = {
   View: require("./image_view")
 };
 
-},{"./image":86,"./image_view":87}],89:[function(require,module,exports){
+},{"./image":84,"./image_view":85}],87:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11427,7 +10477,7 @@ module.exports = {
   View: require("./issue_view")
 };
 
-},{"./issue":90,"./issue_view":91}],90:[function(require,module,exports){
+},{"./issue":88,"./issue_view":89}],88:[function(require,module,exports){
 "use strict";
 
 var DocumentNode = require('../node/node');
@@ -11506,7 +10556,7 @@ Issue.prototype.defineProperties();
 
 module.exports = Issue;
 
-},{"../node/node":103}],91:[function(require,module,exports){
+},{"../node/node":101}],89:[function(require,module,exports){
 "use strict";
 
 var $$ = require ("substance-application").$$;
@@ -11620,14 +10670,14 @@ IssueView.prototype = new IssueView.Prototype();
 
 module.exports = IssueView;
 
-},{"../node/node_view":104,"../text/text_view":124,"substance-application":4}],92:[function(require,module,exports){
+},{"../node/node_view":102,"../text/text_view":122,"substance-application":2}],90:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./link")
 };
 
-},{"./link":93}],93:[function(require,module,exports){
+},{"./link":91}],91:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -11689,7 +10739,7 @@ Link.prototype.defineProperties();
 
 module.exports = Link;
 
-},{"../annotation/annotation":44}],94:[function(require,module,exports){
+},{"../annotation/annotation":42}],92:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11697,7 +10747,7 @@ module.exports = {
   View: require("./list_view")
 };
 
-},{"./list":95,"./list_view":96}],95:[function(require,module,exports){
+},{"./list":93,"./list_view":94}],93:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -11765,7 +10815,7 @@ List.prototype.defineProperties();
 
 module.exports = List;
 
-},{"../node/node":103,"underscore":146}],96:[function(require,module,exports){
+},{"../node/node":101,"underscore":146}],94:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node/node_view");
@@ -11818,7 +10868,7 @@ ListView.prototype = new ListView.Prototype();
 
 module.exports = ListView;
 
-},{"../node/node_view":104,"substance-application":4,"underscore":146}],97:[function(require,module,exports){
+},{"../node/node_view":102,"substance-application":2,"underscore":146}],95:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11826,7 +10876,7 @@ module.exports = {
   View: require("./list_item_view")
 };
 
-},{"./list_item":98,"./list_item_view":99}],98:[function(require,module,exports){
+},{"./list_item":96,"./list_item_view":97}],96:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -11884,7 +10934,7 @@ ListItem.prototype.defineProperties();
 
 module.exports = ListItem;
 
-},{"../text/text_node":123,"underscore":146}],99:[function(require,module,exports){
+},{"../text/text_node":121,"underscore":146}],97:[function(require,module,exports){
 "use strict";
 
 var TextView = require("../text/text_view");
@@ -11934,14 +10984,14 @@ ListItemView.prototype = new ListItemView.Prototype();
 
 module.exports = ListItemView;
 
-},{"../text/text_view":124,"substance-application":4,"underscore":146}],100:[function(require,module,exports){
+},{"../text/text_view":122,"substance-application":2,"underscore":146}],98:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./math")
 };
 
-},{"./math":101}],101:[function(require,module,exports){
+},{"./math":99}],99:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12000,7 +11050,7 @@ Math.prototype.constructor = Math;
 
 module.exports = Math;
 
-},{"../annotation/annotation":44}],102:[function(require,module,exports){
+},{"../annotation/annotation":42}],100:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12008,7 +11058,7 @@ module.exports = {
   View: require("./node_view")
 };
 
-},{"./node":103,"./node_view":104}],103:[function(require,module,exports){
+},{"./node":101,"./node_view":102}],101:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -12083,7 +11133,7 @@ DocumentNode.defineProperties(DocumentNode.prototype, ["id", "type"]);
 
 module.exports = DocumentNode;
 
-},{"underscore":146}],104:[function(require,module,exports){
+},{"underscore":146}],102:[function(require,module,exports){
 "use strict";
 
 var View = require("substance-application").View;
@@ -12159,7 +11209,7 @@ NodeView.prototype = new NodeView.Prototype();
 
 module.exports = NodeView;
 
-},{"substance-application":4,"underscore":146}],105:[function(require,module,exports){
+},{"substance-application":2,"underscore":146}],103:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12167,7 +11217,7 @@ module.exports = {
   View: require("./paragraph_view")
 };
 
-},{"./paragraph":106,"./paragraph_view":107}],106:[function(require,module,exports){
+},{"./paragraph":104,"./paragraph_view":105}],104:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -12232,7 +11282,7 @@ Paragraph.prototype.defineProperties();
 
 module.exports = Paragraph;
 
-},{"../node/node":103,"underscore":146}],107:[function(require,module,exports){
+},{"../node/node":101,"underscore":146}],105:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node/node_view");
@@ -12264,7 +11314,7 @@ ParagraphView.prototype = new ParagraphView.Prototype();
 
 module.exports = ParagraphView;
 
-},{"../node/node_view":104}],108:[function(require,module,exports){
+},{"../node/node_view":102}],106:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12272,7 +11322,7 @@ module.exports = {
   View: require("./remark_view")
 };
 
-},{"./remark":109,"./remark_view":110}],109:[function(require,module,exports){
+},{"./remark":107,"./remark_view":108}],107:[function(require,module,exports){
 "use strict";
 
 var Issue = require('../issue/issue');
@@ -12323,7 +11373,7 @@ Remark.prototype.constructor = Remark;
 
 module.exports = Remark;
 
-},{"../issue/issue":90}],110:[function(require,module,exports){
+},{"../issue/issue":88}],108:[function(require,module,exports){
 "use strict";
 
 var IssueView = require("../issue/issue_view");
@@ -12341,14 +11391,14 @@ RemarkView.prototype = new RemarkView.Prototype();
 
 module.exports = RemarkView;
 
-},{"../issue/issue_view":91}],111:[function(require,module,exports){
+},{"../issue/issue_view":89}],109:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./remark_reference")
 };
 
-},{"./remark_reference":112}],112:[function(require,module,exports){
+},{"./remark_reference":110}],110:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12410,14 +11460,14 @@ RemarkReference.prototype.defineProperties();
 
 module.exports = RemarkReference;
 
-},{"../annotation/annotation":44}],113:[function(require,module,exports){
+},{"../annotation/annotation":42}],111:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./strong")
 };
 
-},{"./strong":114}],114:[function(require,module,exports){
+},{"./strong":112}],112:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12476,14 +11526,14 @@ Strong.prototype.constructor = Strong;
 
 module.exports = Strong;
 
-},{"../annotation/annotation":44}],115:[function(require,module,exports){
+},{"../annotation/annotation":42}],113:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./subscript")
 };
 
-},{"./subscript":116}],116:[function(require,module,exports){
+},{"./subscript":114}],114:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12542,14 +11592,14 @@ Subscript.prototype.constructor = Subscript;
 
 module.exports = Subscript;
 
-},{"../annotation/annotation":44}],117:[function(require,module,exports){
+},{"../annotation/annotation":42}],115:[function(require,module,exports){
 "use strict";
 
 module.exports = {
   Model: require("./superscript")
 };
 
-},{"./superscript":118}],118:[function(require,module,exports){
+},{"./superscript":116}],116:[function(require,module,exports){
 "use strict";
 
 var Annotation = require('../annotation/annotation');
@@ -12609,7 +11659,7 @@ Superscript.prototype.constructor = Superscript;
 
 module.exports = Superscript;
 
-},{"../annotation/annotation":44}],119:[function(require,module,exports){
+},{"../annotation/annotation":42}],117:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12617,7 +11667,7 @@ module.exports = {
   View: require("./table_view")
 };
 
-},{"./table":120,"./table_view":121}],120:[function(require,module,exports){
+},{"./table":118,"./table_view":119}],118:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -12780,7 +11830,7 @@ Table.create = function(data) {
 
 module.exports = Table;
 
-},{"../node/node":103,"underscore":146}],121:[function(require,module,exports){
+},{"../node/node":101,"underscore":146}],119:[function(require,module,exports){
 "use strict";
 
 var NodeView = require("../node/node_view");
@@ -12871,7 +11921,7 @@ TableView.prototype.constructor = TableView;
 
 module.exports = TableView;
 
-},{"../node/node_view":104,"underscore":146}],122:[function(require,module,exports){
+},{"../node/node_view":102,"underscore":146}],120:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12879,7 +11929,7 @@ module.exports = {
   View: require("./text_view")
 };
 
-},{"./text_node":123,"./text_view":124}],123:[function(require,module,exports){
+},{"./text_node":121,"./text_view":122}],121:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -13059,7 +12109,7 @@ Text.prototype.defineProperties();
 
 module.exports = Text;
 
-},{"../node/node":103,"substance-operator":125,"substance-regexp":132,"underscore":146}],124:[function(require,module,exports){
+},{"../node/node":101,"substance-operator":123,"substance-regexp":132,"underscore":146}],122:[function(require,module,exports){
 "use strict";
 
 var NodeView = require('../node/node_view');
@@ -13277,6 +12327,7 @@ TextView.Prototype = function() {
 
     // this splits the text and annotations into smaller pieces
     // which is necessary to generate proper HTML.
+
     var fragmenter = new Fragmenter(this.annotationBehavior.levels);
 
     this._fragments = [];
@@ -13388,7 +12439,7 @@ TextView.DefaultFragment.prototype = new TextView.DefaultFragment.Prototype();
 
 module.exports = TextView;
 
-},{"../node/node_view":104,"substance-application":4,"substance-document":35,"substance-util":139}],125:[function(require,module,exports){
+},{"../node/node_view":102,"substance-application":2,"substance-document":33,"substance-util":139}],123:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -13400,7 +12451,7 @@ module.exports = {
   Helpers: require('./src/operation_helpers')
 };
 
-},{"./src/array_operation":126,"./src/compound":127,"./src/object_operation":128,"./src/operation":129,"./src/operation_helpers":130,"./src/text_operation":131}],126:[function(require,module,exports){
+},{"./src/array_operation":124,"./src/compound":125,"./src/object_operation":126,"./src/operation":127,"./src/operation_helpers":128,"./src/text_operation":129}],124:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14076,7 +13127,7 @@ ArrayOperation.MOVE = MOV;
 
 module.exports = ArrayOperation;
 
-},{"./compound":127,"./operation":129,"substance-util":139,"underscore":146}],127:[function(require,module,exports){
+},{"./compound":125,"./operation":127,"substance-util":139,"underscore":146}],125:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14202,7 +13253,7 @@ Compound.createTransform = function(primitive_transform) {
 
 module.exports = Compound;
 
-},{"./operation":129,"substance-util":139,"underscore":146}],128:[function(require,module,exports){
+},{"./operation":127,"substance-util":139,"underscore":146}],126:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14761,7 +13812,7 @@ ObjectOperation.SET = SET;
 
 module.exports = ObjectOperation;
 
-},{"./array_operation":126,"./compound":127,"./operation":129,"./text_operation":131,"substance-util":139,"underscore":146}],129:[function(require,module,exports){
+},{"./array_operation":124,"./compound":125,"./operation":127,"./text_operation":129,"substance-util":139,"underscore":146}],127:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -14812,7 +13863,7 @@ Operation.Conflict = Conflict;
 
 module.exports = Operation;
 
-},{"substance-util":139}],130:[function(require,module,exports){
+},{"substance-util":139}],128:[function(require,module,exports){
 "use strict";
 
 var TextOperation = require("./text_operation");
@@ -14873,7 +13924,7 @@ Helpers.invert = function(op, type) {
 
 module.exports = Helpers;
 
-},{"./array_operation":126,"./text_operation":131}],131:[function(require,module,exports){
+},{"./array_operation":124,"./text_operation":129}],129:[function(require,module,exports){
 "use strict";
 
 // Import
@@ -15368,7 +14419,213 @@ TextOperation.DELETE = DEL;
 
 module.exports = TextOperation;
 
-},{"./compound":127,"./operation":129,"substance-util":139,"underscore":146}],132:[function(require,module,exports){
+},{"./compound":125,"./operation":127,"substance-util":139,"underscore":146}],130:[function(require,module,exports){
+"use strict";
+
+var Outline = require('./outline');
+
+module.exports = Outline;
+
+},{"./outline":131}],131:[function(require,module,exports){
+"use strict";
+
+var View = require("substance-application").View;
+var $$ = require("substance-application").$$;
+var _ = require("underscore");
+
+// Lens.Outline
+// ==========================================================================
+//
+// Takes a surface, which is projected to a minimap
+
+var Outline = function(surface) {
+  View.call(this);
+
+  this.surface = surface;
+
+  // Initial view state, telling which node is selected and which are highlighted
+  this.state = {
+    selectedNode: null,
+    highlightedNodes: []
+  };
+
+  this.$el.addClass('lens-outline');
+
+  _.bindAll(this, 'mouseDown', 'mouseUp', 'mouseMove', 'updateVisibleArea');
+
+  // Mouse event handlers
+  // --------
+
+  this.$el.mousedown(this.mouseDown);
+
+  $(window).mousemove(this.mouseMove);
+  $(window).mouseup(this.mouseUp);
+};
+
+Outline.Prototype = function() {
+
+  // Render Document Outline
+  // -------------
+  //
+  // Renders outline and calculates bounds
+
+  this.render = function() {
+    var that = this;
+    var totalHeight = 0;
+
+    var fragment = document.createDocumentFragment();
+    this.visibleArea = $$('.visible-area');
+    fragment.appendChild(this.visibleArea);
+
+
+    // Initial Calculations
+    // --------
+
+    var contentHeight = this.surface.$('.nodes').height();
+    var panelHeight = this.surface.$el.height();
+
+    var factor = (contentHeight / panelHeight);
+    this.factor = factor;
+
+    // Content height is smaller as the panel height, we don't need a scrollbar
+    if (panelHeight >= contentHeight) {
+      this.$el.addClass('needless');
+      this.el.innerHTML = "";
+      return;
+    }
+
+    // Render nodes
+    // --------
+
+    var container = this.surface.getContainer();
+    var nodes = container.getNodes();
+
+    _.each(nodes, function(node) {
+      var dn = this.surface.$('#'+node.id);
+      var height = dn.outerHeight(true) / factor;
+
+      // Outline node construction
+      var $node = $('<div class="node">')
+        .attr({
+          id: 'outline_'+node.id,
+        })
+        .css({
+          "position": "absolute",
+          "height": height-1,
+          "top": totalHeight
+        })
+        .addClass(node.type)
+        .append('<div class="arrow">');
+      fragment.appendChild($node[0]);
+      totalHeight += height;
+    }, this);
+
+    // Init scroll pos
+    var scrollTop = that.surface.$el.scrollTop();
+
+    that.el.innerHTML = "";
+    that.el.appendChild(fragment);
+    that.updateVisibleArea(scrollTop);
+
+    return this;
+  };
+
+
+  // Update visible area
+  // -------------
+  //
+  // Should get called from the user when the content area is scrolled
+
+  this.updateVisibleArea = function(scrollTop) {
+    $(this.visibleArea).css({
+      "top": scrollTop / this.factor,
+      "height": this.surface.$el.height() / this.factor
+    });
+  };
+
+
+  // Update Outline
+  // -------------
+  //
+  // Usage:
+  //
+  // outline.update({
+  //   selectedNode: "node_14",
+  //   highlightNodes: []
+  // })
+
+  this.update = function(state) {
+    this.render();
+    this.state = state;
+
+    // Reset
+    this.$('.node').removeClass('selected').removeClass('highlighted');
+    this.$el.removeClass('figures').removeClass('citations').removeClass('errors').removeClass('remarks');
+
+    // Set context
+    this.$el.addClass(state.context);
+
+    // Mark selected node
+    this.$('#outline_' + state.selectedNode).addClass('selected');
+
+    // Mark highlighted nodes
+    _.each(state.highlightedNodes, function(n) {
+      this.$('#outline_'+n).addClass('highlighted');
+    }, this);
+
+  };
+
+
+  // Handle Mouse down event
+  // -----------------
+  //
+
+  this.mouseDown = function(e) {
+    this._mouseDown = true;
+    var y = e.pageY;
+
+    if (e.target !== this.visibleArea) {
+      // Jump to mousedown position
+      this.offset = $(this.visibleArea).height()/2;
+      this.mouseMove(e);
+    } else {
+      this.offset = y - $(this.visibleArea).position().top;
+    }
+
+    return false;
+  };
+
+  // Handle Mouse Up
+  // -----------------
+  //
+  // Mouse lifted, no scroll anymore
+
+  this.mouseUp = function() {
+    this._mouseDown = false;
+  };
+
+  // Handle Scroll
+  // -----------------
+  //
+  // Handle scroll event
+  // .visible-area handle
+
+  this.mouseMove = function(e) {
+    if (this._mouseDown) {
+      var y = e.pageY;
+      // find offset to visible-area.top
+      var scroll = (y - this.offset)*this.factor;
+      this.surface.$el.scrollTop(scroll);
+    }
+  };
+};
+
+Outline.Prototype.prototype = View.prototype;
+Outline.prototype = new Outline.Prototype();
+
+module.exports = Outline;
+
+},{"substance-application":2,"underscore":146}],132:[function(require,module,exports){
 "use strict";
 
 module.exports = require("./src/regexp");
@@ -15465,6 +14722,10 @@ module.exports = Surface;
 var _ = require("underscore");
 var View = require("substance-application").View;
 var util = require("substance-util");
+
+// Note: Surface errors have codes between 500-599
+var SurfaceError = util.errors.define("SurfaceError", 500);
+var SelectionError = util.errors.define("SelectionError", 501, SurfaceError);
 
 // Substance.Surface
 // ==========================================================================
@@ -15565,64 +14826,75 @@ Surface.Prototype = function() {
   // ---------------
 
   this.updateSelection = function(/*e*/) {
-    var wSel = window.getSelection();
+    try {
+      var wSel = window.getSelection();
 
-    // HACK: sometimes it happens that the selection anchor node is undefined.
-    // Try to understand and fix someday.
-    if (wSel.anchorNode === null) {
-      console.error("Ooops. Please try to fix this.");
-      return;
-    }
+      // HACK: sometimes it happens that the selection anchor node is undefined.
+      // Try to understand and fix someday.
+      if (wSel.anchorNode === null) {
+        // invalid selection.
+        // This happens if you click something strange
+        // Decided to take the user serious and invalidate the selection
+        this.docCtrl.selection.clear();
+        return;
+      }
 
-    // Set selection to the cursor if clicked on the cursor.
-    if ($(wSel.anchorNode.parentElement).is(".cursor")) {
-      this.docCtrl.selection.collapse("cursor");
-      return;
-    }
+      // Set selection to the cursor if clicked on the cursor.
+      if ($(wSel.anchorNode.parentElement).is(".cursor")) {
+        this.docCtrl.selection.collapse("cursor");
+        return;
+      }
 
-    var wRange = wSel.getRangeAt(0);
-    var wStartPos;
-    var wEndPos;
+      var wRange = wSel.getRangeAt(0);
+      var wStartPos;
+      var wEndPos;
 
-    // Note: there are three different cases:
-    // 1. selection started at startContainer (regular)
-    // 2. selection started at endContainer (reverse)
-    // 3. selection done via double click (anchor in different to range boundaries)
-    // In cases 1. + 3. the range is used as given, in case 2. reversed.
+      // Note: there are three different cases:
+      // 1. selection started at startContainer (regular)
+      // 2. selection started at endContainer (reverse)
+      // 3. selection done via double click (anchor in different to range boundaries)
+      // In cases 1. + 3. the range is used as given, in case 2. reversed.
 
-    wStartPos = [wRange.startContainer, wRange.startOffset];
-    wEndPos = [wRange.endContainer, wRange.endOffset];
+      wStartPos = [wRange.startContainer, wRange.startOffset];
+      wEndPos = [wRange.endContainer, wRange.endOffset];
 
-    if (wRange.endContainer === wSel.anchorNode && wRange.endOffset === wSel.anchorOffset) {
-      var tmp = wStartPos;
-      wStartPos = wEndPos;
-      wEndPos = tmp;
-    }
+      if (wRange.endContainer === wSel.anchorNode && wRange.endOffset === wSel.anchorOffset) {
+        var tmp = wStartPos;
+        wStartPos = wEndPos;
+        wEndPos = tmp;
+      }
 
-    // Note: we clear the selection whenever we can not map the window selelection
-    // can not be mapped to model coordinates.
+      // Note: we clear the selection whenever we can not map the window selelection
+      // can not be mapped to model coordinates.
 
-    var startPos = _mapDOMCoordinates.call(this, wStartPos[0], wStartPos[1]);
-    if (!startPos) {
-      wSel.removeAllRanges();
-      this.docCtrl.selection.clear();
-      return;
-    }
-
-    var endPos;
-    if (wRange.collapsed) {
-      endPos = startPos;
-    } else {
-      endPos = _mapDOMCoordinates.call(this, wEndPos[0], wEndPos[1]);
-      if (!endPos) {
+      var startPos = _mapDOMCoordinates.call(this, wStartPos[0], wStartPos[1]);
+      if (!startPos) {
         wSel.removeAllRanges();
         this.docCtrl.selection.clear();
         return;
       }
-    }
 
-    // console.log("Surface.updateSelection()", startPos, endPos);
-    this.docCtrl.selection.set({start: startPos, end: endPos});
+      var endPos;
+      if (wRange.collapsed) {
+        endPos = startPos;
+      } else {
+        endPos = _mapDOMCoordinates.call(this, wEndPos[0], wEndPos[1]);
+        if (!endPos) {
+          wSel.removeAllRanges();
+          this.docCtrl.selection.clear();
+          return;
+        }
+      }
+
+      // console.log("Surface.updateSelection()", startPos, endPos);
+      this.docCtrl.selection.set({start: startPos, end: endPos});
+    } catch (error) {
+      // On errors clear the selection and report
+      error = new SelectionError("Could not map to model cordinates.", error);
+
+      this.docCtrl.selection.clear();
+      this.docCtrl.trigger("error", error);
+    }
   };
 
 
@@ -15649,27 +14921,35 @@ Surface.Prototype = function() {
   };
 
   this.renderSelection = function() {
-    var sel = this.docCtrl.selection;
+    try {
+      var sel = this.docCtrl.selection;
 
-    if (sel.isNull()) {
-      return;
-    }
+      if (sel.isNull()) {
+        return;
+      }
 
-    var wRange = document.createRange();
+      var wRange = document.createRange();
 
-    var wStartPos = _mapModelCoordinates.call(this, sel.start);
-    wRange.setStart(wStartPos.startContainer, wStartPos.startOffset);
+      var wStartPos = _mapModelCoordinates.call(this, sel.start);
+      wRange.setStart(wStartPos.startContainer, wStartPos.startOffset);
 
-    // TODO: is there a better way to manipulate the current selection?
-    var wSel = window.getSelection();
-    wSel.removeAllRanges();
-    wSel.addRange(wRange);
+      // TODO: is there a better way to manipulate the current selection?
+      var wSel = window.getSelection();
+      wSel.removeAllRanges();
+      wSel.addRange(wRange);
 
-    // Move the caret to the end position
-    // Note: this is the only way to get reversed selections.
-    if (!sel.isCollapsed()) {
-      var wEndPos = _mapModelCoordinates.call(this, [sel.cursor.pos, sel.cursor.charPos]);
-      wSel.extend(wEndPos.endContainer, wEndPos.endOffset);
+      // Move the caret to the end position
+      // Note: this is the only way to get reversed selections.
+      if (!sel.isCollapsed()) {
+        var wEndPos = _mapModelCoordinates.call(this, [sel.cursor.pos, sel.cursor.charPos]);
+        wSel.extend(wEndPos.endContainer, wEndPos.endOffset);
+      }
+    } catch (error) {
+      // On errors clear the selection and report
+      error = new SelectionError("Could not map to DOM cordinates.", error);
+
+      this.docCtrl.selection.clear();
+      this.docCtrl.trigger("error", error);
     }
   };
 
@@ -15812,7 +15092,7 @@ Surface.prototype = new Surface.Prototype();
 
 module.exports = Surface;
 
-},{"substance-application":4,"substance-util":139,"underscore":146}],136:[function(require,module,exports){
+},{"substance-application":2,"substance-util":139,"underscore":146}],136:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -15952,7 +15232,7 @@ TOCView.prototype = new TOCView.Prototype();
 
 module.exports = TOCView;
 
-},{"substance-application":4,"substance-data":28,"underscore":146}],139:[function(require,module,exports){
+},{"substance-application":2,"substance-data":26,"underscore":146}],139:[function(require,module,exports){
 "use strict";
 
 var util = require("./src/util");
@@ -16229,32 +15509,45 @@ module.exports = dom;
 },{"underscore":146}],142:[function(require,module,exports){
 "use strict";
 
-// Imports
-// ====
-
-var _ = require('underscore');
 var util = require('./util');
-
-// Module
-// ====
 
 var errors = {};
 
-errors.SubstanceError = function(name, code, message) {
-  if (arguments.length == 1) {
-    message = name;
-    name = "SubstanceError";
-    code = -1;
+// The base class for Substance Errors
+// -------
+// We have been not so happy with the native error as it is really poor with respect to
+// stack information and presentation.
+// This implementation has a more usable stack trace which is rendered using `err.printStacktrace()`.
+// Moreover, it provides error codes and error chaining.
+var SubstanceError = function(message, rootError) {
+
+  // If a root error is given try to take over as much information as possible
+  if (rootError) {
+    Error.call(this, message, rootError.fileName, rootError.lineNumber);
+
+    if (rootError instanceof SubstanceError) {
+      this.__stack = rootError.__stack;
+    } else if (rootError.stack) {
+      this.__stack = util.parseStackTrace(rootError);
+    } else {
+      this.__stack = util.callstack(1);
+    }
+
+  }
+
+  // otherwise create a new stacktrace
+  else {
+    Error.call(this, message);
+    this.__stack = util.callstack(1);
   }
 
   this.message = message;
-  this.name = name;
-  this.code = code;
-
-  this.__stack = util.callstack(1);
 };
 
-errors.SubstanceError.Prototype = function() {
+SubstanceError.Prototype = function() {
+
+  this.name = "SubstanceError";
+  this.code = -1;
 
   this.toString = function() {
     return this.name+":"+this.message;
@@ -16272,11 +15565,12 @@ errors.SubstanceError.Prototype = function() {
   this.printStackTrace = function() {
     util.printStackTrace(this);
   };
-
 };
-errors.SubstanceError.prototype = new errors.SubstanceError.Prototype();
 
-Object.defineProperty(errors.SubstanceError.prototype, "stack", {
+SubstanceError.Prototype.prototype = Error.prototype;
+SubstanceError.prototype = new SubstanceError.Prototype();
+
+Object.defineProperty(SubstanceError.prototype, "stack", {
   get: function() {
     var str = [];
     for (var idx = 0; idx < this.__stack.length; idx++) {
@@ -16285,19 +15579,38 @@ Object.defineProperty(errors.SubstanceError.prototype, "stack", {
     }
     return str.join("\n");
   },
-  set: function() { throw new Error("immutable.")}
+  set: function() { throw new Error("SubstanceError.stack is read-only."); }
 });
 
-errors.define = function(className, code) {
+errors.SubstanceError = SubstanceError;
+
+
+var createSubstanceErrorSubclass = function(parent, name, code) {
+  return function(message) {
+    parent.call(this, message);
+    this.name = name;
+    this.code = code;
+  };
+};
+
+errors.define = function(className, code, parent) {
+  if (!className) throw new SubstanceError("Name is required.");
   if (code === undefined) code = -1;
-  errors[className] = errors.SubstanceError.bind(null, className, code);
-  errors[className].prototype = errors.SubstanceError.prototype;
-  return errors[className];
+
+  parent = parent || SubstanceError;
+  var ErrorClass = createSubstanceErrorSubclass(parent, className, code);
+  var ErrorClassPrototype = function() {};
+  ErrorClassPrototype.prototype = parent.prototype;
+  ErrorClass.prototype = new ErrorClassPrototype();
+  ErrorClass.prototype.constructor = ErrorClass;
+
+  errors[className] = ErrorClass;
+  return ErrorClass;
 };
 
 module.exports = errors;
 
-},{"./util":145,"underscore":146}],143:[function(require,module,exports){
+},{"./util":145}],143:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -18406,7 +17719,7 @@ var Reader = function(opts) {
 };
 
 Reader.Article = require("substance-article");
-Reader.Outline = require("lens-outline");
+Reader.Outline = require("substance-outline");
 
 Reader.Prototype = function() {
 
@@ -18483,7 +17796,7 @@ Reader.prototype.constructor = Reader;
 
 module.exports = Reader;
 
-},{"./reader_controller":148,"./substance_router":151,"lens-outline":2,"substance-application":4,"substance-article":10,"substance-commander":24,"substance-util":139,"underscore":146}],148:[function(require,module,exports){
+},{"./reader_controller":148,"./substance_router":151,"substance-application":2,"substance-article":8,"substance-commander":22,"substance-outline":130,"substance-util":139,"underscore":146}],148:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -18609,14 +17922,14 @@ ReaderController.prototype = new ReaderController.Prototype();
 
 module.exports = ReaderController;
 
-},{"./reader_view":149,"substance-application":4,"substance-document":35,"substance-surface":134,"substance-util":139,"underscore":146}],149:[function(require,module,exports){
+},{"./reader_view":149,"substance-application":2,"substance-document":33,"substance-surface":134,"substance-util":139,"underscore":146}],149:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
 var util = require("substance-util");
 var html = util.html;
 var Surface = require("substance-surface");
-var Outline = require("lens-outline");
+var Outline = require("substance-outline");
 var View = require("substance-application").View;
 var TOC = require("substance-toc");
 var Data = require("substance-data");
@@ -19392,7 +18705,7 @@ __addResourcePanel = function(self, doc, name) {
 
 module.exports = ReaderView;
 
-},{"lens-outline":2,"substance-application":4,"substance-data":28,"substance-surface":134,"substance-toc":137,"substance-util":139,"underscore":146}],150:[function(require,module,exports){
+},{"substance-application":2,"substance-data":26,"substance-outline":130,"substance-surface":134,"substance-toc":137,"substance-util":139,"underscore":146}],150:[function(require,module,exports){
 var Substance = {};
 Substance.util = require("substance-util");
 
@@ -19407,7 +18720,7 @@ Substance.Surface = require("substance-surface");
 Substance.Reader = require("./reader");
 
 module.exports = Substance;
-},{"./reader":147,"substance-application":4,"substance-chronicle":15,"substance-commander":24,"substance-data":28,"substance-document":35,"substance-operator":125,"substance-regexp":132,"substance-surface":134,"substance-util":139}],151:[function(require,module,exports){
+},{"./reader":147,"substance-application":2,"substance-chronicle":13,"substance-commander":22,"substance-data":26,"substance-document":33,"substance-operator":123,"substance-regexp":132,"substance-surface":134,"substance-util":139}],151:[function(require,module,exports){
 "use strict";
 
 var _ = require("underscore");
@@ -19493,8 +18806,6 @@ SubstanceRouter.routes = [
 ];
 
 module.exports = SubstanceRouter;
-},{"substance-application":4,"underscore":146}],152:[function(require,module,exports){
-// nothing to see here... no file methods for the browser
+},{"substance-application":2,"underscore":146}],152:[function(require,module,exports){
 
 },{}]},{},[1])
-;

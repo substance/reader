@@ -346,6 +346,10 @@ Outline
   width: auto;
 }
 
+.content-node.paragraph .content-node.text.heading {
+  display:block;
+}
+
 .content-node.paragraph .content-node.text div {
   display:inline;
   width: auto;
@@ -353,7 +357,7 @@ Outline
 
 .content-node.paragraph .content-node.image div img {
   display:inline;
-  width: auto;
+  width: 100%;
 }
 
 .content-node.paragraph .content-node.formula.inline {
@@ -617,9 +621,11 @@ Outline
 }
 
 .substance-article .content-node.cover .content .authors {
-  color: rgba(0,0,0, 0.7);
+  padding-top: 30px;
+  color: #1B6685;
   overflow: auto;
 }
+
 
 .substance-article .content-node.cover .content .authors .toggle-author {
   display: block;
@@ -628,10 +634,8 @@ Outline
   line-height: 20px;
   margin-right: 10px;
   margin-bottom: 8px;
-
   border: 1px solid rgba(0,0,0,0.2);
   color: rgba(0,0,0,0.7);
-
 }
 
 .substance-article .content-node.cover .content .authors .toggle-author:hover {
