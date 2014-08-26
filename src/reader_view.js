@@ -107,6 +107,15 @@ var Renderer = function(reader) {
     }));
   }
 
+  if (reader.definitionsView) {
+    children.push($$('a.context-toggle.definitions', {
+      'href': '#',
+      'sbs-click': 'switchContext(definitions)',
+      'title': 'Definitions',
+      'html': '<i class="icon-book"></i><span>Definitions</span>'
+    }));
+  }
+
   if (reader.infoView) {
     children.push($$('a.context-toggle.info', {
       'href': '#',
@@ -115,6 +124,8 @@ var Renderer = function(reader) {
       'html': '<i class="icon-info-sign"></i><span>Info</span>'
     }));
   }
+
+
 
 
   var contextToggles = $$('.context-toggles', {
@@ -159,6 +170,10 @@ var Renderer = function(reader) {
   
   if (reader.citationsView) {
     resourcesView.appendChild(reader.citationsView.render().el);
+  }
+
+  if (reader.definitionsView) {
+    resourcesView.appendChild(reader.definitionsView.render().el);
   }
 
   if (reader.infoView) {
@@ -234,6 +249,18 @@ var ReaderView = function(readerCtrl) {
     this.citationsView.$el.addClass('resource-view');
   }
 
+
+  // A Surface for the definitions View
+  if (this.readerCtrl.definitions && this.readerCtrl.definitions.get('definitions').nodes.length) {
+    this.definitionsView = new Surface(this.readerCtrl.definitions, {
+      editable: false,
+      renderer: new ArticleRenderer(this.readerCtrl.definitions, {
+        afterRender: addResourceHeader
+      })
+    });
+    this.definitionsView.$el.addClass('resource-view');
+  }
+
   // A Surface for the info view
   if (this.readerCtrl.info && this.readerCtrl.info.get('info').nodes.length) {
     this.infoView = new Surface(this.readerCtrl.info, {
@@ -252,7 +279,7 @@ var ReaderView = function(readerCtrl) {
 
   // Keep an index for resources
   this.resources = new Index(this.readerCtrl.__document, {
-    types: ["figure_reference", "citation_reference", "contributor_reference"],
+    types: ["figure_reference", "citation_reference", "contributor_reference", "definition_reference"],
     property: "target"
   });
 
@@ -275,15 +302,18 @@ var ReaderView = function(readerCtrl) {
   this.contentView.$el.on('scroll', _.bind(this.onContentScroll, this));
 
   // Resource content that is being scrolled
-  
   if (this.figuresView) this.figuresView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
   if (this.citationsView) this.citationsView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
+  if (this.definitionsView) this.definitionsView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
   if (this.infoView) this.infoView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
+
 
   // Resource references
   this.$el.on('click', '.annotation.figure_reference', _.bind(this.toggleFigureReference, this));
   this.$el.on('click', '.annotation.citation_reference', _.bind(this.toggleCitationReference, this));
   this.$el.on('click', '.annotation.contributor_reference', _.bind(this.toggleContributorReference, this));
+  this.$el.on('click', '.annotation.definition_reference', _.bind(this.toggleDefinitionReference, this));
+
   this.$el.on('click', '.annotation.cross_reference', _.bind(this.followCrossReference, this));
 
   this.$el.on('click', '.document .content-node.heading', _.bind(this.setAnchor, this));
@@ -334,6 +364,11 @@ ReaderView.Prototype = function() {
 
   this.toggleFigureReference = function(e) {
     this.toggleResourceReference('figures', e);
+    e.preventDefault();
+  };
+
+  this.toggleDefinitionReference = function(e) {
+    this.toggleResourceReference('definitions', e);
     e.preventDefault();
   };
 
@@ -565,7 +600,7 @@ ReaderView.Prototype = function() {
     // Set context on the reader view
     // -------
 
-    this.$el.removeClass('toc figures citations info');
+    this.$el.removeClass('toc figures citations info definitions');
     this.contentView.$('.content-node.active').removeClass('active');
     this.$el.addClass(state.context);
   
@@ -598,7 +633,7 @@ ReaderView.Prototype = function() {
 
       // Mark all annotations that reference the resource
       var annotations = this.resources.get(state.resource);
-      
+      console.log('annots', annotations);
       _.each(annotations, function(a) {
         this.contentView.$('#'+a.id).addClass('active');
       }, this);
@@ -649,6 +684,8 @@ ReaderView.Prototype = function() {
       that.resourcesOutline.surface = this.figuresView;
     } else if (state.context === "citations") {
       that.resourcesOutline.surface = this.citationsView;
+    } else if (state.context === "definitions") {
+      that.resourcesOutline.surface = this.definitionsView;
     } else {
       that.resourcesOutline.surface = this.infoView;
     }

@@ -175,6 +175,10 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   color: #111; 
 }
 
+.article.definitions .context-toggles .context-toggle.definitions {
+  color: #111;
+}
+
 .article.toc .context-toggles .context-toggle.toc {
   color: #111;
 }
@@ -280,6 +284,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 }
 
 /* active person */
+
 .article .resources .info .content-node.active {
   /*border-color: #5c6570;*/
 }
@@ -290,6 +295,11 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
 .article .resources .info .content-node.active .resource-header a {
   /*color: #5c6570;*/
+}
+
+/* active definition */
+.article .resources .definitions .content-node.active .resource-header {
+  background: #5c6570;
 }
 
 
@@ -333,6 +343,29 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 .article.citations .resources .resource-view.citations {
   display: block;
 }
+
+
+/* Definitions View
+----------------------------------------------------------------------- */
+
+.article .resources .surface.definitions {
+  font-size: 14px;
+
+  display: none;
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.article.definitions .resources .resource-view.definitions {
+  display: block;
+}
+
 
 /* TOC View
 ----------------------------------------------------------------------- */
@@ -579,14 +612,25 @@ span.annotation.formula_reference, span.publication_reference {
   cursor: pointer;
 }
 
+
+.content-node .definition_reference {
+  font-style: italic;
+  background: rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
 /* Hover states */
 .content-node .figure_reference:hover { background-color: rgba(145, 187, 4, 0.35); }
 .content-node .citation_reference:hover { background-color: rgba(11, 157, 217, 0.30); }
 .content-node .contributor_reference:hover { background-color: rgba(0,0,0, 0.05); }
+.content-node .definition_reference:hover { background-color: rgba(0,0,0, 0.1); }
 
 .content-node .figure_reference.active { background: rgba(145, 187, 4, 0.7); }
 .content-node .citation_reference.active { background: rgba(11, 157, 217, 0.6); }
 .content-node .contributor_reference.active { background-color: #5c6570; color: white; }
+
+.content-node .definition_reference.active { background-color: rgba(0,0,0, 0.25); }
 
 /* Cross Reference */
 .content-node .cross_reference:hover {

@@ -35,6 +35,10 @@ var ReaderController = function(doc, state, options) {
     this.info = new Document.Controller(doc, {view: "info"});
   }
 
+  if (doc.get('definitions')) {
+    this.definitions = new Document.Controller(doc, {view: "definitions"});
+  }
+
   this.state = state;
 
   // Current explicitly set context
