@@ -41,6 +41,12 @@ var addResourceHeader = function(docCtrl, nodeView) {
     }));
   }
 
+  children.push($$('a.toggle-res', {
+    "href": "#",
+    "sbs-click": "toggleResource("+node.id+")",
+    "html": "<i class=\"icon-eye-open\"></i><i class=\"icon-eye-close\"></i>"
+  }));
+
   var resourceHeader = $$('.resource-header', {
     children: children
   });
@@ -307,7 +313,6 @@ var ReaderView = function(readerCtrl) {
   if (this.definitionsView) this.definitionsView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
   if (this.infoView) this.infoView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
 
-
   // Resource references
   this.$el.on('click', '.annotation.figure_reference', _.bind(this.toggleFigureReference, this));
   this.$el.on('click', '.annotation.citation_reference', _.bind(this.toggleCitationReference, this));
@@ -506,6 +511,7 @@ ReaderView.Prototype = function() {
       // Make sure to find out which resource view is currently active
       if (this.figuresView) this.figuresView.$el.scrollTop(topOffset);
       if (this.citationsView) this.citationsView.$el.scrollTop(topOffset);
+      if (this.definitionsView) this.definitionsView.$el.scrollTop(topOffset);
       if (this.infoView) this.infoView.$el.scrollTop(topOffset);
 
       // Brute force for mobile
@@ -633,7 +639,6 @@ ReaderView.Prototype = function() {
 
       // Mark all annotations that reference the resource
       var annotations = this.resources.get(state.resource);
-      console.log('annots', annotations);
       _.each(annotations, function(a) {
         this.contentView.$('#'+a.id).addClass('active');
       }, this);

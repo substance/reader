@@ -241,7 +241,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
 /* Clickable header */
 .article .resources .content-node .resource-header {
-  min-height: 80px;
+  min-height: 40px;
   position: relative;
   background: rgba(0,0,0,0.1);
 }
@@ -413,10 +413,10 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
 .article .resources .resource-header .name {
   display: block;
-  min-height: 80px;
+  min-height: 40px;
   
   color: #444;
-  font-family: 'Avenir LT W01 85 Medium', 'Montserrat', 'Source Sans Pro';
+  /*font-family: 'Avenir LT W01 85 Medium', 'Montserrat', 'Source Sans Pro';*/
   font-size: 16px;
   line-height: 21px;
   padding: 10px 20px;
@@ -432,6 +432,49 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 }
 
 
+/* Resource toggle */
+
+.article .resources .content-node .resource-header .toggle-res {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  font-size: 20px;
+  bottom: 0px;
+  text-align: center;
+  line-height: 40px;
+  color: rgba(0,0,0, 0.2);
+  width: 60px;
+}
+
+/*.article .resources .content-node .resource-header:hover .toggle-res {
+  color: rgba(0,0,0, 0.5);
+}
+*/
+
+/* Active state adjustments */
+
+.article .resources .content-node.active .resource-header .toggle-res {
+  color: rgba(255,255,255, 0.5);
+}
+
+/*.article .resources .content-node.active .resource-header .toggle-res:hover {
+  color: rgba(255,255,255, 1);
+}*/
+
+
+/* Hide resize small icon by default */
+#container .article .content-node .icon-eye-close {
+  display: none;
+}
+
+#container .article .content-node.active .icon-eye-close {
+  display: inline;
+}
+
+#container .article .content-node.active .icon-eye-open {
+  display: none;
+}
+
 /* Resource Fullscreen Mode 
 ======================================================================= */
 
@@ -440,12 +483,12 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 
 .article .resources .content-node .resource-header .toggle-fullscreen {
   position: absolute;
-  right: 0px;
+  right: 30px;
   top: 0px;
-  font-size: 30px;
+  font-size: 20px;
   bottom: 0px;
   text-align: center;
-  line-height: 81px;
+  line-height: 40px;
   color: rgba(0,0,0, 0.2);
   width: 81px;
 }
