@@ -673,7 +673,7 @@ span.annotation.formula_reference, span.publication_reference {
 .content-node .citation_reference.active { background: rgba(11, 157, 217, 0.6); }
 .content-node .contributor_reference.active { background-color: #5c6570; color: white; }
 
-.content-node .definition_reference.active { background-color: rgba(0,0,0, 0.25); }
+.content-node .definition_reference.active { background-color: #5c6570; color: white; }
 
 /* Cross Reference */
 .content-node .cross_reference:hover {
@@ -915,7 +915,8 @@ span.annotation.formula_reference, span.publication_reference {
   /* Hide document when in resource mode */
   #container .article.figures .document,
   #container .article.citations .document,
-  #container .article.info .document
+  #container .article.info .document,
+  #container .article.definitions .document
   {
     display: none;
   }
@@ -926,6 +927,11 @@ span.annotation.formula_reference, span.publication_reference {
   }
 
   #container .article.citations .resources .resource-view.citations {
+    display: block;
+    z-index: 200;
+  }
+
+  #container .article.definitions .resources .resource-view.definitions {
     display: block;
     z-index: 200;
   }
@@ -985,6 +991,11 @@ span.annotation.formula_reference, span.publication_reference {
   }
 
   .article.info .context-toggles .context-toggle.info {
+    color: rgba(0,0,0,1);
+    background: white;
+  }
+
+  .article.definitions .context-toggles .context-toggle.definitions {
     color: rgba(0,0,0,1);
     background: white;
   }
