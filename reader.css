@@ -79,7 +79,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 /* Switcher */
 
 .article .medial-strip {
-  overflow: hidden;
+  /*overflow: hidden;*/
   width: 40px;
   position: absolute;
   left: 50%;
@@ -150,6 +150,20 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   display: none;
 }
 
+.article .context-toggles .context-toggle div.label {
+  /*background: blue;*/
+  margin-left: -15px;
+  margin-right: -15px;
+  font-family: 'Source Sans Pro';
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 10px;
+  line-height: 12px;
+  padding-bottom: 10px;
+  text-align: center;
+
+}
+
 .article .context-toggles .context-toggle:hover {
   color: #555;
 }
@@ -214,7 +228,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
 }
 
 .article .resources .nodes {
-  padding-left: 40px;
+  padding-left: 55px;
   padding-right: 40px;
 }
 
@@ -974,6 +988,10 @@ span.annotation.formula_reference, span.publication_reference {
   .article .medial-strip .context-toggles .context-toggle span {
     display: block;
     font-size: 11px;
+  }
+
+  .article .medial-strip .context-toggles .context-toggle div.label {
+    display: none;
   }
 
   .article.figures .context-toggles .context-toggle.figures {

@@ -91,7 +91,7 @@ var Renderer = function(reader) {
       'href': '#',
       'sbs-click': 'switchContext(toc)',
       'title': 'Text',
-      'html': '<i class="icon-align-left"></i><span> Text</span>'
+      'html': '<i class="icon-align-left"></i><span> Text</span><div class="label">Contents</div>'
     }));
   }
 
@@ -100,7 +100,7 @@ var Renderer = function(reader) {
       'href': '#',
       'sbs-click': 'switchContext(figures)',
       'title': 'Figures',
-      'html': '<i class="icon-picture"></i><span> Figures</span>'
+      'html': '<i class="icon-picture"></i><span> Figures</span><div class="label">Figures</div>'
     }));
   }
 
@@ -109,7 +109,7 @@ var Renderer = function(reader) {
       'href': '#',
       'sbs-click': 'switchContext(citations)',
       'title': 'Citations',
-      'html': '<i class="icon-link"></i><span> Citations</span>'
+      'html': '<i class="icon-link"></i><span> Citations</span><div class="label">Citations</div>'
     }));
   }
 
@@ -117,8 +117,8 @@ var Renderer = function(reader) {
     children.push($$('a.context-toggle.definitions', {
       'href': '#',
       'sbs-click': 'switchContext(definitions)',
-      'title': 'Definitions',
-      'html': '<i class="icon-book"></i><span>Definitions</span>'
+      'title': 'Glossary',
+      'html': '<i class="icon-book"></i><span>Glossary</span><div class="label">Glossary</div>'
     }));
   }
 
@@ -127,7 +127,7 @@ var Renderer = function(reader) {
       'href': '#',
       'sbs-click': 'switchContext(info)',
       'title': 'Article Info',
-      'html': '<i class="icon-info-sign"></i><span>Info</span>'
+      'html': '<i class="icon-info-sign"></i><span>Info</span><div class="label">Info</div>'
     }));
   }
 
