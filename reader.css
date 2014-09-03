@@ -596,6 +596,10 @@ span.annotation.formula_reference, span.publication_reference {
   font-size: 12px;
 }
 
+.article .cover span.superscript, .article .cover span.subscript, .article .cover sup, .article .cover sub {
+  font-size: inherit;
+}
+
 .article span.subscript, .article sub {
   top: 0.4em;
 }
