@@ -131,6 +131,18 @@ var Renderer = function(reader) {
     }));
   }
 
+  var pubInfo = reader.doc.get('publication_info')
+
+  if (pubInfo.pdf_link) {
+    // PDF Link
+    children.push($$('a.context-toggle.pdf', {
+      'href': pubInfo.pdf_link,
+      'target': '_blank',
+      'style': 'position: absolute;',
+      'title': 'Download PDF',
+      'html': '<i class="icon-print"></i><div class="label">PDF</div>'
+    }));
+  }
 
 
 
@@ -205,6 +217,7 @@ var ReaderView = function(readerCtrl) {
   this.readerCtrl = readerCtrl;
 
   var doc = this.readerCtrl.content.__document;
+  this.doc = doc;
 
   this.$el.addClass('article');
   this.$el.addClass(doc.schema.id); // Substance article or lens article?

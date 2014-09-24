@@ -142,6 +142,11 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   font-family: 'Avenir LT W01 85 Heavy', 'Montserrat', 'Source Sans Pro';
 }
 
+
+.article .context-toggles .context-toggle.pdf {
+  margin-top: 40px;
+}
+
 .article .context-toggles .context-toggle i {
 
 }
