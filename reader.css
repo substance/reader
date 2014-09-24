@@ -126,7 +126,6 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   left: 0px;
   right: 0px;
   
-  background: #fff;
   z-index: 5000;
 }
 
@@ -139,6 +138,7 @@ out (on iOS 5.1), or flicker (on iOS 6). */
   line-height: 40px;
   font-size: 22px;
   color: #aaa;
+  background: #fff;
   font-family: 'Avenir LT W01 85 Heavy', 'Montserrat', 'Source Sans Pro';
 }
 
