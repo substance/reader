@@ -108,8 +108,8 @@ var Renderer = function(reader) {
     children.push($$('a.context-toggle.citations', {
       'href': '#',
       'sbs-click': 'switchContext(citations)',
-      'title': 'Citations',
-      'html': '<i class="icon-link"></i><span> Citations</span><div class="label">Citations</div>'
+      'title': 'References',
+      'html': '<i class="icon-link"></i><span> References</span><div class="label">References</div>'
     }));
   }
 
