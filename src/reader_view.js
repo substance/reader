@@ -319,12 +319,12 @@ ReaderView.Prototype = function() {
 
   this.markActiveHeading = function(scrollTop) {
     var contentHeight = $('.nodes').height();
-
+    var tocView = this.panelViews.toc;
     // No headings?
-    if (this.tocView.headings.length === 0) return;
+    if (tocView.headings.length === 0) return;
 
     // Use first heading as default
-    var activeNode = _.first(this.tocView.headings).id;
+    var activeNode = _.first(tocView.headings).id;
 
     this.contentView.$('.content-node.heading').each(function() {
       if (scrollTop >= $(this).position().top + CORRECTION) {
@@ -334,9 +334,9 @@ ReaderView.Prototype = function() {
 
     // Edge case: select last item (once we reach the end of the doc)
     if (scrollTop + this.contentView.$el.height() >= contentHeight) {
-      activeNode = _.last(this.tocView.headings).id;
+      activeNode = _.last(tocView.headings).id;
     }
-    this.tocView.setActiveNode(activeNode);
+    tocView.setActiveNode(activeNode);
   };
 
   // Toggle on-off a resource
@@ -553,15 +553,12 @@ ReaderView.Prototype = function() {
     // -------------------
 
     if (state.context === "toc") {
-      // that.resourcesOutline.surface = this.tocView;
       $(that.resourcesOutline.el).addClass('hidden');
       return;
     } else if (this.panelViews[state.context]) {
       that.resourcesOutline.surface = this.panelViews[state.context];
     } else {
-      // that.resourcesOutline.surface = this.panelViews['info'];
-      $(that.resourcesOutline.el).addClass('hidden');
-      return;
+      that.resourcesOutline.surface = this.panelViews['info'];
     }
 
     $(that.resourcesOutline.el).removeClass('hidden');
