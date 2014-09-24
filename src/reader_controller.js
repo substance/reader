@@ -1,9 +1,9 @@
 "use strict";
 
-var Document = require("substance-document");
+var _ = require('underscore');
 var Controller = require("substance-application").Controller;
 var ReaderView = require("./reader_view");
-var util = require("substance-util");
+var PanelFactory = require("./panel_factory");
 
 // Reader.Controller
 // -----------------
@@ -18,32 +18,24 @@ var ReaderController = function(doc, state, options) {
   // E.g. context information
   this.options = options || {};
 
+  this.panelFactory = options.panelFactory || new PanelFactory();
+
   // Reader state
   // -------
 
-  this.content = new Document.Controller(doc, {view: "content"});
+  this.panelCtrls = {};
 
-  if (doc.get('figures')) {
-    this.figures = new Document.Controller(doc, {view: "figures"});
-  }
+  this.contentCtrl = this.panelFactory.createPanelController(doc, 'content');
 
-  if (doc.get('citations')) {
-    this.citations = new Document.Controller(doc, {view: "citations"});
-  }
-
-  if (doc.get('info')) {
-    this.info = new Document.Controller(doc, {view: "info"});
-  }
-
-  if (doc.get('definitions')) {
-    this.definitions = new Document.Controller(doc, {view: "definitions"});
-  }
+  _.each(this.panelFactory.getNames(), function(name) {
+    if (name === 'content' || name === 'toc') return;
+    this.panelCtrls[name] = this.panelFactory.createPanelController(doc, name);
+  }, this);
 
   this.state = state;
 
   // Current explicitly set context
   this.currentContext = "toc";
-
 };
 
 ReaderController.Prototype = function() {
@@ -55,7 +47,7 @@ ReaderController.Prototype = function() {
 
   // Explicit context switch
   // --------
-  // 
+  //
 
   this.switchContext = function(context) {
     // Remember scrollpos of previous context
@@ -74,12 +66,12 @@ ReaderController.Prototype = function() {
 
   // TODO: Transition to ao new solid API
   // --------
-  // 
+  //
 
   this.getActiveControllers = function() {
     var result = [];
     result.push(["article", this]);
-    result.push(["reader", this.content]);
+    result.push(["reader", this.panelCtrls[this.context]]);
     return result;
   };
 };

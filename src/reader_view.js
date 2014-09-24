@@ -1,62 +1,17 @@
 "use strict";
 
 var _ = require("underscore");
-var util = require("substance-util");
-var html = util.html;
-var Surface = require("substance-surface");
 var Outline = require("lens-outline");
 var View = require("substance-application").View;
-var TOC = require("substance-toc");
 var Data = require("substance-data");
 var Index = Data.Graph.Index;
 var $$ = require("substance-application").$$;
 
 var CORRECTION = -100; // Extra offset from the top
 
-
-var addResourceHeader = function(docCtrl, nodeView) {
-  var node = nodeView.node;
-  var typeDescr = node.constructor.description;
-
-  // Don't render resource headers in info panel (except for contributor nodes)
-  // TODO: Do we really need 'collaborator'?
-  if (docCtrl.view === "info" && node.type !== "contributor" && node.type !== "collaborator") {
-    return;
-  }
-
-  var children = [
-    $$('a.name', {
-      href: "#",
-      text: node.header ,
-      "sbs-click": "toggleResource("+node.id+")"
-    })
-  ];
-
-  var config = node.constructor.config;
-  if (config && config.zoomable) {
-    children.push($$('a.toggle-fullscreen', {
-      "href": "#",
-      "html": "<i class=\"icon-resize-full\"></i><i class=\"icon-resize-small\"></i>",
-      "sbs-click": "toggleFullscreen("+node.id+")"
-    }));
-  }
-
-  children.push($$('a.toggle-res', {
-    "href": "#",
-    "sbs-click": "toggleResource("+node.id+")",
-    "html": "<i class=\"icon-eye-open\"></i><i class=\"icon-eye-close\"></i>"
-  }));
-
-  var resourceHeader = $$('.resource-header', {
-    children: children
-  });
-  nodeView.el.insertBefore(resourceHeader, nodeView.content);
-};
-
-
 // Renders the reader view
 // --------
-// 
+//
 // .document
 // .context-toggles
 //   .toggle-toc
@@ -76,63 +31,29 @@ var Renderer = function(reader) {
   // Prepare doc view
   // --------
 
-  var docView = $$('.document');
-  docView.appendChild(reader.contentView.render().el);
+  var docViewEl = $$('.document');
+  docViewEl.appendChild(reader.contentView.render().el);
 
   // Prepare context toggles
   // --------
 
   var children = [];
 
+  var panelFactory = reader.panelFactory;
+  _.each(panelFactory.getNames(), function(name) {
+    if (name === 'content') return;
+    if (reader.panelViews[name]) {
+      var spec = panelFactory.getSpec(name);
+      children.push($$('a.context-toggle.' + name, {
+        'href': '#',
+        'sbs-click': 'switchContext('+name+')',
+        'title': spec.title,
+        'html': '<i class="' + spec.icon + '"></i><span> '+spec.label+'</span><div class="label">'+spec.label+'</div>'
+      }));
+    }
+  });
 
-  //  && reader.tocView.headings.length > 2
-  if (reader.tocView) {
-    children.push($$('a.context-toggle.toc', {
-      'href': '#',
-      'sbs-click': 'switchContext(toc)',
-      'title': 'Text',
-      'html': '<i class="icon-align-left"></i><span> Text</span><div class="label">Contents</div>'
-    }));
-  }
-
-  if (reader.figuresView) {
-    children.push($$('a.context-toggle.figures', {
-      'href': '#',
-      'sbs-click': 'switchContext(figures)',
-      'title': 'Figures',
-      'html': '<i class="icon-picture"></i><span> Figures</span><div class="label">Figures</div>'
-    }));
-  }
-
-  if (reader.citationsView) {
-    children.push($$('a.context-toggle.citations', {
-      'href': '#',
-      'sbs-click': 'switchContext(citations)',
-      'title': 'References',
-      'html': '<i class="icon-link"></i><span> References</span><div class="label">References</div>'
-    }));
-  }
-
-  if (reader.definitionsView) {
-    children.push($$('a.context-toggle.definitions', {
-      'href': '#',
-      'sbs-click': 'switchContext(definitions)',
-      'title': 'Glossary',
-      'html': '<i class="icon-book"></i><span>Glossary</span><div class="label">Glossary</div>'
-    }));
-  }
-
-  if (reader.infoView) {
-    children.push($$('a.context-toggle.info', {
-      'href': '#',
-      'sbs-click': 'switchContext(info)',
-      'title': 'Article Info',
-      'html': '<i class="icon-info-sign"></i><span>Info</span><div class="label">Info</div>'
-    }));
-  }
-
-  var pubInfo = reader.doc.get('publication_info')
-
+  var pubInfo = reader.doc.get('publication_info');
   if (pubInfo.pdf_link) {
     // PDF Link
     children.push($$('a.context-toggle.pdf', {
@@ -144,19 +65,16 @@ var Renderer = function(reader) {
     }));
   }
 
-
-
   var contextToggles = $$('.context-toggles', {
     children: children
   });
-
 
   // Prepare resources view
   // --------
 
   var medialStrip = $$('.medial-strip');
 
-  var collection = reader.readerCtrl.options.collection
+  var collection = reader.readerCtrl.options.collection;
   if (collection) {
     medialStrip.appendChild($$('a.back-nav', {
       'href': collection.url,
@@ -169,37 +87,21 @@ var Renderer = function(reader) {
   medialStrip.appendChild(contextToggles);
 
   frag.appendChild(medialStrip);
-  
-  // Wrap everything within resources view
-  var resourcesView = $$('.resources');
 
+  // Wrap everything within resources view
+  var resourcesViewEl = $$('.resources');
 
   // resourcesView.appendChild(medialStrip);
-  
 
-  // Add TOC
-  // --------
- 
-  resourcesView.appendChild(reader.tocView.render().el);
+  _.each(panelFactory.getNames(), function(name) {
+    if (name === 'content') return;
+    if (reader.panelViews[name]) {
+      resourcesViewEl.appendChild(reader.panelViews[name].render().el);
+    }
+  });
 
-  if (reader.figuresView) {
-    resourcesView.appendChild(reader.figuresView.render().el);
-  }
-  
-  if (reader.citationsView) {
-    resourcesView.appendChild(reader.citationsView.render().el);
-  }
-
-  if (reader.definitionsView) {
-    resourcesView.appendChild(reader.definitionsView.render().el);
-  }
-
-  if (reader.infoView) {
-    resourcesView.appendChild(reader.infoView.render().el);
-  }
-
-  frag.appendChild(docView);
-  frag.appendChild(resourcesView);
+  frag.appendChild(docViewEl);
+  frag.appendChild(resourcesViewEl);
   return frag;
 };
 
@@ -215,8 +117,9 @@ var ReaderView = function(readerCtrl) {
   // --------
 
   this.readerCtrl = readerCtrl;
+  this.panelFactory = readerCtrl.panelFactory;
 
-  var doc = this.readerCtrl.content.__document;
+  var doc = this.readerCtrl.contentCtrl.__document;
   this.doc = doc;
 
   this.$el.addClass('article');
@@ -226,82 +129,39 @@ var ReaderView = function(readerCtrl) {
   // Only relevant
   this.bodyScroll = {};
 
-  var ArticleRenderer = this.readerCtrl.content.__document.constructor.Renderer;
-
   // Surfaces
   // --------
+  var panelFactory = readerCtrl.panelFactory;
 
   // A Substance.Document.Writer instance is provided by the controller
-  this.contentView = new Surface(this.readerCtrl.content, {
-    editable: false,
-    renderer: new ArticleRenderer(this.readerCtrl.content, {
-      // afterRender: addFocusControls
-    })
-  });
+  this.contentView = panelFactory.createPanelView('content', readerCtrl.contentCtrl);
 
-  // Table of Contents 
-  // --------
-
-  this.tocView = new TOC(this.readerCtrl);
-
-  this.tocView.$el.addClass('resource-view');
-
-  // A Surface for the figures view
-  if (this.readerCtrl.figures && this.readerCtrl.figures.get('figures').nodes.length) {
-    this.figuresView = new Surface(this.readerCtrl.figures, {
-      editable: false,
-      renderer: new ArticleRenderer(this.readerCtrl.figures, {
-        afterRender: addResourceHeader
-      })
-    });
-    this.figuresView.$el.addClass('resource-view');
-  }
-
-  // A Surface for the citations view
-  if (this.readerCtrl.citations && this.readerCtrl.citations.get('citations').nodes.length) {
-    this.citationsView = new Surface(this.readerCtrl.citations, {
-      editable: false,
-      renderer: new ArticleRenderer(this.readerCtrl.citations, {
-        afterRender: addResourceHeader
-      })
-    });
-    this.citationsView.$el.addClass('resource-view');
-  }
-
-
-  // A Surface for the definitions View
-  if (this.readerCtrl.definitions && this.readerCtrl.definitions.get('definitions').nodes.length) {
-    this.definitionsView = new Surface(this.readerCtrl.definitions, {
-      editable: false,
-      renderer: new ArticleRenderer(this.readerCtrl.definitions, {
-        afterRender: addResourceHeader
-      })
-    });
-    this.definitionsView.$el.addClass('resource-view');
-  }
-
-  // A Surface for the info view
-  if (this.readerCtrl.info && this.readerCtrl.info.get('info').nodes.length) {
-    this.infoView = new Surface(this.readerCtrl.info, {
-      editable: false,
-      renderer: new ArticleRenderer(this.readerCtrl.info, {
-        afterRender: addResourceHeader
-      })
-    });
-    this.infoView.$el.addClass('resource-view');
-  }
+  // Panels
+  // ------
+  this.panelViews = {};
+  _.each(panelFactory.getNames(), function(name) {
+    if (name === 'content') return;
+    var spec = panelFactory.getSpec(name);
+    if (spec.shouldBeVisible(name, doc)) {
+      var panelView;
+      if (name === 'toc') {
+        panelView = panelFactory.createPanelView('toc', readerCtrl.contentCtrl);
+      } else if (readerCtrl.panelCtrls[name]) {
+        panelView = panelFactory.createPanelView(name, readerCtrl.panelCtrls[name]);
+      }
+      if (panelView) this.panelViews[name] = panelView;
+    }
+  }, this);
 
   // Whenever a state change happens (e.g. user navigates somewhere)
   // the interface gets updated accordingly
   this.listenTo(this.readerCtrl, "state-changed", this.updateState);
 
-
   // Keep an index for resources
   this.resources = new Index(this.readerCtrl.__document, {
-    types: ["figure_reference", "citation_reference", "contributor_reference", "definition_reference"],
+    types: ["resource_reference"],
     property: "target"
   });
-
 
   // Outline
   // --------
@@ -316,7 +176,7 @@ var ReaderView = function(readerCtrl) {
 
   // DOM Events
   // --------
-  // 
+  //
 
   this.contentView.$el.on('scroll', _.bind(this.onContentScroll, this));
 
@@ -335,7 +195,7 @@ var ReaderView = function(readerCtrl) {
   this.$el.on('click', '.annotation.cross_reference', _.bind(this.followCrossReference, this));
 
   // this.$el.on('click', '.document .content-node.heading', _.bind(this.setAnchor, this));
-  
+
   this.$el.on('click', '.document .content-node.heading .top', _.bind(this.gotoTop, this));
 
   this.outline.$el.on('click', '.node', _.bind(this._jumpToNode, this));
@@ -344,7 +204,7 @@ var ReaderView = function(readerCtrl) {
 
 
 ReaderView.Prototype = function() {
-  
+
   this.setAnchor = function(e) {
     this.toggleNode('toc', $(e.currentTarget).attr('id'));
   };
@@ -354,11 +214,11 @@ ReaderView.Prototype = function() {
     this.jumpToNode("cover");
     $(document).scrollTop(0);
     return false;
-  }
+  };
 
   // Toggles on and off the zoom
   // --------
-  // 
+  //
 
   this.toggleFullscreen = function(resourceId) {
     var state = this.readerCtrl.state;
@@ -405,7 +265,7 @@ ReaderView.Prototype = function() {
     var aid = $(e.currentTarget).attr('id');
     var a = this.readerCtrl.__document.get(aid);
 
-    var nodeId = this.readerCtrl.content.container.getRoot(a.path[0]);
+    var nodeId = this.readerCtrl.contentCtrl.container.getRoot(a.path[0]);
     var resourceId = a.target;
 
     if (resourceId === state.resource) {
@@ -558,7 +418,7 @@ ReaderView.Prototype = function() {
 
   // Get scroll position of active panel
   // --------
-  // 
+  //
   // Content, Figures, Citations, Info
 
   this.getScroll = function() {
@@ -568,7 +428,7 @@ ReaderView.Prototype = function() {
 
   // Recover scroll from previous state (if there is any)
   // --------
-  // 
+  //
   // TODO: retrieve from cookie to persist scroll pos over reload?
 
   this.recoverScroll = function() {
@@ -584,7 +444,7 @@ ReaderView.Prototype = function() {
 
   // Save current scroll position
   // --------
-  // 
+  //
 
   this.saveScroll = function() {
     this.bodyScroll[this.readerCtrl.state.context] = this.getScroll();
@@ -607,22 +467,22 @@ ReaderView.Prototype = function() {
 
   // Update Reader State
   // --------
-  // 
+  //
   // Called every time the controller state has been modified
   // Search for readerCtrl.modifyState occurences
 
   this.updateState = function(options) {
     options = options || {};
     var state = this.readerCtrl.state;
-    var that = this;
 
     // Set context on the reader view
     // -------
 
+    // TODO: we should have collected all resource types at this point
     this.$el.removeClass('toc figures citations info definitions');
     this.contentView.$('.content-node.active').removeClass('active');
     this.$el.addClass(state.context);
-  
+
     if (state.node) {
       this.contentView.$('#'+state.node).addClass('active');
     }
@@ -636,14 +496,14 @@ ReaderView.Prototype = function() {
 
   // Based on the current application state, highlight the current resource
   // -------
-  // 
+  //
   // Triggered by updateState
 
   this.updateResource = function() {
     var state = this.readerCtrl.state;
     this.$('.resources .content-node.active').removeClass('active fullscreen');
     this.contentView.$('.annotation.active').removeClass('active');
-    
+
     if (state.resource) {
       // Show selected resource
       var $res = this.$('#'+state.resource);
@@ -674,14 +534,12 @@ ReaderView.Prototype = function() {
 
   // Whenever the app state changes
   // --------
-  // 
+  //
   // Triggered by updateResource.
 
   this.updateOutline = function() {
     var that = this;
     var state = this.readerCtrl.state;
-    var container = this.readerCtrl.content.container;
-
     var nodes = this.getResourceReferenceContainers();
 
     that.outline.update({
@@ -698,14 +556,12 @@ ReaderView.Prototype = function() {
       // that.resourcesOutline.surface = this.tocView;
       $(that.resourcesOutline.el).addClass('hidden');
       return;
-    } else if (state.context === "figures") {
-      that.resourcesOutline.surface = this.figuresView;
-    } else if (state.context === "citations") {
-      that.resourcesOutline.surface = this.citationsView;
-    } else if (state.context === "definitions") {
-      that.resourcesOutline.surface = this.definitionsView;
+    } else if (this.panelViews[state.context]) {
+      that.resourcesOutline.surface = this.panelViews[state.context];
     } else {
-      that.resourcesOutline.surface = this.infoView;
+      // that.resourcesOutline.surface = this.panelViews['info'];
+      $(that.resourcesOutline.el).addClass('hidden');
+      return;
     }
 
     $(that.resourcesOutline.el).removeClass('hidden');
@@ -727,21 +583,12 @@ ReaderView.Prototype = function() {
     // For that we take all references pointing to the resource
     // and find the root of the node on which the annotation sticks on.
     var references = this.resources.get(state.resource);
-    var container = this.readerCtrl.content.container;
+    var container = this.readerCtrl.contentCtrl.container;
     var nodes = _.uniq(_.map(references, function(ref) {
       var nodeId = container.getRoot(ref.path[0]);
       return nodeId;
     }));
     return nodes;
-  };
-
-  // Annotate current selection
-  // --------
-  //
-
-  this.annotate = function(type) {
-    this.readerCtrl.content.annotate(type);
-    return false;
   };
 
   // Rendering
@@ -763,7 +610,7 @@ ReaderView.Prototype = function() {
     _.delay(function() {
       // Render outline that sticks on this.surface
       that.updateState();
-      MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+      window.MathJax.Hub.Queue(["Typeset", window.MathJax.Hub]);
     }, 1);
 
     // Wait for stuff to be rendered (e.g. formulas)
@@ -788,7 +635,7 @@ ReaderView.Prototype = function() {
     }
 
     $(window).resize(lazyOutline);
-    
+
     return this;
   };
 
