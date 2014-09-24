@@ -180,17 +180,24 @@ var ReaderView = function(readerCtrl) {
 
   this.contentView.$el.on('scroll', _.bind(this.onContentScroll, this));
 
-  // Resource content that is being scrolled
-  if (this.figuresView) this.figuresView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
-  if (this.citationsView) this.citationsView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
-  if (this.definitionsView) this.definitionsView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
-  if (this.infoView) this.infoView.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
+  // handle scrolling in resource panels
+  _.each(this.panelFactory.getNames(), function(name) {
+    if (!this.panelViews[name]) return;
 
-  // Resource references
-  this.$el.on('click', '.annotation.figure_reference', _.bind(this.toggleFigureReference, this));
-  this.$el.on('click', '.annotation.citation_reference', _.bind(this.toggleCitationReference, this));
-  this.$el.on('click', '.annotation.contributor_reference', _.bind(this.toggleContributorReference, this));
-  this.$el.on('click', '.annotation.definition_reference', _.bind(this.toggleDefinitionReference, this));
+    var spec = this.panelFactory.getSpec(name);
+    var panel = this.panelViews[name];
+    panel.$el.on('scroll', _.bind(this.onResourceContentScroll, this));
+
+    // Resource references
+    //
+    // attach click handler to open the right panel when clicking on
+    // a reference in the content panel
+    _.each(spec.references, function(refType) {
+      this.$el.on('click', '.annotation.' + refType, _.bind(this.toggleResourceReference, this, spec.name));
+    }, this);
+
+  }, this);
+
 
   this.$el.on('click', '.annotation.cross_reference', _.bind(this.followCrossReference, this));
 
@@ -240,26 +247,6 @@ ReaderView.Prototype = function() {
   // --------
   //
 
-  this.toggleFigureReference = function(e) {
-    this.toggleResourceReference('figures', e);
-    e.preventDefault();
-  };
-
-  this.toggleDefinitionReference = function(e) {
-    this.toggleResourceReference('definitions', e);
-    e.preventDefault();
-  };
-
-  this.toggleCitationReference = function(e) {
-    this.toggleResourceReference('citations', e);
-    e.preventDefault();
-  };
-
-  this.toggleContributorReference = function(e) {
-    this.toggleResourceReference('info', e);
-    e.preventDefault();
-  };
-
   this.toggleResourceReference = function(context, e) {
     var state = this.readerCtrl.state;
     var aid = $(e.currentTarget).attr('id');
@@ -284,6 +271,8 @@ ReaderView.Prototype = function() {
 
       this.jumpToResource(resourceId);
     }
+
+    e.preventDefault();
   };
 
   // Follow cross reference
