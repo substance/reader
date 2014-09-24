@@ -334,7 +334,7 @@ var ReaderView = function(readerCtrl) {
 
   this.$el.on('click', '.annotation.cross_reference', _.bind(this.followCrossReference, this));
 
-  this.$el.on('click', '.document .content-node.heading', _.bind(this.setAnchor, this));
+  // this.$el.on('click', '.document .content-node.heading', _.bind(this.setAnchor, this));
   
   this.$el.on('click', '.document .content-node.heading .top', _.bind(this.gotoTop, this));
 
